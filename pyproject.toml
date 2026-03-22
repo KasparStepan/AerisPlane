@@ -1,0 +1,32 @@
+[project]
+name = "aerisplane"
+version = "0.1.0"
+description = "Conceptual MDO toolkit for RC/UAV aircraft design"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+    "aerosandbox>=4.0",
+]
+
+[project.optional-dependencies]
+oas = ["openaerostruct>=2.7", "openmdao>=3.30"]
+optimize = ["pygmo>=2.19"]
+dev = ["pytest>=7.0", "ruff>=0.1.0"]
+all = ["aerisplane[oas,optimize,dev]"]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

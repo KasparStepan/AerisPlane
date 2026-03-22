@@ -1,0 +1,190 @@
+"""Airfoil geometry definition with NACA generators and file I/O."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional
+
+import numpy as np
+
+
+@dataclass
+class Airfoil:
+    """Airfoil defined by name and/or coordinates.
+
+    Parameters
+    ----------
+    name : str
+        Airfoil name (e.g., "naca2412", "ag35", "custom").
+    coordinates : ndarray or None
+        (N, 2) array of [x, y] coordinates in Selig format
+        (trailing edge → upper surface → leading edge → lower surface → trailing edge).
+        If None and name starts with "naca", coordinates are generated automatically.
+    """
+
+    name: str
+    coordinates: Optional[np.ndarray] = field(default=None, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.coordinates is None and self.name.lower().startswith("naca"):
+            digits = self.name.lower().replace("naca", "").strip()
+            if len(digits) == 4 and digits.isdigit():
+                self.coordinates = naca4_coordinates(digits)
+            elif len(digits) == 5 and digits.isdigit():
+                # 5-digit NACA not implemented yet — store name only
+                pass
+        if self.coordinates is not None:
+            self.coordinates = np.asarray(self.coordinates, dtype=float)
+
+    @staticmethod
+    def from_naca(designation: str, n_points: int = 100) -> Airfoil:
+        """Create airfoil from NACA 4-digit designation.
+
+        Parameters
+        ----------
+        designation : str
+            NACA 4-digit string, e.g. "2412" or "0012".
+        n_points : int
+            Number of points per surface (upper + lower).
+        """
+        coords = naca4_coordinates(designation, n_points=n_points)
+        return Airfoil(name=f"naca{designation}", coordinates=coords)
+
+    @staticmethod
+    def from_file(path: str | Path) -> Airfoil:
+        """Load airfoil from a Selig-format .dat file.
+
+        The first line is the airfoil name. Subsequent lines are x y coordinate pairs.
+        """
+        path = Path(path)
+        lines = path.read_text().strip().splitlines()
+        name = lines[0].strip()
+        coords = []
+        for line in lines[1:]:
+            parts = line.split()
+            if len(parts) >= 2:
+                try:
+                    coords.append([float(parts[0]), float(parts[1])])
+                except ValueError:
+                    continue
+        return Airfoil(name=name, coordinates=np.array(coords))
+
+    def thickness(self) -> float:
+        """Maximum thickness as fraction of chord.
+
+        Returns 0.0 if coordinates are not available.
+        """
+        if self.coordinates is None:
+            return 0.0
+        x = self.coordinates[:, 0]
+        y = self.coordinates[:, 1]
+
+        # Find the leading edge index (minimum x)
+        le_idx = np.argmin(x)
+
+        # Upper surface: from TE to LE (indices 0..le_idx)
+        x_upper = x[: le_idx + 1]
+        y_upper = y[: le_idx + 1]
+
+        # Lower surface: from LE to TE (indices le_idx..end)
+        x_lower = x[le_idx:]
+        y_lower = y[le_idx:]
+
+        # Interpolate both surfaces onto common x stations
+        x_stations = np.linspace(0.0, 1.0, 101)
+        y_up = np.interp(x_stations, np.sort(x_upper), y_upper[np.argsort(x_upper)])
+        y_lo = np.interp(x_stations, np.sort(x_lower), y_lower[np.argsort(x_lower)])
+
+        return float(np.max(y_up - y_lo))
+
+    def max_camber(self) -> float:
+        """Maximum camber as fraction of chord.
+
+        Returns 0.0 if coordinates are not available.
+        """
+        if self.coordinates is None:
+            return 0.0
+        x = self.coordinates[:, 0]
+        y = self.coordinates[:, 1]
+
+        le_idx = np.argmin(x)
+
+        x_upper = x[: le_idx + 1]
+        y_upper = y[: le_idx + 1]
+        x_lower = x[le_idx:]
+        y_lower = y[le_idx:]
+
+        x_stations = np.linspace(0.0, 1.0, 101)
+        y_up = np.interp(x_stations, np.sort(x_upper), y_upper[np.argsort(x_upper)])
+        y_lo = np.interp(x_stations, np.sort(x_lower), y_lower[np.argsort(x_lower)])
+
+        camber_line = (y_up + y_lo) / 2.0
+        return float(np.max(np.abs(camber_line)))
+
+
+def naca4_coordinates(designation: str, n_points: int = 100) -> np.ndarray:
+    """Generate NACA 4-digit airfoil coordinates.
+
+    Parameters
+    ----------
+    designation : str
+        4-digit string, e.g. "2412". Digits: max camber %, camber position /10, thickness %.
+    n_points : int
+        Number of points per surface.
+
+    Returns
+    -------
+    coordinates : ndarray
+        (2*n_points - 1, 2) array in Selig format (upper TE → LE → lower TE).
+    """
+    m = int(designation[0]) / 100.0       # max camber
+    p = int(designation[1]) / 10.0        # position of max camber
+    t = int(designation[2:4]) / 100.0     # thickness
+
+    # Cosine spacing for better resolution at LE and TE
+    beta = np.linspace(0.0, np.pi, n_points)
+    x = 0.5 * (1.0 - np.cos(beta))
+
+    # Thickness distribution (NACA formula, finite TE)
+    yt = (
+        t
+        / 0.2
+        * (
+            0.2969 * np.sqrt(x)
+            - 0.1260 * x
+            - 0.3516 * x**2
+            + 0.2843 * x**3
+            - 0.1015 * x**4
+        )
+    )
+
+    # Camber line and its gradient
+    if m == 0.0 or p == 0.0:
+        yc = np.zeros_like(x)
+        dyc_dx = np.zeros_like(x)
+    else:
+        yc = np.where(
+            x <= p,
+            m / p**2 * (2.0 * p * x - x**2),
+            m / (1.0 - p) ** 2 * ((1.0 - 2.0 * p) + 2.0 * p * x - x**2),
+        )
+        dyc_dx = np.where(
+            x <= p,
+            2.0 * m / p**2 * (p - x),
+            2.0 * m / (1.0 - p) ** 2 * (p - x),
+        )
+
+    theta = np.arctan(dyc_dx)
+
+    # Upper and lower surfaces
+    x_upper = x - yt * np.sin(theta)
+    y_upper = yc + yt * np.cos(theta)
+    x_lower = x + yt * np.sin(theta)
+    y_lower = yc - yt * np.cos(theta)
+
+    # Selig format: upper surface from TE to LE, then lower surface from LE to TE
+    x_coords = np.concatenate([x_upper[::-1], x_lower[1:]])
+    y_coords = np.concatenate([y_upper[::-1], y_lower[1:]])
+
+    return np.column_stack([x_coords, y_coords])
