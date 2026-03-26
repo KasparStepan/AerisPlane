@@ -1,7 +1,7 @@
 # Weights Module — Implementation Plan
 
 **Date:** 2026-03-26
-**Status:** Steps 1–6 complete (core module, tests, report, plot, catalog materials)
+**Status:** Core module complete + extensions: placement geometry, CG envelope/ballast, geometry-based ribs, fasteners
 **Authoritative spec:** `docs/superpowers/specs/2026-03-22-aerisplane-framework-design.md` (Section 4.2)
 
 ---
@@ -285,17 +285,18 @@ Wing loading: 28.3 g/dm²
 
 ---
 
-## 5. Future Extensions (Not In This Implementation)
+## 5. Completed Extensions
 
-These are planned but will be done in separate follow-up work:
+- **Component boxes + intersection/containment checks** (`core/placement.py`) — `ComponentBox` AABB, `boxes_intersect()`, `fuselage_contains_box()`, `validate_placement()` with `PlacementResult.report()`. 28 tests.
+- **Rib mass from geometry** (`buildup.py`) — rib count from spacing rule (default 60mm), rib area from airfoil thickness × chord (ellipse approx), rib material from skin. Ribs are now a separate `{wing}_ribs` component.
+- **Fastener/joiner mass** (`buildup.py`) — 4 fasteners per wing-fuselage joint + 2 per control surface hinge. `DEFAULT_FASTENER_MASS = 3g`.
+- **CG envelope** (`weights/cg_analysis.py`) — `compute_cg_envelope()` across multiple loading configs, with `CGEnvelope.report()` and `.plot()`.
+- **Ballast calculation** (`weights/cg_analysis.py`) — `compute_ballast()` solves for required ballast mass to hit a target CG_x.
 
-- **Component boxes + intersection/containment checks** — give each hardware component physical dimensions (bounding box), check that components fit inside fuselage/wing volumes, check no two components overlap. Enables placement optimization in MDO.
-- **Rib mass from geometry** — compute rib count from spacing rule, rib area from airfoil profile, instead of percentage estimate.
-- **Fastener/joiner mass** — wing-to-fuselage bolts, tail boom joiners.
+## 5b. Remaining Future Extensions
+
 - **Wire harness estimate** — mass scales with fuselage length + wingspan.
 - **3D print infill correction** — adjust effective density for infill percentage in structural sections.
-- **CG envelope** — CG range across loading configurations (with/without payload, different batteries).
-- **Ballast calculation** — compute required ballast mass to hit target CG.
 - **Side-view CG diagram** — aircraft outline with component boxes and CG position visualization.
 
 ---
