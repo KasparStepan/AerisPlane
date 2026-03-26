@@ -326,12 +326,18 @@ class WeightResult:
         fig.tight_layout(pad=1.0)
         return fig
 
-    def plot_cg_bars(self):
-        """CG position bar chart showing each component's x-position.
+    def plot_cg_bars(self, bin_width_mm: float = 100):
+        """Mass histogram along the x-axis.
 
-        Returns a matplotlib Figure with horizontal bars indicating the
-        CG x-position of each component, colored by mass fraction.
-        Bar width encodes mass. Overall CG shown as a vertical red line.
+        Shows how much mass sits in each spatial interval along the
+        aircraft length. Each bar represents the total mass of all
+        components whose CG falls within that bin. Overall CG is
+        marked as a dashed red vertical line.
+
+        Parameters
+        ----------
+        bin_width_mm : float
+            Histogram bin width in millimeters. Default 100 mm.
         """
         import matplotlib.pyplot as plt
         import seaborn as sns
@@ -340,58 +346,81 @@ class WeightResult:
 
         sns.set_theme(style="whitegrid", palette=PALETTE, font_scale=0.95)
 
-        fig, ax = plt.subplots(figsize=(12, 7))
+        fig, ax = plt.subplots(figsize=(12, 6))
 
-        sorted_comps = sorted(
-            self.components.values(), key=lambda c: c.cg[0], reverse=False
+        cg_x_mm = np.array([c.cg[0] * 1000 for c in self.components.values()])
+        masses_g = np.array([c.mass * 1000 for c in self.components.values()])
+
+        # Build bins covering the full x-range
+        x_min = 0
+        x_max = float(np.ceil(cg_x_mm.max() / bin_width_mm + 1) * bin_width_mm)
+        bin_edges = np.arange(x_min, x_max + bin_width_mm, bin_width_mm)
+
+        # Sum mass in each bin
+        bin_masses = np.zeros(len(bin_edges) - 1)
+        bin_components: list[list[str]] = [[] for _ in range(len(bin_masses))]
+        for comp in self.components.values():
+            cx = comp.cg[0] * 1000
+            idx = int((cx - x_min) // bin_width_mm)
+            idx = min(idx, len(bin_masses) - 1)
+            bin_masses[idx] += comp.mass * 1000
+            bin_components[idx].append(comp.name.replace("_", " "))
+
+        bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+        colors = sns.color_palette(PALETTE, n_colors=max(len(bin_masses), 1))
+
+        bars = ax.bar(
+            bin_centers, bin_masses, width=bin_width_mm * 0.85,
+            color=[colors[i % len(colors)] for i in range(len(bin_masses))],
+            edgecolor="white", linewidth=1, zorder=2,
         )
-        names = [c.name.replace("_", " ") for c in sorted_comps]
-        cg_x_mm = [c.cg[0] * 1000 for c in sorted_comps]
-        masses_g = [c.mass * 1000 for c in sorted_comps]
 
-        # Color by mass fraction
-        max_mass = max(c.mass for c in sorted_comps) if sorted_comps else 1
-        cmap = plt.cm.get_cmap("YlOrRd")
-        bar_colors = [cmap(0.2 + 0.7 * c.mass / max_mass) for c in sorted_comps]
-
-        # Bar height proportional to mass (normalized)
-        bar_heights = [0.3 + 0.6 * (m / max(masses_g)) for m in masses_g] if masses_g else [0.5]
-
-        for i, (name, x, mass_g, h, color) in enumerate(
-            zip(names, cg_x_mm, masses_g, bar_heights, bar_colors)
-        ):
-            ax.barh(
-                i, x, height=h, color=color,
-                edgecolor="white", linewidth=0.8, zorder=2,
-            )
-            pct = mass_g / (self.total_mass * 1000) * 100 if self.total_mass > 0 else 0
+        # Label each bar with mass and component names
+        for bar, mass_g, names in zip(bars, bin_masses, bin_components):
+            if mass_g < 0.1:
+                continue
+            # Mass label above bar
             ax.text(
-                x + 3, i,
-                f" {x:.0f} mm  ({mass_g:.1f}g, {pct:.0f}%)",
-                va="center", ha="left", fontsize=8, color="#333333",
+                bar.get_x() + bar.get_width() / 2, bar.get_height(),
+                f"{mass_g:.0f}g",
+                ha="center", va="bottom", fontsize=9, fontweight="bold",
+                color="#333333",
             )
+            # Component names inside/below bar (if space allows)
+            if names and mass_g > self.total_mass * 1000 * 0.03:
+                label = "\n".join(names[:4])
+                if len(names) > 4:
+                    label += f"\n+{len(names) - 4} more"
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    bar.get_height() / 2,
+                    label, ha="center", va="center",
+                    fontsize=6.5, color="white", alpha=0.9,
+                )
 
         # Overall CG vertical line
         cg_x = self.cg[0] * 1000
         ax.axvline(cg_x, color="#EA4335", linewidth=2.5, linestyle="--", zorder=3, alpha=0.8)
         ax.text(
-            cg_x, -0.8,
-            f"  CG = {cg_x:.0f} mm",
+            cg_x + 5, ax.get_ylim()[1] * 0.95,
+            f"CG = {cg_x:.0f} mm",
             fontsize=10, fontweight="bold", color="#EA4335",
             ha="left", va="top",
         )
 
-        ax.set_yticks(range(len(names)))
-        ax.set_yticklabels(names)
-        ax.set_xlabel("CG$_x$ position [mm]", fontsize=11)
+        # X-axis tick labels as ranges
+        tick_labels = [f"{int(e)}–{int(e + bin_width_mm)}" for e in bin_edges[:-1]]
+        ax.set_xticks(bin_centers)
+        ax.set_xticklabels(tick_labels, fontsize=8, rotation=30, ha="right")
+
+        ax.set_xlabel("x-position interval [mm]", fontsize=11)
+        ax.set_ylabel("Mass [g]", fontsize=11)
         ax.set_title(
-            "Component CG$_x$ Positions (bar width ∝ mass)",
+            f"Mass Distribution Along Aircraft Length ({bin_width_mm:.0f} mm bins)",
             fontsize=12, fontweight="bold",
         )
-        x_max = max(cg_x_mm) * 1.35 if cg_x_mm else 1
-        ax.set_xlim(0, x_max)
-        ax.grid(axis="x", alpha=0.3, linewidth=0.8)
-        ax.grid(axis="y", alpha=0)
+        ax.grid(axis="y", alpha=0.3, linewidth=0.8)
+        ax.grid(axis="x", alpha=0)
         fig.tight_layout(pad=1.0)
         return fig
 
@@ -399,8 +428,8 @@ class WeightResult:
         """Donut/ring chart of mass distribution with callout labels.
 
         Returns a matplotlib Figure with a ring-shaped pie chart.
-        Labels are placed in two columns (left and right) with connecting
-        lines to their slices, keeping the chart clean and readable.
+        Every slice gets a black label with a straight connecting line.
+        Labels are distributed in left/right columns to avoid overlap.
         """
         import matplotlib.pyplot as plt
         import seaborn as sns
@@ -409,7 +438,7 @@ class WeightResult:
 
         sns.set_theme(style="whitegrid", palette=PALETTE, font_scale=0.95)
 
-        fig, ax = plt.subplots(figsize=(14, 8))
+        fig, ax = plt.subplots(figsize=(14, 9))
 
         sorted_comps = sorted(
             self.components.values(), key=lambda c: c.mass, reverse=True
@@ -428,66 +457,62 @@ class WeightResult:
             wedgeprops={"width": 0.45, "edgecolor": "white", "linewidth": 1.5},
         )
 
-        # Collect labels that need placement, split into left/right
-        right_labels = []  # tx > 0 (right side of chart)
-        left_labels = []   # tx <= 0 (left side)
+        # Collect ALL labels, split into left/right by slice position
+        right_labels = []
+        left_labels = []
 
-        for wedge, name, mass_g, comp, color in zip(
-            wedges, names, masses_g, sorted_comps, colors
+        for wedge, name, mass_g, comp in zip(
+            wedges, names, masses_g, sorted_comps
         ):
             angle = (wedge.theta2 + wedge.theta1) / 2
             angle_rad = np.radians(angle)
 
             pct = comp.mass / self.total_mass * 100 if self.total_mass > 0 else 0
-            if pct < 1.5:
-                continue
 
             # Anchor on outer edge of ring
             ring_r = 0.775
             anchor_x = -ring_r * np.cos(angle_rad)
             anchor_y = ring_r * np.sin(angle_rad)
 
-            # Natural text direction
-            tx_sign = -1 if np.cos(angle_rad) > 0 else 1
-            label_text = f"{name}  {mass_g:.1f}g ({pct:.0f}%)"
+            # Which side does the slice face?
+            is_right = anchor_x >= 0
+            label_text = f"{name}  {mass_g:.1f}g ({pct:.1f}%)"
 
-            entry = (anchor_x, anchor_y, tx_sign, label_text, color, angle)
-            if tx_sign > 0:
+            entry = (anchor_x, anchor_y, label_text, angle)
+            if is_right:
                 right_labels.append(entry)
             else:
                 left_labels.append(entry)
 
-        # Distribute labels evenly in each column to avoid overlap
-        # Use min spacing to determine vertical extent needed
-        min_spacing = 0.22  # minimum y-gap between labels
+        # Place labels in evenly-spaced columns
+        min_spacing = 0.18
 
         def _place_labels(labels, side, ax):
             if not labels:
                 return
-            # Sort by anchor y-position (top to bottom)
+            # Sort by anchor y (top to bottom)
             labels.sort(key=lambda e: -e[1])
             n = len(labels)
-            # Center the label stack, with min_spacing between each
             total_height = (n - 1) * min_spacing
             y_top = total_height / 2
-            text_x = 1.6 if side == "right" else -1.6
+            text_x = 1.55 if side == "right" else -1.55
             ha = "left" if side == "right" else "right"
 
-            for i, (ax_x, ax_y, _, label_text, color, _angle) in enumerate(labels):
+            for i, (ax_x, ax_y, label_text, _angle) in enumerate(labels):
                 ty = y_top - i * min_spacing
 
                 ax.annotate(
                     label_text,
                     xy=(ax_x, ax_y),
                     xytext=(text_x, ty),
-                    fontsize=8.5,
-                    color="#333333",
+                    fontsize=8,
+                    fontweight="normal",
+                    color="black",
                     ha=ha, va="center",
                     arrowprops={
                         "arrowstyle": "-",
-                        "color": color,
-                        "linewidth": 1.0,
-                        "connectionstyle": "arc3,rad=0.05",
+                        "color": "#555555",
+                        "linewidth": 0.7,
                     },
                 )
 
@@ -499,7 +524,7 @@ class WeightResult:
             0, 0,
             f"{self.total_mass * 1000:.0f}g\n{self.wing_loading:.1f} g/dm²",
             ha="center", va="center",
-            fontsize=14, fontweight="bold", color="#333333",
+            fontsize=14, fontweight="bold", color="black",
         )
 
         ax.set_title(
@@ -508,7 +533,6 @@ class WeightResult:
         )
 
         # Compute y-limits to fit all labels
-        all_labels = right_labels + left_labels
         max_n_side = max(len(right_labels), len(left_labels), 1)
         y_extent = max((max_n_side - 1) * min_spacing / 2 + 0.3, 1.3)
         ax.set_xlim(-2.3, 2.3)
