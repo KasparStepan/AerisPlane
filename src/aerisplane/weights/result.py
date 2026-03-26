@@ -122,67 +122,114 @@ class WeightResult:
         return "\n".join(lines)
 
     def plot(self):
-        """Mass breakdown pie chart and side-view CG diagram.
+        """Mass breakdown horizontal bar chart and side-view CG diagram.
 
         Returns a matplotlib Figure with two subplots:
-        1. Pie chart of component masses
-        2. Side-view (x-z) CG diagram with component positions
+        1. Horizontal bar chart of component masses (sorted, with % labels)
+        2. Side-view (x-z) CG diagram with sized bubbles and annotations
 
-        Raises ImportError if matplotlib is not available.
+        Uses AerisPlane/AeroSandbox-style formatting for clean, readable output.
         """
         import matplotlib.pyplot as plt
+        import seaborn as sns
 
-        fig, (ax_pie, ax_cg) = plt.subplots(1, 2, figsize=(14, 6))
+        from aerisplane.utils.plotting import PALETTE
 
-        # --- Pie chart ---
+        sns.set_theme(style="whitegrid", palette=PALETTE, font_scale=0.95)
+
+        fig, (ax_bar, ax_cg) = plt.subplots(
+            1, 2, figsize=(15, 6),
+            gridspec_kw={"width_ratios": [1, 1.2]},
+        )
+
         sorted_comps = sorted(
-            self.components.values(), key=lambda c: c.mass, reverse=True
+            self.components.values(), key=lambda c: c.mass, reverse=False
         )
-        names = [c.name for c in sorted_comps]
-        masses = [c.mass for c in sorted_comps]
+        names = [c.name.replace("_", " ") for c in sorted_comps]
+        masses_g = [c.mass * 1000 for c in sorted_comps]
 
-        ax_pie.pie(
-            masses,
-            labels=names,
-            autopct="%1.1f%%",
-            startangle=90,
+        # --- Horizontal bar chart ---
+        colors = sns.color_palette("husl", n_colors=len(sorted_comps))
+        bars = ax_bar.barh(names, masses_g, color=colors, edgecolor="white", linewidth=0.5)
+
+        # Add mass labels at bar ends
+        for bar, comp in zip(bars, sorted_comps):
+            pct = comp.mass / self.total_mass * 100 if self.total_mass > 0 else 0
+            label = f" {comp.mass * 1000:.1f}g ({pct:.0f}%)"
+            ax_bar.text(
+                bar.get_width(), bar.get_y() + bar.get_height() / 2,
+                label, va="center", ha="left", fontsize=8, color="#333333",
+            )
+
+        ax_bar.set_xlabel("Mass [g]")
+        ax_bar.set_title(
+            f"Mass Breakdown — {self.total_mass * 1000:.0f}g total, "
+            f"{self.wing_loading:.1f} g/dm²",
+            fontsize=11, fontweight="bold",
         )
-        ax_pie.set_title("Mass Breakdown")
+        # Extend x-axis to fit labels
+        x_max = max(masses_g) * 1.45 if masses_g else 1
+        ax_bar.set_xlim(0, x_max)
+        ax_bar.grid(axis="x", alpha=0.3, linewidth=0.8)
+        ax_bar.grid(axis="y", alpha=0)
+
+        # Mark override vs computed
+        for i, comp in enumerate(sorted_comps):
+            if comp.source == "override":
+                ax_bar.text(
+                    -2, i, "*", fontsize=10, fontweight="bold",
+                    color="#EA4335", ha="right", va="center",
+                )
 
         # --- Side-view CG diagram ---
-        for comp in sorted_comps:
+        # Bubble sizes: scale so the largest component is a readable circle
+        max_mass = max(c.mass for c in sorted_comps) if sorted_comps else 1
+        for idx, comp in enumerate(sorted_comps):
+            size = (comp.mass / max_mass) * 600 + 30  # min 30, max 630
             ax_cg.scatter(
                 comp.cg[0] * 1000,
                 comp.cg[2] * 1000,
-                s=comp.mass * 5000,  # circle size proportional to mass
-                alpha=0.5,
+                s=size,
+                color=colors[idx],
+                alpha=0.7,
+                edgecolors="white",
+                linewidth=0.5,
                 zorder=2,
             )
-            ax_cg.annotate(
-                comp.name,
-                (comp.cg[0] * 1000, comp.cg[2] * 1000),
-                fontsize=7,
-                ha="center",
-                va="bottom",
-            )
 
-        # Overall CG
+        # Label only the top components (> 3% of total) to avoid clutter
+        threshold = self.total_mass * 0.03
+        for idx, comp in enumerate(sorted_comps):
+            if comp.mass >= threshold:
+                ax_cg.annotate(
+                    comp.name.replace("_", " "),
+                    (comp.cg[0] * 1000, comp.cg[2] * 1000),
+                    fontsize=7.5,
+                    ha="center", va="bottom",
+                    xytext=(0, 8), textcoords="offset points",
+                    color="#333333",
+                )
+
+        # Overall CG crosshair
         ax_cg.scatter(
-            self.cg[0] * 1000,
-            self.cg[2] * 1000,
-            s=200,
-            c="red",
-            marker="x",
-            linewidths=3,
-            zorder=3,
-            label=f"CG ({self.cg[0] * 1000:.1f}, {self.cg[2] * 1000:.1f}) mm",
+            self.cg[0] * 1000, self.cg[2] * 1000,
+            s=250, c="#EA4335", marker="+", linewidths=3, zorder=4,
         )
-        ax_cg.set_xlabel("x [mm]")
-        ax_cg.set_ylabel("z [mm]")
-        ax_cg.set_title("Side View — Component CG Positions")
-        ax_cg.legend()
-        ax_cg.set_aspect("equal")
-        ax_cg.grid(True, alpha=0.3)
+        ax_cg.annotate(
+            f"CG\n({self.cg[0] * 1000:.0f}, {self.cg[2] * 1000:.0f}) mm",
+            (self.cg[0] * 1000, self.cg[2] * 1000),
+            fontsize=9, fontweight="bold", color="#EA4335",
+            ha="left", va="top",
+            xytext=(10, -5), textcoords="offset points",
+        )
 
-        fig.tight_layout()
+        ax_cg.set_xlabel("x [mm]", fontsize=10)
+        ax_cg.set_ylabel("z [mm]", fontsize=10)
+        ax_cg.set_title("Side View — Component Positions", fontsize=11, fontweight="bold")
+        ax_cg.set_aspect("equal")
+        ax_cg.grid(True, which="major", alpha=0.3, linewidth=0.8)
+        ax_cg.grid(True, which="minor", alpha=0.15, linewidth=0.4)
+        ax_cg.minorticks_on()
+
+        fig.tight_layout(pad=0.8)
         return fig

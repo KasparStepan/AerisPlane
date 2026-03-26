@@ -113,30 +113,44 @@ class CGEnvelope:
     def plot(self):
         """Plot CG_x vs total mass for all configurations.
 
-        Returns a matplotlib Figure.
+        Returns a matplotlib Figure with clean AeroSandbox-style formatting.
         """
         import matplotlib.pyplot as plt
+        import seaborn as sns
 
-        fig, ax = plt.subplots(figsize=(8, 5))
+        from aerisplane.utils.plotting import PALETTE
 
-        for case in self.cases:
+        sns.set_theme(style="whitegrid", palette=PALETTE, font_scale=0.95)
+
+        fig, ax = plt.subplots(figsize=(9, 5))
+
+        colors = sns.color_palette("husl", n_colors=max(len(self.cases), 1))
+
+        for i, case in enumerate(self.cases):
             ax.scatter(
                 case.result.cg[0] * 1000,
                 case.result.total_mass * 1000,
-                s=100, zorder=3,
+                s=120, zorder=3, color=colors[i],
+                edgecolors="white", linewidth=1.5,
             )
             ax.annotate(
                 case.name,
                 (case.result.cg[0] * 1000, case.result.total_mass * 1000),
-                fontsize=8, ha="left", va="bottom",
-                xytext=(5, 5), textcoords="offset points",
+                fontsize=9, ha="left", va="bottom",
+                xytext=(8, 6), textcoords="offset points",
+                color="#333333",
             )
 
-        ax.set_xlabel("CG_x [mm]")
-        ax.set_ylabel("Total mass [g]")
-        ax.set_title("CG Envelope — Loading Configurations")
-        ax.grid(True, alpha=0.3)
-        fig.tight_layout()
+        ax.set_xlabel("CG$_x$ [mm]", fontsize=10)
+        ax.set_ylabel("Total mass [g]", fontsize=10)
+        ax.set_title(
+            "CG Envelope — Loading Configurations",
+            fontsize=11, fontweight="bold",
+        )
+        ax.grid(True, which="major", alpha=0.3, linewidth=0.8)
+        ax.grid(True, which="minor", alpha=0.15, linewidth=0.4)
+        ax.minorticks_on()
+        fig.tight_layout(pad=0.8)
         return fig
 
 
