@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Callable, Optional, Sequence
 
 import numpy as np
 
@@ -193,3 +193,224 @@ class Wing:
         if dy == 0.0:
             return 0.0
         return float(np.degrees(np.arctan2(dz, dy)))
+
+    # ------------------------------------------------------------------ #
+    # Geometry computation helpers (used by aero solvers)
+    # ------------------------------------------------------------------ #
+    # Adapted from AeroSandbox v4.2.9 by Peter Sharpe (MIT License)
+    # https://github.com/peterdsharpe/AeroSandbox
+
+    def _rotation_matrix_3d(self, angle: float, axis: np.ndarray) -> np.ndarray:
+        """Rotation matrix for *angle* (radians) about an arbitrary *axis*."""
+        axis = axis / np.linalg.norm(axis)
+        ux, uy, uz = axis
+        c, s = np.cos(angle), np.sin(angle)
+        return np.array([
+            [c + ux**2 * (1 - c),       ux * uy * (1 - c) - uz * s, ux * uz * (1 - c) + uy * s],
+            [uy * ux * (1 - c) + uz * s, c + uy**2 * (1 - c),       uy * uz * (1 - c) - ux * s],
+            [uz * ux * (1 - c) - uy * s, uz * uy * (1 - c) + ux * s, c + uz**2 * (1 - c)],
+        ])
+
+    def _compute_frame_of_WingXSec(
+        self, index: int
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Local (xg, yg, zg) reference frame of cross-section *index*, in geometry axes.
+
+        xg points chordwise (downstream), yg along the span, zg completes the
+        right-hand system. Twist is applied about yg.
+        """
+        def _proj_yz_normalise(v: np.ndarray) -> np.ndarray:
+            yz = np.array([0.0, v[1], v[2]])
+            return yz / np.linalg.norm(yz)
+
+        xg_local = np.array([1.0, 0.0, 0.0])
+
+        if index == 0:
+            yg_local = _proj_yz_normalise(self.xsecs[1].xyz_le - self.xsecs[0].xyz_le)
+            z_scale = 1.0
+        elif index >= len(self.xsecs) - 1:
+            yg_local = _proj_yz_normalise(self.xsecs[-1].xyz_le - self.xsecs[-2].xyz_le)
+            z_scale = 1.0
+        else:
+            vb = _proj_yz_normalise(self.xsecs[index].xyz_le - self.xsecs[index - 1].xyz_le)
+            va = _proj_yz_normalise(self.xsecs[index + 1].xyz_le - self.xsecs[index].xyz_le)
+            span_vec = (vb + va) / 2.0
+            yg_local = span_vec / np.linalg.norm(span_vec)
+            cos_v = float(np.dot(vb, va))
+            z_scale = np.sqrt(2.0 / (cos_v + 1.0))
+
+        zg_local = np.cross(xg_local, yg_local) * z_scale
+
+        # Apply twist about yg_local
+        twist_rad = np.radians(self.xsecs[index].twist)
+        if twist_rad != 0.0:
+            rot = self._rotation_matrix_3d(twist_rad, yg_local)
+            xg_local = rot @ xg_local
+            zg_local = rot @ zg_local
+
+        return xg_local, yg_local, zg_local
+
+    def _compute_xyz_of_WingXSec(
+        self, index: int, x_nondim: float, z_nondim: float
+    ) -> np.ndarray:
+        """3-D point on cross-section *index* at normalised chord (x_nondim) and
+        normal (z_nondim) positions."""
+        xg, yg, zg = self._compute_frame_of_WingXSec(index)
+        c = self.xsecs[index].chord
+        return self.xsecs[index].xyz_le + x_nondim * c * xg + z_nondim * c * zg
+
+    def _compute_frame_of_section(
+        self, index: int
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Local frame of the section *between* xsecs[index] and xsecs[index+1]."""
+        in_front = self.xsecs[index].xyz_le
+        in_back = self._compute_xyz_of_WingXSec(index, x_nondim=1, z_nondim=0)
+        out_front = self.xsecs[index + 1].xyz_le
+        out_back = self._compute_xyz_of_WingXSec(index + 1, x_nondim=1, z_nondim=0)
+
+        diag1 = out_back - in_front
+        diag2 = out_front - in_back
+        cross = np.cross(diag1, diag2)
+        zg_local = cross / np.linalg.norm(cross)
+
+        qc_vec = (0.75 * out_front + 0.25 * out_back) - (0.75 * in_front + 0.25 * in_back)
+        qc_vec[0] = 0.0
+        yg_local = qc_vec / np.linalg.norm(qc_vec)
+        xg_local = np.cross(yg_local, zg_local)
+
+        return xg_local, yg_local, zg_local
+
+    # ------------------------------------------------------------------ #
+    # Subdivision and meshing
+    # ------------------------------------------------------------------ #
+
+    def subdivide_sections(
+        self,
+        ratio: int,
+        spacing_function: Callable = None,
+    ) -> Wing:
+        """Split each section into *ratio* sub-sections by interpolation.
+
+        Parameters
+        ----------
+        ratio : int
+            Number of sub-sections per original section (>= 2).
+        spacing_function : callable(start, stop, num) → array, optional
+            Defaults to ``numpy.linspace``.
+        """
+        if spacing_function is None:
+            spacing_function = np.linspace
+
+        new_xsecs: list[WingXSec] = []
+        fracs = spacing_function(0.0, 1.0, ratio + 1)[:-1]
+
+        for xsec_a, xsec_b in zip(self.xsecs[:-1], self.xsecs[1:]):
+            for s in fracs:
+                a_w, b_w = 1.0 - s, s
+                if b_w == 0 or xsec_a.airfoil == xsec_b.airfoil:
+                    af = xsec_a.airfoil
+                elif a_w == 0:
+                    af = xsec_b.airfoil
+                else:
+                    af = xsec_a.airfoil.blend_with_another_airfoil(
+                        airfoil=xsec_b.airfoil, blend_fraction=b_w
+                    )
+                new_xsecs.append(WingXSec(
+                    xyz_le=xsec_a.xyz_le * a_w + xsec_b.xyz_le * b_w,
+                    chord=xsec_a.chord * a_w + xsec_b.chord * b_w,
+                    twist=xsec_a.twist * a_w + xsec_b.twist * b_w,
+                    airfoil=af,
+                ))
+
+        new_xsecs.append(self.xsecs[-1])
+        return Wing(
+            name=self.name,
+            xsecs=new_xsecs,
+            symmetric=self.symmetric,
+            control_surfaces=self.control_surfaces,
+        )
+
+    def mesh_line(
+        self,
+        x_nondim: float | Sequence[float] = 0.25,
+        z_nondim: float | Sequence[float] = 0.0,
+        add_camber: bool = True,
+    ) -> list[np.ndarray]:
+        """Return 3-D points at normalised (x_nondim, z_nondim) along each xsec.
+
+        Goes from root to tip. Ignores symmetry (single side only).
+        If *add_camber* is True, the camber of each section's airfoil is added to z_nondim.
+        """
+        points: list[np.ndarray] = []
+        for i, xsec in enumerate(self.xsecs):
+            xn = x_nondim[i] if isinstance(x_nondim, (list, np.ndarray)) else x_nondim
+            zn = z_nondim[i] if isinstance(z_nondim, (list, np.ndarray)) else z_nondim
+            if add_camber and xsec.airfoil is not None and xsec.airfoil.coordinates is not None:
+                zn = zn + xsec.airfoil.local_camber(xn)
+            points.append(self._compute_xyz_of_WingXSec(i, x_nondim=xn, z_nondim=zn))
+        return points
+
+    def mesh_thin_surface(
+        self,
+        chordwise_resolution: int = 4,
+        chordwise_spacing_function: Callable | None = None,
+        add_camber: bool = True,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Generate a structured quad mesh of the mean camber surface.
+
+        Parameters
+        ----------
+        chordwise_resolution : int
+            Number of chordwise panels.
+        chordwise_spacing_function : callable(start, stop, num) → array
+            Defaults to cosine spacing.
+        add_camber : bool
+            Whether to drape the mesh on the camber line.
+
+        Returns
+        -------
+        points : (N, 3) array
+            Mesh vertices.
+        faces : (M, 4) array
+            Quad face indices (front-left, back-left, back-right, front-right).
+        """
+        if chordwise_spacing_function is None:
+            from aerisplane.utils.spacing import cosspace
+            chordwise_spacing_function = cosspace
+
+        x_nondim = chordwise_spacing_function(0.0, 1.0, chordwise_resolution + 1)
+
+        # Generate spanwise strips — each strip is (num_xsecs, 3)
+        spanwise_strips = []
+        for xn in x_nondim:
+            strip = np.stack(self.mesh_line(x_nondim=xn, z_nondim=0.0, add_camber=add_camber), axis=0)
+            spanwise_strips.append(strip)
+
+        points = np.concatenate(spanwise_strips, axis=0)
+
+        num_i = len(spanwise_strips[0])   # spanwise stations
+        num_j = len(spanwise_strips)       # chordwise stations
+
+        def idx(i: int, j: int) -> int:
+            return i + j * num_i
+
+        faces = []
+        for i in range(num_i - 1):
+            for j in range(num_j - 1):
+                faces.append([idx(i, j), idx(i, j + 1), idx(i + 1, j + 1), idx(i + 1, j)])
+
+        if self.symmetric:
+            offset = len(points)
+            mirrored = points * np.array([[1.0, -1.0, 1.0]])
+            points = np.concatenate([points, mirrored], axis=0)
+            for i in range(num_i - 1):
+                for j in range(num_j - 1):
+                    # Reversed winding for left wing
+                    faces.append([
+                        offset + idx(i + 1, j),
+                        offset + idx(i + 1, j + 1),
+                        offset + idx(i, j + 1),
+                        offset + idx(i, j),
+                    ])
+
+        return points, np.array(faces, dtype=int)
