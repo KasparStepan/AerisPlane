@@ -7,6 +7,7 @@ import pytest
 import aerisplane as ap
 from aerisplane import weights
 from aerisplane.weights.buildup import (
+    _fastener_mass,
     _fuselage_mass,
     _hardware_masses,
     _payload_mass,
@@ -35,16 +36,22 @@ class TestWingMass:
         assert spar_comp.mass == pytest.approx(expected_mass, rel=1e-6)
 
     def test_skin_mass_rectangular_wing(self, wing_with_structure, petg_skin):
-        """Rectangular wing: skin mass = mass_per_area * wetted_area * rib_factor."""
+        """Rectangular wing: skin mass = mass_per_area * wetted_area (no rib factor)."""
         comps = _wing_mass(wing_with_structure)
-        skin_comp = next(c for c in comps if "skin" in c.name)
+        skin_comp = next(c for c in comps if c.name.endswith("_skin"))
 
         mpa = petg_skin.mass_per_area()
         # Wetted area per semi: chord * semispan * 2 surfaces = 0.2 * 0.75 * 2
         semi_wetted = 0.2 * 0.75 * 2.0
-        rib_factor = 1.15
-        expected_mass = mpa * semi_wetted * 2 * rib_factor  # * 2 for symmetric
+        expected_mass = mpa * semi_wetted * 2  # * 2 for symmetric
         assert skin_comp.mass == pytest.approx(expected_mass, rel=1e-6)
+
+    def test_rib_mass_separate_component(self, wing_with_structure):
+        """Ribs are now a separate component, not baked into skin."""
+        comps = _wing_mass(wing_with_structure)
+        rib_comp = next((c for c in comps if "ribs" in c.name), None)
+        assert rib_comp is not None
+        assert rib_comp.mass > 0
 
     def test_wing_spar_cg_symmetric(self, wing_with_structure):
         """Symmetric wing spar CG should have y=0."""
@@ -87,6 +94,70 @@ class TestWingMass:
         # Midpoint of panel is at y=0.375 (but x stays 0.1 for rectangular)
         expected_x = 0.1 + 0.25 * 0.2
         assert spar_comp.cg[0] == pytest.approx(expected_x, rel=1e-6)
+
+    def test_rib_mass_scales_with_chord(self):
+        """Bigger chord → bigger ribs → more rib mass."""
+        from aerisplane.catalog.materials import carbon_fiber_tube, petg
+
+        skin = ap.Skin(material=petg, thickness=0.8e-3)
+        spar = ap.Spar(position=0.25, material=carbon_fiber_tube,
+                        section=ap.TubeSection(outer_diameter=0.012, wall_thickness=0.0015))
+
+        wing_small = ap.Wing(name="small", xsecs=[
+            ap.WingXSec(xyz_le=[0, 0, 0], chord=0.15, spar=spar, skin=skin),
+            ap.WingXSec(xyz_le=[0, 0.5, 0], chord=0.15, spar=spar, skin=skin),
+        ], symmetric=True)
+        wing_big = ap.Wing(name="big", xsecs=[
+            ap.WingXSec(xyz_le=[0, 0, 0], chord=0.30, spar=spar, skin=skin),
+            ap.WingXSec(xyz_le=[0, 0.5, 0], chord=0.30, spar=spar, skin=skin),
+        ], symmetric=True)
+
+        ribs_small = next(c for c in _wing_mass(wing_small) if "ribs" in c.name)
+        ribs_big = next(c for c in _wing_mass(wing_big) if "ribs" in c.name)
+        assert ribs_big.mass > ribs_small.mass
+
+
+# ===================================================================
+# Fastener mass
+# ===================================================================
+
+class TestFastenerMass:
+    def test_fasteners_present(self, aircraft_with_structure):
+        """Fastener mass should be computed for aircraft with wings."""
+        comps = _fastener_mass(aircraft_with_structure)
+        assert len(comps) == 1
+        assert comps[0].name == "fasteners"
+        assert comps[0].mass > 0
+
+    def test_no_wings_no_fasteners(self):
+        ac = ap.Aircraft(name="empty")
+        comps = _fastener_mass(ac)
+        assert comps == []
+
+    def test_fastener_mass_scales_with_surfaces(self):
+        """More control surfaces → more hinge fasteners."""
+        servo = ap.Servo(name="s", torque=1, speed=100, voltage=6, mass=0.01)
+        wing_1cs = ap.Wing(name="w", xsecs=[
+            ap.WingXSec(xyz_le=[0, 0, 0], chord=0.2),
+            ap.WingXSec(xyz_le=[0, 0.5, 0], chord=0.2),
+        ], control_surfaces=[
+            ap.ControlSurface(name="a", span_start=0.5, span_end=1.0, chord_fraction=0.25, servo=servo),
+        ])
+        wing_3cs = ap.Wing(name="w", xsecs=[
+            ap.WingXSec(xyz_le=[0, 0, 0], chord=0.2),
+            ap.WingXSec(xyz_le=[0, 0.5, 0], chord=0.2),
+        ], control_surfaces=[
+            ap.ControlSurface(name="a", span_start=0.3, span_end=0.5, chord_fraction=0.25, servo=servo),
+            ap.ControlSurface(name="b", span_start=0.5, span_end=0.7, chord_fraction=0.25, servo=servo),
+            ap.ControlSurface(name="c", span_start=0.7, span_end=0.9, chord_fraction=0.25, servo=servo),
+        ])
+
+        ac1 = ap.Aircraft(name="1cs", wings=[wing_1cs])
+        ac3 = ap.Aircraft(name="3cs", wings=[wing_3cs])
+
+        m1 = _fastener_mass(ac1)[0].mass
+        m3 = _fastener_mass(ac3)[0].mass
+        assert m3 > m1
 
 
 # ===================================================================

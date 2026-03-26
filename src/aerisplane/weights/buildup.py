@@ -35,16 +35,54 @@ def _wing_panel_midpoint(wing: Wing, i: int) -> np.ndarray:
     return (wing.xsecs[i].xyz_le + wing.xsecs[i + 1].xyz_le) / 2.0
 
 
-def _wing_mass(wing: Wing) -> list[ComponentMass]:
-    """Compute wing structural mass from spars and skin.
+def _rib_area(chord: float, thickness_fraction: float) -> float:
+    """Approximate rib cross-section area [m^2].
 
-    Returns separate ComponentMass entries for spar and skin.
+    Estimates the enclosed area of an airfoil section as an ellipse:
+    area ≈ pi/4 * chord * (thickness_fraction * chord).
+    This is a reasonable approximation for typical airfoils.
+    """
+    return np.pi / 4.0 * chord * (thickness_fraction * chord)
+
+
+# Default rib spacing [m] — one rib every 60mm of span
+DEFAULT_RIB_SPACING = 0.060
+
+# Default rib thickness [m] — 2mm for 3D-printed or laser-cut ribs
+DEFAULT_RIB_THICKNESS = 0.002
+
+# Default airfoil thickness fraction when airfoil data is unavailable
+DEFAULT_THICKNESS_FRACTION = 0.12
+
+# Default fastener mass per joint [kg] — M3/M4 bolt + nut + washer
+DEFAULT_FASTENER_MASS = 0.003
+
+
+def _wing_mass(
+    wing: Wing,
+    rib_spacing: float = DEFAULT_RIB_SPACING,
+    rib_thickness: float = DEFAULT_RIB_THICKNESS,
+) -> list[ComponentMass]:
+    """Compute wing structural mass from spars, skin, and ribs.
+
+    Returns separate ComponentMass entries for spar, skin, and ribs.
     For symmetric wings, mass is doubled and CG_y is set to 0.
+
+    Parameters
+    ----------
+    wing : Wing
+        The wing to analyze.
+    rib_spacing : float
+        Distance between ribs [m]. Default 60mm.
+    rib_thickness : float
+        Rib plate thickness [m]. Default 2mm.
     """
     spar_mass_total = 0.0
     spar_cg_weighted = np.zeros(3)
     skin_mass_total = 0.0
     skin_cg_weighted = np.zeros(3)
+    rib_mass_total = 0.0
+    rib_cg_weighted = np.zeros(3)
 
     n_panels = len(wing.xsecs) - 1
     if n_panels <= 0:
@@ -102,6 +140,36 @@ def _wing_mass(wing: Wing) -> list[ComponentMass]:
             skin_cg[0] += 0.4 * avg_chord
             skin_cg_weighted += panel_skin_mass * skin_cg
 
+        # --- Rib mass ---
+        # Compute ribs for this panel if skin material is available (ribs use skin material)
+        skin_material = None
+        if sec0.skin is not None:
+            skin_material = sec0.skin.material
+        elif sec1.skin is not None:
+            skin_material = sec1.skin.material
+
+        if skin_material is not None and panel_span > 0:
+            n_ribs = max(1, int(panel_span / rib_spacing))
+            avg_chord = (sec0.chord + sec1.chord) / 2.0
+
+            # Get airfoil thickness fraction
+            tc0 = sec0.airfoil.thickness() if sec0.airfoil is not None else DEFAULT_THICKNESS_FRACTION
+            tc1 = sec1.airfoil.thickness() if sec1.airfoil is not None else DEFAULT_THICKNESS_FRACTION
+            if tc0 == 0:
+                tc0 = DEFAULT_THICKNESS_FRACTION
+            if tc1 == 0:
+                tc1 = DEFAULT_THICKNESS_FRACTION
+            avg_tc = (tc0 + tc1) / 2.0
+
+            single_rib_area = _rib_area(avg_chord, avg_tc)
+            single_rib_mass = single_rib_area * rib_thickness * skin_material.density
+            panel_rib_mass = single_rib_mass * n_ribs
+            rib_mass_total += panel_rib_mass
+
+            rib_cg = midpoint.copy()
+            rib_cg[0] += 0.4 * avg_chord
+            rib_cg_weighted += panel_rib_mass * rib_cg
+
     # For symmetric wings: double mass, set CG_y = 0
     symmetry_factor = 2.0 if wing.symmetric else 1.0
 
@@ -121,12 +189,20 @@ def _wing_mass(wing: Wing) -> list[ComponentMass]:
         skin_cg = skin_cg_weighted / skin_mass_total
         if wing.symmetric:
             skin_cg[1] = 0.0
-        # Add rib estimate: 15% of skin mass
-        rib_factor = 1.15
         components.append(ComponentMass(
             name=f"{wing.name}_skin",
-            mass=skin_mass_total * symmetry_factor * rib_factor,
+            mass=skin_mass_total * symmetry_factor,
             cg=skin_cg,
+        ))
+
+    if rib_mass_total > 0:
+        rib_cg = rib_cg_weighted / rib_mass_total
+        if wing.symmetric:
+            rib_cg[1] = 0.0
+        components.append(ComponentMass(
+            name=f"{wing.name}_ribs",
+            mass=rib_mass_total * symmetry_factor,
+            cg=rib_cg,
         ))
 
     return components
@@ -244,6 +320,52 @@ def _hardware_masses(aircraft: Aircraft) -> list[ComponentMass]:
 
 
 # ---------------------------------------------------------------------------
+# Fasteners
+# ---------------------------------------------------------------------------
+
+def _fastener_mass(aircraft: Aircraft) -> list[ComponentMass]:
+    """Estimate fastener mass for wing-fuselage and tail joints.
+
+    Counts joints: one per wing (wing-fuselage attachment) with 4 fasteners each,
+    plus 2 fasteners per control surface hinge line.
+
+    Each fastener is DEFAULT_FASTENER_MASS (M3/M4 bolt + nut + washer ≈ 3g).
+    """
+    total_fastener_mass = 0.0
+    cg_weighted = np.zeros(3)
+
+    for wing in aircraft.wings:
+        if len(wing.xsecs) < 2:
+            continue
+
+        # Wing-fuselage joint: 4 fasteners at the root
+        joint_mass = 4 * DEFAULT_FASTENER_MASS
+        joint_cg = wing.xsecs[0].xyz_le.copy()
+        joint_cg[0] += 0.25 * wing.xsecs[0].chord  # at quarter-chord
+
+        total_fastener_mass += joint_mass
+        cg_weighted += joint_mass * joint_cg
+
+        # Control surface hinges: 2 fasteners per surface
+        for cs in wing.control_surfaces:
+            hinge_mass = 2 * DEFAULT_FASTENER_MASS
+            total_fastener_mass += hinge_mass
+            # Hinge at surface midspan
+            mid_frac = (cs.span_start + cs.span_end) / 2.0
+            root_le = wing.xsecs[0].xyz_le
+            tip_le = wing.xsecs[-1].xyz_le
+            hinge_cg = root_le + mid_frac * (tip_le - root_le)
+            cg_weighted += hinge_mass * hinge_cg
+
+    if total_fastener_mass <= 0:
+        return []
+
+    cg = cg_weighted / total_fastener_mass
+
+    return [ComponentMass(name="fasteners", mass=total_fastener_mass, cg=cg)]
+
+
+# ---------------------------------------------------------------------------
 # Payload
 # ---------------------------------------------------------------------------
 
@@ -292,6 +414,9 @@ def compute_buildup(aircraft: Aircraft) -> list[ComponentMass]:
 
     # Hardware
     components.extend(_hardware_masses(aircraft))
+
+    # Fasteners
+    components.extend(_fastener_mass(aircraft))
 
     # Payload
     components.extend(_payload_mass(aircraft))
