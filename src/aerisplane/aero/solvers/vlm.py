@@ -250,6 +250,7 @@ class VortexLatticeMethod:
             wing_records.append({
                 "wing": wing,
                 "panel_start": panel_offset,
+                "n_panels": len(faces),
                 "n_strips": n_strips,
                 "is_symmetric": wing.symmetric,
                 "y_root": float(min(xsec.xyz_le[1] for xsec in w.xsecs)),
@@ -303,6 +304,7 @@ class VortexLatticeMethod:
         self.vortex_centers = vortex_centers
         self.vortex_bound_leg = vortex_bound_leg
         self.collocation_points = collocation_points
+        self.wing_records = wing_records   # per-wing panel info for post-processing
 
         # ── Freestream ────────────────────────────────────────────────────
         if self.verbose:
