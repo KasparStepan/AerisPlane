@@ -49,7 +49,11 @@ class VortexLatticeMethod:
     align_trailing_vortices_with_wind : bool
         If True, trailing vortex legs follow the freestream direction.
     vortex_core_radius : float
-        Kaufmann vortex core radius for singularity smoothing.
+        Kaufmann vortex core radius for singularity smoothing.  A small
+        non-zero value (default 1e-8) regularises the bound-leg self-influence
+        at the vortex centre so that term1 → 0 instead of 0/0 = NaN, while
+        leaving the trailing-vortex contributions (which drive induced drag)
+        unaffected.
     verbose : bool
         Print solver progress.
     """
@@ -63,7 +67,7 @@ class VortexLatticeMethod:
         spanwise_spacing_function: Callable | None = None,
         chordwise_spacing_function: Callable | None = None,
         align_trailing_vortices_with_wind: bool = True,
-        vortex_core_radius: float = 0.0,
+        vortex_core_radius: float = 1e-8,
         verbose: bool = False,
     ):
         self.aircraft = aircraft
@@ -316,11 +320,9 @@ class VortexLatticeMethod:
             gamma=_wide(self.vortex_strengths),
             vortex_core_radius=self.vortex_core_radius,
         )
-        # When field points coincide with bound-leg endpoints (e.g. vortex
-        # centers queried for their own panel), the Biot-Savart denominator
-        # is zero producing inf; inf * 0 cross-product → NaN.  The physical
-        # self-influence of a bound leg on a point along it is zero, so
-        # replacing NaN with 0 is correct.
+        # With vortex_core_radius > 0 the Kaufmann model evaluates to 0 at
+        # the singularity, so no NaN/inf should appear.  nan_to_num is kept
+        # as a defensive guard for degenerate panels (zero-area, etc.).
         u_induced = np.nan_to_num(u_induced, nan=0.0, posinf=0.0, neginf=0.0)
         v_induced = np.nan_to_num(v_induced, nan=0.0, posinf=0.0, neginf=0.0)
         w_induced = np.nan_to_num(w_induced, nan=0.0, posinf=0.0, neginf=0.0)

@@ -132,3 +132,24 @@ class Fuselage:
             return 0.0
         max_diameter = 2.0 * np.sqrt(max_area / np.pi)
         return self.length() / max_diameter
+
+    def area_base(self) -> float:
+        """Cross-section area of the tail (base) station [m^2]."""
+        if not self.xsecs:
+            return 0.0
+        return self.xsecs[-1].area()
+
+    def area_wetted(self) -> float:
+        """Wetted (external) surface area [m^2]. Alias for wetted_area()."""
+        return self.wetted_area()
+
+    def xsec_centers(self) -> list[np.ndarray]:
+        """3-D centre position of each cross-section in aircraft frame [m].
+
+        Returns a list of (3,) arrays [x, y, z], one per xsec.
+        Assumes the fuselage is aligned with the x-axis at (x_le, y_le, z_le).
+        """
+        return [
+            np.array([self.x_le + xsec.x, self.y_le, self.z_le])
+            for xsec in self.xsecs
+        ]

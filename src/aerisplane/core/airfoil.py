@@ -8,6 +8,31 @@ from typing import Optional
 
 import numpy as np
 
+_AIRFOIL_DB = Path(__file__).parent.parent / "catalog" / "airfoils"
+
+
+def _load_from_catalog(name: str) -> Optional[np.ndarray]:
+    """Try to load airfoil coordinates from the catalog by name.
+
+    Tries exact match first, then case-insensitive match.
+    Returns None if not found.
+    """
+    for candidate in (name, name.lower(), name.upper()):
+        path = _AIRFOIL_DB / f"{candidate}.dat"
+        if path.exists():
+            lines = path.read_text().strip().splitlines()
+            coords = []
+            for line in lines[1:]:  # skip name header
+                parts = line.split()
+                if len(parts) >= 2:
+                    try:
+                        coords.append([float(parts[0]), float(parts[1])])
+                    except ValueError:
+                        continue
+            if coords:
+                return np.array(coords)
+    return None
+
 
 @dataclass(eq=False)
 class Airfoil:
@@ -46,8 +71,10 @@ class Airfoil:
             if len(digits) == 4 and digits.isdigit():
                 self.coordinates = naca4_coordinates(digits)
             elif len(digits) == 5 and digits.isdigit():
-                # 5-digit NACA not implemented yet — store name only
+                # 5-digit NACA not implemented yet — fall through to catalog lookup
                 pass
+        if self.coordinates is None:
+            self.coordinates = _load_from_catalog(self.name)
         if self.coordinates is not None:
             self.coordinates = np.asarray(self.coordinates, dtype=float)
 
@@ -218,6 +245,74 @@ class Airfoil:
 
         camber_line = (y_up + y_lo) / 2.0
         return float(np.max(np.abs(camber_line)))
+
+
+    def get_aero_from_neuralfoil(
+        self,
+        alpha: float,
+        Re: float,
+        n_crit: float = 9.0,
+        xtr_upper: float = 1.0,
+        xtr_lower: float = 1.0,
+        model_size: str = "large",
+        control_surfaces=None,
+        # Legacy kwargs silently ignored (mach, include_360_deg_effects not in NF 0.3.x)
+        **_ignored,
+    ) -> dict:
+        """2-D aerodynamic coefficients from NeuralFoil.
+
+        Calls the NeuralFoil neural-network-based airfoil model to obtain CL,
+        CD, and CM at the given operating condition. NeuralFoil must be
+        installed (``pip install neuralfoil``).
+
+        Parameters
+        ----------
+        alpha : float or array
+            Angle of attack [deg].
+        Re : float or array
+            Reynolds number.
+        n_crit : float
+            Transition criterion (default 9.0).
+        model_size : str
+            NeuralFoil model size: "xxsmall", "xsmall", "small", "medium",
+            "large" (default), "xlarge", "xxlarge".
+        control_surfaces : list or None
+            Ignored for now (Phase 4 will wire in deflections).
+
+        Returns
+        -------
+        dict with keys "CL", "CD", "CM" (and others from NeuralFoil).
+        """
+        try:
+            import neuralfoil as nf
+        except ImportError as exc:
+            raise ImportError(
+                "NeuralFoil is required for AeroBuildup wing analysis.\n"
+                "Install with:  pip install neuralfoil"
+            ) from exc
+
+        coords = self.coordinates
+        if coords is None:
+            # No coordinates: generate from name if NACA 4-digit, else error
+            if self.name.lower().startswith("naca"):
+                digits = self.name.lower().replace("naca", "").strip()
+                if len(digits) == 4 and digits.isdigit():
+                    coords = naca4_coordinates(digits)
+            if coords is None:
+                raise ValueError(
+                    f"Airfoil '{self.name}' has no coordinates and cannot be "
+                    "converted to Kulfan parameters for NeuralFoil."
+                )
+
+        return nf.get_aero_from_coordinates(
+            coordinates=coords,
+            alpha=alpha,
+            Re=Re,
+            model_size=model_size,
+            n_crit=n_crit,
+            xtr_upper=xtr_upper,
+            xtr_lower=xtr_lower,
+        )
 
 
 def naca4_coordinates(designation: str, n_points: int = 100) -> np.ndarray:

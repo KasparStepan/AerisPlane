@@ -32,11 +32,28 @@ class FlightCondition:
     altitude: float = 0.0
     alpha: float = 0.0
     beta: float = 0.0
+    p: float = 0.0  # Roll rate [rad/s] in body axes
+    q: float = 0.0  # Pitch rate [rad/s] in body axes
+    r: float = 0.0  # Yaw rate [rad/s] in body axes
     deflections: dict[str, float] = field(default_factory=dict)
 
     def atmosphere(self) -> tuple[float, float, float, float]:
         """Return (temperature, pressure, density, viscosity) at altitude."""
         return isa(self.altitude)
+
+    def density(self) -> float:
+        """Air density at altitude [kg/m^3]."""
+        _, _, rho, _ = self.atmosphere()
+        return rho
+
+    def reynolds(self, reference_length: float) -> float:
+        """Reynolds number (alias for reynolds_number)."""
+        return self.reynolds_number(reference_length)
+
+    def copy(self) -> "FlightCondition":
+        """Return a shallow copy of this FlightCondition."""
+        import dataclasses
+        return dataclasses.replace(self)
 
     def dynamic_pressure(self) -> float:
         """Dynamic pressure q = 0.5 * rho * V^2 [Pa]."""

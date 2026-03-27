@@ -2,30 +2,35 @@
 
 Public API
 ----------
-analyze(aircraft, condition, backend="aerosandbox", method="vlm", **kwargs)
+analyze(aircraft, condition, method="vlm", **kwargs)
     Run a full aerodynamic analysis and return an AeroResult.
 
 plot_geometry(aircraft, style="three_view", show=True, save_path=None)
-    Plot aircraft geometry using AeroSandbox's matplotlib drawing routines.
+    Plot aircraft geometry.
     style="three_view" → 4-panel engineering drawing (top/front/side/iso).
     style="wireframe"  → single 3-D matplotlib wireframe.
 
-Supported backends
-------------------
-"aerosandbox"
-    AeroSandbox vortex lattice, lifting line, nonlinear lifting line,
-    and AeroBuildup (NeuralFoil). Default.
-
-"openaerostruct"
-    OpenAeroStruct adapter. Not yet implemented.
+Supported methods
+-----------------
+"vlm"
+    Vortex Lattice Method (inviscid). Fast, handles arbitrary geometry.
+"lifting_line"
+    Lifting-line with NeuralFoil section polars. Viscous + nonlinear.
+    Requires neuralfoil: pip install neuralfoil
+"nonlinear_lifting_line"
+    Nonlinear lifting-line: fixed-point iteration updating the LL RHS
+    with NeuralFoil CL at effective (geometric + induced) alpha.
+    Captures stall and spanwise stall progression.
+    Requires neuralfoil: pip install neuralfoil
+"aero_buildup"
+    Workbook-style AeroBuildup: NeuralFoil wings + Jorgensen fuselage.
+    Requires neuralfoil: pip install neuralfoil
 
 Example
 -------
->>> from aerisplane.aero import analyze, plot_geometry
->>> plot_geometry(aircraft)
+>>> from aerisplane.aero import analyze
 >>> result = analyze(aircraft, condition, method="vlm")
 >>> result.report()
->>> result.plot_spanwise_loading()
 """
 
 from __future__ import annotations
@@ -38,8 +43,8 @@ from aerisplane.aero.result import AeroResult
 def analyze(
     aircraft: Aircraft,
     condition: FlightCondition,
-    backend: str = "aerosandbox",
     method: str = "vlm",
+    backend: str = "native",
     spanwise_resolution: int = 8,
     chordwise_resolution: int = 4,
     model_size: str = "medium",
@@ -53,20 +58,20 @@ def analyze(
         aerisplane aircraft definition.
     condition : FlightCondition
         Operating point (velocity, altitude, alpha, beta, deflections).
-    backend : str
-        Solver backend. Currently only "aerosandbox" is supported.
     method : str
-        Solver method within the backend. For "aerosandbox":
-        "vlm" (default), "lifting_line", "nonlinear_lifting_line", "aero_buildup".
+        Solver method: "vlm" (default), "lifting_line",
+        "nonlinear_lifting_line", "aero_buildup".
+    backend : str
+        Solver backend. "native" (default) uses vendored solvers.
+        "aerosandbox" delegates to the AeroSandbox library (must be installed).
     spanwise_resolution : int
-        Number of spanwise panels / stations per wing section.
-        Applies to VLM, LiftingLine, NonlinearLiftingLine. Default 8.
+        Spanwise panels / stations per wing section.
+        Applies to VLM and LiftingLine. Default 8.
     chordwise_resolution : int
-        Number of chordwise panels per section. VLM only. Default 4.
+        Chordwise panels per section. VLM only. Default 4.
     model_size : str
         NeuralFoil model size for LiftingLine and AeroBuildup.
-        Options: "xxsmall", "xsmall", "small", "medium", "large", "xlarge",
-        "xxlarge", "xxxlarge". Default "medium".
+        Options: "xxsmall" … "xxlarge". Default "medium".
     verbose : bool
         Print solver progress. Default False.
 
@@ -78,11 +83,21 @@ def analyze(
     Raises
     ------
     ValueError
-        If an unsupported backend is requested.
+        If an unsupported backend or method is requested.
     """
-    if backend == "aerosandbox":
-        from aerisplane.aero.aerosandbox_backend import run_asb
+    if backend == "native":
+        return _run_native(
+            aircraft=aircraft,
+            condition=condition,
+            method=method,
+            spanwise_resolution=spanwise_resolution,
+            chordwise_resolution=chordwise_resolution,
+            model_size=model_size,
+            verbose=verbose,
+        )
 
+    elif backend == "aerosandbox":
+        from aerisplane.aero.aerosandbox_backend import run_asb
         return run_asb(
             aircraft=aircraft,
             condition=condition,
@@ -93,17 +108,137 @@ def analyze(
             verbose=verbose,
         )
 
-    elif backend == "openaerostruct":
-        raise NotImplementedError(
-            "OpenAeroStruct backend is not yet implemented. "
-            "Use backend='aerosandbox' for now."
+    else:
+        raise ValueError(
+            f"Unknown backend '{backend}'. Supported: 'native', 'aerosandbox'."
         )
+
+
+def _run_native(
+    aircraft: Aircraft,
+    condition: FlightCondition,
+    method: str,
+    spanwise_resolution: int,
+    chordwise_resolution: int,
+    model_size: str,
+    verbose: bool,
+) -> AeroResult:
+    """Dispatch to vendored native solvers and wrap the result in AeroResult."""
+
+    import numpy as np
+
+    q = condition.dynamic_pressure()
+    S = aircraft.reference_area()
+    c = aircraft.reference_chord()
+    b = aircraft.reference_span()
+    qS = q * S
+
+    solver = None
+
+    if method == "vlm":
+        from aerisplane.aero.solvers.vlm import VortexLatticeMethod
+        solver = VortexLatticeMethod(
+            aircraft=aircraft,
+            condition=condition,
+            spanwise_resolution=spanwise_resolution,
+            chordwise_resolution=chordwise_resolution,
+            verbose=verbose,
+        )
+        d = solver.run()
+        CDi = float(d["CD"])   # VLM is inviscid; all resolved drag is induced
+        CDp = None
+
+    elif method == "aero_buildup":
+        from aerisplane.aero.solvers.aero_buildup import AeroBuildup
+        solver = AeroBuildup(
+            aircraft=aircraft,
+            condition=condition,
+            model_size=model_size,
+        )
+        d = solver.run()
+        CDi = float(d["D_induced"]) / qS if qS > 0 else 0.0
+        CDp = float(d["D_profile"]) / qS if qS > 0 else 0.0
+
+    elif method == "lifting_line":
+        from aerisplane.aero.solvers.lifting_line import LiftingLine
+        solver = LiftingLine(
+            aircraft=aircraft,
+            condition=condition,
+            model_size=model_size,
+            spanwise_resolution=spanwise_resolution,
+            verbose=verbose,
+        )
+        d = solver.run()
+        CDi = None
+        CDp = None
+
+    elif method == "nonlinear_lifting_line":
+        from aerisplane.aero.solvers.nonlinear_lifting_line import NonlinearLiftingLine
+        solver = NonlinearLiftingLine(
+            aircraft=aircraft,
+            condition=condition,
+            model_size=model_size,
+            spanwise_resolution=spanwise_resolution,
+            verbose=verbose,
+        )
+        d = solver.run()
+        CDi = None
+        CDp = None
 
     else:
         raise ValueError(
-            f"Unknown backend '{backend}'. "
-            "Supported backends: 'aerosandbox'."
+            f"Unknown method '{method}'. "
+            "Supported native methods: 'vlm', 'lifting_line', "
+            "'nonlinear_lifting_line', 'aero_buildup'."
         )
+
+    def _to_list(v):
+        if hasattr(v, "tolist"):
+            return [float(x) for x in v.tolist()]
+        return [float(x) for x in v]
+
+    return AeroResult(
+        method=method,
+        # Forces (wind axes)
+        L=float(d["L"]),
+        D=float(d["D"]),
+        Y=float(d["Y"]),
+        # Moments (body axes)
+        l_b=float(d["l_b"]),
+        m_b=float(d["m_b"]),
+        n_b=float(d["n_b"]),
+        # Force/moment vectors
+        F_g=_to_list(d["F_g"]),
+        F_b=_to_list(d["F_b"]),
+        F_w=_to_list(d["F_w"]),
+        M_g=_to_list(d["M_g"]),
+        M_b=_to_list(d["M_b"]),
+        M_w=_to_list(d["M_w"]),
+        # Coefficients
+        CL=float(d["CL"]),
+        CD=float(d["CD"]),
+        CY=float(d["CY"]),
+        Cl=float(d["Cl"]),
+        Cm=float(d["Cm"]),
+        Cn=float(d["Cn"]),
+        # Drag breakdown
+        CDi=CDi,
+        CDp=CDp,
+        # Operating condition
+        alpha=float(condition.alpha),
+        beta=float(condition.beta),
+        velocity=float(condition.velocity),
+        altitude=float(condition.altitude),
+        dynamic_pressure=float(q),
+        reynolds_number=float(condition.reynolds_number(c)) if c > 0 else 0.0,
+        # Reference geometry
+        s_ref=float(S),
+        c_ref=float(c),
+        b_ref=float(b),
+        # Solver object (for post-processing like spanwise loading plots)
+        _solver=solver,
+        _airplane=aircraft,
+    )
 
 
 def plot_geometry(aircraft, style="three_view", show=True, save_path=None):
@@ -116,11 +251,14 @@ def plot_geometry(aircraft, style="three_view", show=True, save_path=None):
     style : str
         ``"three_view"`` (default) — 4-panel top/front/side/isometric view.
         ``"wireframe"`` — single 3-D matplotlib wireframe.
+        ``"original"`` — alias for ``"three_view"``.
     show : bool
         Whether to call ``plt.show()`` after drawing.
     save_path : str or None
         If given, save the figure to this path.
     """
+    if style == "original":
+        style = "three_view"
     from aerisplane.aero.aerosandbox_backend import plot_geometry as _plot_geometry
     return _plot_geometry(aircraft=aircraft, style=style, show=show, save_path=save_path)
 

@@ -107,12 +107,14 @@ The solvers call `op_point.compute_freestream_velocity_geometry_axes()`,
 ### Phase 2 — Vendor solvers 🔧 IN PROGRESS
 
 - ✅ **2a.** Copy singularity functions → `aero/singularities.py`, replace `aerosandbox.numpy` → `numpy`
-- 🔧 **2b.** Copy VLM → `aero/solvers/vlm.py`, refactor to accept `Aircraft` + `FlightCondition`
-  directly. Remove `ExplicitAnalysis` base class. **CODE WRITTEN, HAS ISSUES — see below.**
-- ⬜ **2c.** Copy AeroBuildup + submodels → `aero/solvers/aero_buildup.py` + `aero/fuselage_aero.py`,
+- ✅ **2b.** Copy VLM → `aero/solvers/vlm.py`, refactor to accept `Aircraft` + `FlightCondition`
+  directly. Remove `ExplicitAnalysis` base class.
+- ✅ **2c.** Copy AeroBuildup + submodels → `aero/solvers/aero_buildup.py` + `aero/fuselage_aero.py`,
   refactor geometry inputs. Copy library/aerodynamics → `aero/library/`.
-- ⬜ **2d.** Copy LiftingLine → `aero/solvers/lifting_line.py`, refactor. (Depends on both
+- ✅ **2d.** Copy LiftingLine → `aero/solvers/lifting_line.py`, refactor. (Depends on both
   singularities and AeroBuildup.)
+- ✅ **2d+.** Write NonlinearLiftingLine → `aero/solvers/nonlinear_lifting_line.py`.
+  Fixed-point iteration, plain NumPy, no CasADi. Converges in 10–30 iterations.
 - ⬜ **2e.** Test all vendored solvers against ASB originals (same aircraft, same
   condition → results must match to <1e-6).
 
@@ -195,7 +197,7 @@ Every vendored file will include this header:
 
 ---
 
-## Current status (2026-03-26)
+## Current status (2026-03-27)
 
 **Branch:** `feature/vendor-asb-aero` (based on `feature/weights-module`)
 
@@ -209,7 +211,7 @@ Every vendored file will include this header:
 | `core/airfoil.py` | ✅ MODIFIED | Added `upper_coordinates()`, `lower_coordinates()`, `local_camber()`, `repanel()`, `blend_with_another_airfoil()`, `max_camber()`. Also added custom `__eq__`/`__hash__` (dataclass default `__eq__` fails on numpy arrays), changed to `@dataclass(eq=False)`. |
 | `aero/singularities.py` | ✅ NEW | `calculate_induced_velocity_horseshoe()`, `calculate_induced_velocity_point_source()` |
 | `aero/solvers/__init__.py` | ✅ NEW | Empty init |
-| `aero/solvers/vlm.py` | 🔧 NEW | `VortexLatticeMethod` — code complete, has CD sign issue (see below) |
+| `aero/solvers/vlm.py` | ✅ NEW | `VortexLatticeMethod` — default `vortex_core_radius=1e-8` fixes CD sign |
 
 ### What works
 
@@ -219,48 +221,20 @@ Every vendored file will include this header:
   and correct **Cl, Cn** (~0 for symmetric wing).
 - NaN self-influence bug was fixed with `np.nan_to_num` in `get_velocity_at_points()`.
 
-### Open problem: VLM CD is wrong sign
+### VLM CD fix (resolved 2026-03-27)
 
-**Symptom:** Our vendored VLM gives **CD = −0.0095** while ASB gives **CD = +0.0128**.
-The induced drag should always be positive. Our geometry-frame x-force is −5.19 while
-ASB's is −3.12; both should be negative (backwards push from induced drag), but ours
-is larger and after axis rotation gives a thrust-direction wind force instead of drag.
+**Root cause:** The horseshoe singularity function computes bound-leg + two trailing
+legs as a single expression. For the diagonal entry `(i,i)` (field point = vortex
+centre of panel i, source = panel i's own horseshoe), the bound leg gives `0/0 = NaN`
+which propagates through the sum, poisoning the trailing-vortex contributions for that
+entry. `nan_to_num` was then zeroing the **entire** diagonal including the trailing
+downwash — which is physically real and drives induced drag.
 
-**Root cause analysis (incomplete):**
-
-The force computation is `F = rho * (V × bound_leg) * gamma`, where `V` is computed
-by `get_velocity_at_points(vortex_centers)`. This calls the horseshoe singularity
-function for ALL panels at ALL vortex centers, producing an (N×N) velocity matrix
-that is summed over columns.
-
-The diagonal entries (self-influence: panel i's vortex center on panel i's own bound
-leg) produce **NaN and ±inf** because the field point is exactly at the midpoint of the
-bound leg segment. Both our code AND ASB's horseshoe function produce NaN/inf in the
-same entries. We fix this with `np.nan_to_num(..., nan=0, posinf=0, neginf=0)`.
-
-**The mystery:** ASB's `get_induced_velocity_at_points()` does NOT produce NaN when
-called at the same vortex_centers, despite using identical math. Testing showed:
-- The individual horseshoe function produces NaN/inf for self-influence (confirmed)
-- The (N×N) matrix has 10-28 NaN/inf entries on the diagonal (confirmed)
-- But `np.sum(matrix, axis=1)` somehow returns finite values in some runs
-
-This is likely a **numpy summation order / floating-point cancellation** effect. When
-numpy sums a row, it may process elements in an order where +inf and −inf cancel
-before producing NaN. This is undefined behavior in IEEE 754 and depends on numpy's
-internal reduction algorithm, array memory layout, and even array size. Our code gets
-NaN because it hits the problematic entries in a different order.
-
-**Proposed fix options:**
-1. **Use a small vortex_core_radius** (e.g. `1e-8`) by default. This regularizes the
-   singularity so no inf/NaN is ever produced. May slightly affect results.
-2. **Zero out diagonal entries** of the (N×N) matrix before summing. Physically correct
-   since a vortex filament does not induce velocity on itself.
-3. **Keep nan_to_num** but investigate WHY the resulting velocity field gives wrong CD
-   sign. The NaN fix itself may be correct but some inf entries that should be large
-   (not zero) are being zeroed out, corrupting the velocity field.
-
-**Next step:** Option 2 (zero diagonal) is most promising — it's physically correct and
-avoids the ambiguity of inf→0. Implement and test.
+**Fix:** Set `vortex_core_radius = 1e-8` as the default. The Kaufmann model replaces
+`1/x` with `x/(x² + ε²)`, so at the singularity `smoothed_inv(0) = 0`. The bound-leg
+contribution correctly evaluates to zero; trailing-vortex contributions are unaffected
+(they evaluate at points well away from their respective vortex lines).
+`nan_to_num` is kept as a defensive guard for degenerate panels but should be a no-op.
 
 ### Minor differences vs ASB (acceptable)
 

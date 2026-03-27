@@ -36,6 +36,11 @@ class Aircraft:
     fuselages: list[Fuselage] = field(default_factory=list)
     propulsion: PropulsionSystem | None = None
     payload: Payload | None = None
+    xyz_ref: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
+    """Moment reference point [x, y, z] in aircraft frame [m].
+
+    Defaults to the origin. Set to the CG location for stability analysis.
+    """
 
     def get_wing(self, name: str) -> Wing | None:
         """Find a wing by name. Returns None if not found."""

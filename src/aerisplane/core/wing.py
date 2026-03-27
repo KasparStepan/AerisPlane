@@ -194,6 +194,69 @@ class Wing:
             return 0.0
         return float(np.degrees(np.arctan2(dz, dy)))
 
+    def mean_sweep_angle(self) -> float:
+        """Mean quarter-chord sweep angle [deg].
+
+        Sweep of the line connecting root and tip quarter-chord points,
+        measured from the y-axis in the xy-plane.
+        """
+        if len(self.xsecs) < 2:
+            return 0.0
+        qc_root = self._compute_xyz_of_WingXSec(0, 0.25, 0)
+        qc_tip = self._compute_xyz_of_WingXSec(len(self.xsecs) - 1, 0.25, 0)
+        dx = qc_tip[0] - qc_root[0]
+        dy = qc_tip[1] - qc_root[1]
+        if dy == 0.0:
+            return 0.0
+        return float(np.degrees(np.arctan2(dx, dy)))
+
+    def mean_dihedral_angle(self) -> float:
+        """Mean dihedral angle [deg].
+
+        Dihedral of the line connecting root and tip LE points, in the yz-plane.
+        """
+        return self.dihedral()
+
+    def sectional_span_yz(self) -> list[float]:
+        """Span of each section measured in the YZ plane [m].
+
+        Returns one value per section (len(xsecs) - 1 entries).
+        """
+        result = []
+        for i in range(len(self.xsecs) - 1):
+            qc_a = self._compute_xyz_of_WingXSec(i, 0.25, 0)
+            qc_b = self._compute_xyz_of_WingXSec(i + 1, 0.25, 0)
+            dy = qc_b[1] - qc_a[1]
+            dz = qc_b[2] - qc_a[2]
+            result.append(float(np.sqrt(dy**2 + dz**2)))
+        return result
+
+    def sectional_areas(self) -> list[float]:
+        """Planform area of each section [m^2].
+
+        Computed as the average chord times the YZ-plane section span.
+        Returns one value per section (len(xsecs) - 1 entries).
+        """
+        spans = self.sectional_span_yz()
+        result = []
+        for i, span in enumerate(spans):
+            chord_avg = (self.xsecs[i].chord + self.xsecs[i + 1].chord) / 2.0
+            result.append(chord_avg * span)
+        return result
+
+    def sectional_aerodynamic_centers(self) -> list[np.ndarray]:
+        """Approximate aerodynamic center of each section [x, y, z] [m].
+
+        Computed as the midpoint of the section's quarter-chord line.
+        Returns one (3,) array per section (len(xsecs) - 1 entries).
+        """
+        result = []
+        for i in range(len(self.xsecs) - 1):
+            qc_a = self._compute_xyz_of_WingXSec(i, 0.25, 0)
+            qc_b = self._compute_xyz_of_WingXSec(i + 1, 0.25, 0)
+            result.append((qc_a + qc_b) / 2.0)
+        return result
+
     # ------------------------------------------------------------------ #
     # Geometry computation helpers (used by aero solvers)
     # ------------------------------------------------------------------ #
