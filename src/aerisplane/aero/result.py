@@ -317,3 +317,39 @@ class AeroResult:
             fig.savefig(save_path, dpi=150)
         if show:
             plt.show()
+
+    # ------------------------------------------------------------------ #
+    # Flow visualisation (VLM only)
+    # ------------------------------------------------------------------ #
+
+    def plot_surface_pressure(self, show: bool = True, save_path: Optional[str] = None):
+        """Cp on wing panels — 3-D and top-down views.  Requires method='vlm'."""
+        from aerisplane.aero.flow_viz import plot_surface_pressure
+        plot_surface_pressure(self, show=show, save_path=save_path)
+
+    def plot_streamlines(
+        self,
+        plane: str = "xz",
+        x_slice: Optional[float] = None,
+        show: bool = True,
+        save_path: Optional[str] = None,
+    ):
+        """Streamlines on a 2-D slice of the VLM flow field.
+
+        Parameters
+        ----------
+        plane : str
+            ``"xz"`` — symmetry plane, shows upwash/downwash.
+            ``"yz"`` — rear cross-section, shows tip vortices.
+        x_slice : float or None
+            x position [m] for the ``"yz"`` plane. Defaults to 2 chord
+            lengths behind the trailing edge.
+        """
+        from aerisplane.aero.flow_viz import plot_streamlines
+        plot_streamlines(self, plane=plane, x_slice=x_slice, show=show, save_path=save_path)
+
+    def plot_flow(self, show: bool = True, save_path: Optional[str] = None):
+        """Combined 4-panel flow figure: Cp top-down, Cp 3-D, XZ streamlines,
+        YZ tip-vortex crossflow.  Requires method='vlm'."""
+        from aerisplane.aero.flow_viz import plot_flow
+        plot_flow(self, show=show, save_path=save_path)
