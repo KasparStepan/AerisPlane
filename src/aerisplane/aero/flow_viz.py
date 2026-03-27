@@ -13,6 +13,10 @@ plot_streamlines(result, plane="xz", x_slice=None, show=True, save_path=None)
 plot_flow(result, show=True, save_path=None)
     Combined 4-panel figure: Cp 3D, Cp top-down, XZ streamlines, YZ crossflow.
 
+plot_interactive(result, n_streamlines=40, show=True, save_path=None)
+    Interactive Plotly 3-D figure: wing surface coloured by ΔCp + 3-D
+    streamlines traced through the full VLM velocity field.  Requires plotly.
+
 All functions require the result to have been produced by method="vlm".
 """
 
@@ -484,3 +488,228 @@ def plot_flow(result, show: bool = True, save_path: str | None = None):
                     facecolor=fig.get_facecolor())
     if show:
         plt.show()
+
+
+# ------------------------------------------------------------------ #
+# Interactive Plotly visualisation
+# ------------------------------------------------------------------ #
+
+def _trace_streamline_3d(vlm, seed: np.ndarray, n_steps: int = 300,
+                          ds: float = 0.01,
+                          x_min: float = -np.inf, x_max: float = np.inf) -> np.ndarray:
+    """Trace a 3-D streamline using 4th-order Runge-Kutta.
+
+    Uses the *total* velocity (induced + freestream) so the line follows the
+    actual flow, not just the perturbation.
+
+    Parameters
+    ----------
+    vlm : VortexLatticeMethod solver
+    seed : (3,) array — starting point [m]
+    n_steps : int — maximum integration steps
+    ds : float — arc-length step size [m]
+    x_min, x_max : float — stop integration outside this x range
+
+    Returns
+    -------
+    pts : (M, 3) array — streamline path
+    """
+    V_fs = np.asarray(vlm.steady_freestream_velocity)
+
+    def velocity(p):
+        V_ind = vlm.get_velocity_at_points(p.reshape(1, 3))[0]
+        return V_ind + V_fs
+
+    p = np.asarray(seed, dtype=float)
+    pts = [p.copy()]
+    for _ in range(n_steps):
+        if p[0] < x_min or p[0] > x_max:
+            break
+        v1 = velocity(p)
+        spd = np.linalg.norm(v1)
+        if spd < 1e-6:
+            break
+        h = ds / spd          # normalise step to arc length
+        k1 = v1
+        k2 = velocity(p + 0.5 * h * k1)
+        k3 = velocity(p + 0.5 * h * k2)
+        k4 = velocity(p + h * k3)
+        p = p + (h / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
+        pts.append(p.copy())
+    return np.array(pts)
+
+
+def _make_seed_points(vlm, n_span: int = 6, n_z: int = 3) -> list[np.ndarray]:
+    """Generate a grid of seed points upstream of the leading edge.
+
+    Seeds are placed one chord length upstream, distributed across the span
+    and at a few z offsets so streamlines capture both the upper-surface
+    acceleration and the lower-surface stagnation.
+    """
+    mn, mx = _wing_bounds(vlm)
+    chord = mx[0] - mn[0]
+    span_half = mx[1]                # semi-span (positive y side)
+
+    x_seed = mn[0] - 0.8 * chord    # just upstream of LE
+    z_center = (mn[2] + mx[2]) / 2
+    z_offsets = np.linspace(-0.25 * chord, 0.25 * chord, n_z)
+    y_positions = np.linspace(-span_half * 0.95, span_half * 0.95, n_span)
+
+    seeds = []
+    for y in y_positions:
+        for dz in z_offsets:
+            seeds.append(np.array([x_seed, y, z_center + dz]))
+    return seeds
+
+
+def plot_interactive(
+    result,
+    n_streamlines: int = 40,
+    show: bool = True,
+    save_path: str | None = None,
+):
+    """Interactive 3-D Plotly figure: wing Cp surface + 3-D streamlines.
+
+    Requires ``plotly`` (``pip install plotly``).
+
+    Parameters
+    ----------
+    result : AeroResult
+        Must have been produced by ``method='vlm'``.
+    n_streamlines : int
+        Approximate number of streamlines to trace.  They are seeded on a
+        span × z grid one chord upstream of the leading edge.  Default 40.
+    show : bool
+        Call ``fig.show()`` (opens browser / inline in Jupyter).
+    save_path : str or None
+        If given, save an interactive HTML file to this path.
+    """
+    import plotly.graph_objects as go
+
+    vlm = _require_vlm(result)
+    Cp = _panel_cp(vlm, result.dynamic_pressure)
+
+    # ── Wing surface mesh ────────────────────────────────────────────
+    fl = np.asarray(vlm.front_left_vertices)
+    bl = np.asarray(vlm.back_left_vertices)
+    br = np.asarray(vlm.back_right_vertices)
+    fr = np.asarray(vlm.front_right_vertices)
+    N = len(fl)
+
+    # Triangulate each quad panel into 2 triangles.
+    # Vertex layout: block 0 = fl, 1 = bl, 2 = br, 3 = fr
+    all_v = np.vstack([fl, bl, br, fr])    # (4N, 3)
+    idx0 = np.arange(N)
+    idx1 = idx0 + N
+    idx2 = idx0 + 2 * N
+    idx3 = idx0 + 3 * N
+
+    tri_i = np.concatenate([idx0, idx0])
+    tri_j = np.concatenate([idx1, idx2])
+    tri_k = np.concatenate([idx2, idx3])
+    tri_c = np.concatenate([Cp, Cp])       # one value per triangle
+
+    vmax = float(np.percentile(np.abs(Cp), 98))
+
+    wing_trace = go.Mesh3d(
+        x=all_v[:, 0], y=all_v[:, 1], z=all_v[:, 2],
+        i=tri_i, j=tri_j, k=tri_k,
+        intensity=tri_c,
+        colorscale="RdBu_r",
+        cmin=-vmax, cmid=0.0, cmax=vmax,
+        colorbar=dict(
+            title=dict(text="ΔCp", font=dict(color="white")),
+            tickfont=dict(color="white"),
+            x=1.02, thickness=15, len=0.75,
+        ),
+        name="Wing ΔCp",
+        showscale=True,
+        opacity=0.95,
+        flatshading=True,
+        lighting=dict(ambient=0.6, diffuse=0.7, specular=0.1),
+        hovertemplate="x=%{x:.3f}<br>y=%{y:.3f}<br>z=%{z:.3f}<extra>Wing</extra>",
+    )
+
+    # ── Streamlines ──────────────────────────────────────────────────
+    mn, mx_b = _wing_bounds(vlm)
+    chord = mx_b[0] - mn[0]
+    x_stop = mx_b[0] + 8.0 * chord   # stop tracing 8c behind TE
+
+    # Determine seed grid size from n_streamlines
+    n_span = max(3, int(round((n_streamlines / 3) ** 0.5 * 3)))
+    n_z    = max(2, n_streamlines // n_span)
+    seeds = _make_seed_points(vlm, n_span=n_span, n_z=n_z)
+
+    # Arc-length step: ~1% of chord, 250 steps to cross ~8c downstream
+    ds = chord * 0.015
+    n_steps = int(9.0 * chord / ds)
+
+    stream_traces = []
+    for seed in seeds:
+        pts = _trace_streamline_3d(
+            vlm, seed, n_steps=n_steps, ds=ds,
+            x_min=mn[0] - 2 * chord, x_max=x_stop,
+        )
+        if len(pts) < 3:
+            continue
+        # Colour by local speed magnitude to distinguish fast/slow regions
+        V_fs = np.asarray(vlm.steady_freestream_velocity)
+        # Thin out points for file size (every 3rd)
+        pts = pts[::3]
+        stream_traces.append(go.Scatter3d(
+            x=pts[:, 0], y=pts[:, 1], z=pts[:, 2],
+            mode="lines",
+            line=dict(color="rgba(120, 200, 255, 0.55)", width=2),
+            showlegend=False,
+            hoverinfo="skip",
+        ))
+
+    # ── Layout ──────────────────────────────────────────────────────
+    eye_dist = (mx_b - mn).max() * 3.5
+    mid = (mn + mx_b) / 2
+    scene_range = (mx_b - mn).max() * 0.75
+
+    fig = go.Figure(data=[wing_trace] + stream_traces)
+    fig.update_layout(
+        title=dict(
+            text=(
+                f"VLM interactive flow — "
+                f"α={result.alpha:.1f}°  V={result.velocity:.0f} m/s  "
+                f"h={result.altitude:.0f} m  CL={result.CL:.3f}  CD={result.CD:.4f}"
+            ),
+            font=dict(color="white", size=14),
+            x=0.5,
+        ),
+        scene=dict(
+            xaxis=dict(title="x [m]", backgroundcolor="#0f0f1a",
+                       gridcolor="#333", zerolinecolor="#444",
+                       tickfont=dict(color="white"),
+                       title_font=dict(color="white"),
+                       range=[mid[0] - scene_range, mid[0] + scene_range]),
+            yaxis=dict(title="y [m]", backgroundcolor="#0f0f1a",
+                       gridcolor="#333", zerolinecolor="#444",
+                       tickfont=dict(color="white"),
+                       title_font=dict(color="white"),
+                       range=[mid[1] - scene_range, mid[1] + scene_range]),
+            zaxis=dict(title="z [m]", backgroundcolor="#0f0f1a",
+                       gridcolor="#333", zerolinecolor="#444",
+                       tickfont=dict(color="white"),
+                       title_font=dict(color="white"),
+                       range=[mid[2] - scene_range, mid[2] + scene_range]),
+            bgcolor="#0f0f1a",
+            aspectmode="cube",
+            camera=dict(
+                eye=dict(x=1.5, y=-1.8, z=0.8),
+                center=dict(x=0, y=0, z=0),
+            ),
+        ),
+        paper_bgcolor="#0f0f1a",
+        font=dict(color="white"),
+        margin=dict(l=10, r=10, t=50, b=10),
+        width=950, height=700,
+    )
+
+    if save_path is not None:
+        fig.write_html(save_path, include_plotlyjs="cdn")
+    if show:
+        fig.show()

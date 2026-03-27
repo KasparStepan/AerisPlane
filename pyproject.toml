@@ -14,8 +14,9 @@ dependencies = [
 [project.optional-dependencies]
 oas = ["openaerostruct>=2.7", "openmdao>=3.30"]
 optimize = ["pygmo>=2.19"]
+interactive = ["plotly>=5.0"]
 dev = ["pytest>=7.0", "ruff>=0.1.0"]
-all = ["aerisplane[oas,optimize,dev]"]
+all = ["aerisplane[oas,optimize,interactive,dev]"]
 
 [build-system]
 requires = ["setuptools>=68.0"]

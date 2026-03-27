@@ -353,3 +353,28 @@ class AeroResult:
         YZ tip-vortex crossflow.  Requires method='vlm'."""
         from aerisplane.aero.flow_viz import plot_flow
         plot_flow(self, show=show, save_path=save_path)
+
+    def plot_interactive(
+        self,
+        n_streamlines: int = 40,
+        show: bool = True,
+        save_path: Optional[str] = None,
+    ):
+        """Interactive Plotly 3-D figure: wing surface coloured by ΔCp
+        with 3-D streamlines traced through the full velocity field.
+
+        Requires ``plotly`` (installed by default with most scientific Python
+        environments).  Opens in the browser or renders inline in Jupyter.
+
+        Parameters
+        ----------
+        n_streamlines : int
+            Number of streamlines to trace (seeded upstream). Default 40.
+        show : bool
+            Call ``fig.show()``.
+        save_path : str or None
+            If given, write an interactive HTML file to this path.
+        """
+        from aerisplane.aero.flow_viz import plot_interactive
+        plot_interactive(self, n_streamlines=n_streamlines,
+                         show=show, save_path=save_path)
