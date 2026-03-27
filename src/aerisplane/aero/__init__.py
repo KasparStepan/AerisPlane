@@ -16,15 +16,12 @@ Supported methods
     Vortex Lattice Method (inviscid). Fast, handles arbitrary geometry.
 "lifting_line"
     Lifting-line with NeuralFoil section polars. Viscous + nonlinear.
-    Requires neuralfoil: pip install neuralfoil
 "nonlinear_lifting_line"
     Nonlinear lifting-line: fixed-point iteration updating the LL RHS
     with NeuralFoil CL at effective (geometric + induced) alpha.
     Captures stall and spanwise stall progression.
-    Requires neuralfoil: pip install neuralfoil
 "aero_buildup"
     Workbook-style AeroBuildup: NeuralFoil wings + Jorgensen fuselage.
-    Requires neuralfoil: pip install neuralfoil
 
 Example
 -------
@@ -44,7 +41,6 @@ def analyze(
     aircraft: Aircraft,
     condition: FlightCondition,
     method: str = "vlm",
-    backend: str = "native",
     spanwise_resolution: int = 8,
     chordwise_resolution: int = 4,
     model_size: str = "medium",
@@ -61,9 +57,6 @@ def analyze(
     method : str
         Solver method: "vlm" (default), "lifting_line",
         "nonlinear_lifting_line", "aero_buildup".
-    backend : str
-        Solver backend. "native" (default) uses vendored solvers.
-        "aerosandbox" delegates to the AeroSandbox library (must be installed).
     spanwise_resolution : int
         Spanwise panels / stations per wing section.
         Applies to VLM and LiftingLine. Default 8.
@@ -79,39 +72,16 @@ def analyze(
     -------
     AeroResult
         Full aerodynamic result including forces, moments, and coefficients.
-
-    Raises
-    ------
-    ValueError
-        If an unsupported backend or method is requested.
     """
-    if backend == "native":
-        return _run_native(
-            aircraft=aircraft,
-            condition=condition,
-            method=method,
-            spanwise_resolution=spanwise_resolution,
-            chordwise_resolution=chordwise_resolution,
-            model_size=model_size,
-            verbose=verbose,
-        )
-
-    elif backend == "aerosandbox":
-        from aerisplane.aero.aerosandbox_backend import run_asb
-        return run_asb(
-            aircraft=aircraft,
-            condition=condition,
-            method=method,
-            spanwise_resolution=spanwise_resolution,
-            chordwise_resolution=chordwise_resolution,
-            model_size=model_size,
-            verbose=verbose,
-        )
-
-    else:
-        raise ValueError(
-            f"Unknown backend '{backend}'. Supported: 'native', 'aerosandbox'."
-        )
+    return _run_native(
+        aircraft=aircraft,
+        condition=condition,
+        method=method,
+        spanwise_resolution=spanwise_resolution,
+        chordwise_resolution=chordwise_resolution,
+        model_size=model_size,
+        verbose=verbose,
+    )
 
 
 def _run_native(
@@ -242,7 +212,7 @@ def _run_native(
 
 
 def plot_geometry(aircraft, style="three_view", show=True, save_path=None):
-    """Plot aircraft geometry using AeroSandbox's matplotlib drawing routines.
+    """Plot aircraft geometry.
 
     Parameters
     ----------
@@ -259,7 +229,7 @@ def plot_geometry(aircraft, style="three_view", show=True, save_path=None):
     """
     if style == "original":
         style = "three_view"
-    from aerisplane.aero.aerosandbox_backend import plot_geometry as _plot_geometry
+    from aerisplane.aero.plot import plot_geometry as _plot_geometry
     return _plot_geometry(aircraft=aircraft, style=style, show=show, save_path=save_path)
 
 

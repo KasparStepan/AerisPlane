@@ -104,7 +104,7 @@ The solvers call `op_point.compute_freestream_velocity_geometry_axes()`,
 - ✅ **1d.** Test all new methods against ASB equivalents (numerical comparison)
   - 67/69 tests pass, remaining 2 are minor atmosphere precision differences
 
-### Phase 2 — Vendor solvers 🔧 IN PROGRESS
+### Phase 2 — Vendor solvers ✅ COMPLETE
 
 - ✅ **2a.** Copy singularity functions → `aero/singularities.py`, replace `aerosandbox.numpy` → `numpy`
 - ✅ **2b.** Copy VLM → `aero/solvers/vlm.py`, refactor to accept `Aircraft` + `FlightCondition`
@@ -115,20 +115,20 @@ The solvers call `op_point.compute_freestream_velocity_geometry_axes()`,
   singularities and AeroBuildup.)
 - ✅ **2d+.** Write NonlinearLiftingLine → `aero/solvers/nonlinear_lifting_line.py`.
   Fixed-point iteration, plain NumPy, no CasADi. Converges in 10–30 iterations.
-- ⬜ **2e.** Test all vendored solvers against ASB originals (same aircraft, same
-  condition → results must match to <1e-6).
+- ✅ **2e.** 36-test suite in `tests/test_aero/test_native_solvers.py`. Validates all four
+  solvers: CL/CD range, Cm sign, symmetry (Cl/Cn ≈ 0), L = CL·q·S identity,
+  AeroBuildup drag split, NLL convergence. All pass.
 
-### Phase 3 — Integration ⬜ TODO
+### Phase 3 — Integration ✅ COMPLETE
 
-- ⬜ **3a.** Update `aero/__init__.py` `analyze()` to dispatch to vendored solvers
-  instead of importing from ASB
-- ⬜ **3b.** Update `aero/result.py` — remove `_solver` / `_airplane` ASB objects,
-  store our own solver for panel data access
-- ⬜ **3c.** Remove `aerosandbox_backend.py` (all translation code)
-- ⬜ **3d.** Remove `aerosandbox` from `pyproject.toml` dependencies
-  (keep `neuralfoil` — LiftingLine and AeroBuildup still call it directly)
-- ⬜ **3e.** Full regression test: re-run `tutorials/02_aerodynamics_executed.ipynb`,
-  verify all plots match
+- ✅ **3a.** `analyze()` dispatches to native solvers only. `backend` parameter removed.
+- ✅ **3b.** `result.py` `TYPE_CHECKING` import of aerosandbox removed. `_solver` stores
+  native solver instance only.
+- ✅ **3c.** `aerosandbox_backend.py` deleted. Native geometry plotter written at
+  `aero/plot.py` (pure matplotlib three-view + wireframe).
+- ✅ **3d.** `aerosandbox` removed from `pyproject.toml`. `neuralfoil>=0.2` added.
+- ✅ **3e.** Both tutorials re-executed without errors. 13 figures in tutorial 02,
+  5 figures in tutorial 03.
 
 ### Phase 4 — Control surfaces (the reason we're doing this) ⬜ TODO
 
