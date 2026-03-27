@@ -300,3 +300,208 @@ class TestSignConventions:
         L_expected = r.CL * r.dynamic_pressure * r.s_ref
         assert abs(r.L - L_expected) < 0.01, \
             f"{method}: L={r.L:.3f}, CL*q*S={L_expected:.3f}"
+
+
+# ------------------------------------------------------------------ #
+# Phase 4 — Control surface deflection tests
+# ------------------------------------------------------------------ #
+
+@pytest.fixture(scope="module")
+def elevator_aircraft():
+    """Symmetric tail with a full-span elevator (35% chord)."""
+    af = ap.Airfoil.from_naca("0012")
+    htail = ap.Wing(
+        name="htail",
+        xsecs=[
+            ap.WingXSec(xyz_le=[0.0, 0.00, 0.0], chord=0.15, airfoil=af),
+            ap.WingXSec(xyz_le=[0.0, 0.30, 0.0], chord=0.15, airfoil=af),
+        ],
+        symmetric=True,
+        control_surfaces=[
+            ap.ControlSurface(
+                name="elevator",
+                span_start=0.0, span_end=1.0,
+                chord_fraction=0.35,
+                symmetric=True,         # both sides deflect together
+            ),
+        ],
+    )
+    return ap.Aircraft(name="tail", wings=[htail])
+
+
+@pytest.fixture(scope="module")
+def aileron_aircraft():
+    """Wing with part-span ailerons (outboard 50–90%, 25% chord)."""
+    af = ap.Airfoil.from_naca("0012")
+    wing = ap.Wing(
+        name="main_wing",
+        xsecs=[
+            ap.WingXSec(xyz_le=[0.0, 0.0, 0.0], chord=0.25, airfoil=af),
+            ap.WingXSec(xyz_le=[0.0, 1.0, 0.0], chord=0.25, airfoil=af),
+        ],
+        symmetric=True,
+        control_surfaces=[
+            ap.ControlSurface(
+                name="aileron",
+                span_start=0.5, span_end=0.9,
+                chord_fraction=0.25,
+                symmetric=False,        # differential: right TE-down, left TE-up
+            ),
+        ],
+    )
+    return ap.Aircraft(name="aileron_wing", wings=[wing])
+
+
+@pytest.fixture(scope="module")
+def flap_aircraft():
+    """Wing with full-span flap (30% chord)."""
+    af = ap.Airfoil.from_naca("0012")
+    wing = ap.Wing(
+        name="main_wing",
+        xsecs=[
+            ap.WingXSec(xyz_le=[0.0, 0.0, 0.0], chord=0.25, airfoil=af),
+            ap.WingXSec(xyz_le=[0.0, 1.0, 0.0], chord=0.25, airfoil=af),
+        ],
+        symmetric=True,
+        control_surfaces=[
+            ap.ControlSurface(
+                name="flap",
+                span_start=0.0, span_end=1.0,
+                chord_fraction=0.30,
+                symmetric=True,
+            ),
+        ],
+    )
+    return ap.Aircraft(name="flap_wing", wings=[wing])
+
+
+def _vlm(aircraft, alpha=4.0, deflections=None):
+    cond = ap.FlightCondition(
+        velocity=20.0, altitude=0.0, alpha=alpha,
+        deflections=deflections or {},
+    )
+    return analyze(aircraft, cond, method="vlm",
+                   spanwise_resolution=8, chordwise_resolution=4)
+
+
+class TestElevatorDeflection:
+    """Positive elevator (TE down) should increase nose-down pitching moment."""
+
+    def test_elevator_down_increases_nose_down_Cm(self, elevator_aircraft):
+        """δe = +10° (TE down) must give more negative Cm than δe = 0°."""
+        r0  = _vlm(elevator_aircraft, deflections={})
+        r10 = _vlm(elevator_aircraft, deflections={"elevator": 10.0})
+        assert r10.Cm < r0.Cm, (
+            f"Elevator +10° expected Cm < Cm(0): "
+            f"{r10.Cm:.4f} vs {r0.Cm:.4f}"
+        )
+
+    def test_elevator_up_decreases_nose_down_Cm(self, elevator_aircraft):
+        """δe = −10° (TE up) must give less negative Cm than δe = 0°."""
+        r0   = _vlm(elevator_aircraft, deflections={})
+        rm10 = _vlm(elevator_aircraft, deflections={"elevator": -10.0})
+        assert rm10.Cm > r0.Cm, (
+            f"Elevator −10° expected Cm > Cm(0): "
+            f"{rm10.Cm:.4f} vs {r0.Cm:.4f}"
+        )
+
+    def test_Cm_monotone_with_elevator(self, elevator_aircraft):
+        """Cm must decrease monotonically as elevator deflection increases."""
+        deflections = [-20.0, -10.0, 0.0, 10.0, 20.0]
+        Cms = [_vlm(elevator_aircraft,
+                    deflections={"elevator": d}).Cm
+               for d in deflections]
+        for i in range(len(Cms) - 1):
+            assert Cms[i] > Cms[i + 1], (
+                f"Cm not monotone at index {i}: "
+                f"Cm({deflections[i]}°)={Cms[i]:.4f}, "
+                f"Cm({deflections[i+1]}°)={Cms[i+1]:.4f}"
+            )
+
+    def test_elevator_Cm_magnitude(self, elevator_aircraft):
+        """ΔCm between ±20° should be meaningful (> 0.05) but not absurd (< 5)."""
+        rm20 = _vlm(elevator_aircraft, deflections={"elevator": -20.0})
+        rp20 = _vlm(elevator_aircraft, deflections={"elevator":  20.0})
+        delta_Cm = rm20.Cm - rp20.Cm
+        assert 0.05 < delta_Cm < 5.0, (
+            f"ΔCm(±20°) = {delta_Cm:.4f} outside expected range [0.05, 5]"
+        )
+
+    def test_zero_deflection_matches_no_deflections(self, elevator_aircraft):
+        """Passing deflections={} and deflections={'elevator': 0.0} must give same result."""
+        r_none = _vlm(elevator_aircraft, deflections={})
+        r_zero = _vlm(elevator_aircraft, deflections={"elevator": 0.0})
+        assert abs(r_none.CL - r_zero.CL) < 1e-8
+        assert abs(r_none.Cm - r_zero.Cm) < 1e-8
+
+    def test_elevator_preserves_symmetry(self, elevator_aircraft):
+        """Symmetric elevator deflection must keep Cl ≈ 0 and Cn ≈ 0."""
+        r = _vlm(elevator_aircraft, deflections={"elevator": 15.0})
+        assert abs(r.Cl) < 0.005, f"Cl={r.Cl:.6f} (expected ~0)"
+        assert abs(r.Cn) < 0.005, f"Cn={r.Cn:.6f} (expected ~0)"
+
+
+class TestAileronDeflection:
+    """Positive aileron (right TE down, left TE up) produces positive roll."""
+
+    def test_aileron_positive_deflection_rolls_left(self, aileron_aircraft):
+        """δa = +5° (right TE-down, left TE-up): more lift on right wing →
+        right wing up → left roll → Cl < 0."""
+        r = _vlm(aileron_aircraft, deflections={"aileron": 5.0})
+        assert r.Cl < 0.0, f"Aileron +5°: expected Cl < 0, got Cl={r.Cl:.6f}"
+
+    def test_aileron_negative_deflection_rolls_right(self, aileron_aircraft):
+        """δa = −5° (right TE-up, left TE-down): more lift on left wing →
+        left wing up → right roll → Cl > 0."""
+        r = _vlm(aileron_aircraft, deflections={"aileron": -5.0})
+        assert r.Cl > 0.0, f"Aileron −5°: expected Cl > 0, got Cl={r.Cl:.6f}"
+
+    def test_aileron_antisymmetric(self, aileron_aircraft):
+        """Cl(+δ) must equal −Cl(−δ) (antisymmetry)."""
+        rp = _vlm(aileron_aircraft, deflections={"aileron":  10.0})
+        rm = _vlm(aileron_aircraft, deflections={"aileron": -10.0})
+        assert abs(rp.Cl + rm.Cl) < 0.005 * abs(rp.Cl), (
+            f"Aileron not antisymmetric: Cl(+10°)={rp.Cl:.5f}, Cl(−10°)={rm.Cl:.5f}"
+        )
+
+    def test_aileron_does_not_change_CL_much(self, aileron_aircraft):
+        """Aileron (antisymmetric) should not change total CL by more than 5%."""
+        r0 = _vlm(aileron_aircraft, deflections={})
+        r  = _vlm(aileron_aircraft, deflections={"aileron": 10.0})
+        assert abs(r.CL - r0.CL) < 0.05 * abs(r0.CL + 1e-6), (
+            f"Aileron changed CL too much: ΔCL={r.CL - r0.CL:.4f}"
+        )
+
+    def test_aileron_Cl_magnitude(self, aileron_aircraft):
+        """|Cl| at 10° aileron must be non-trivial (> 0.005)."""
+        r = _vlm(aileron_aircraft, deflections={"aileron": 10.0})
+        assert abs(r.Cl) > 0.005, f"Cl={r.Cl:.5f} (expected |Cl| > 0.005)"
+
+
+class TestFlapDeflection:
+    """Symmetric flap (TE down) increases CL and Cm at fixed alpha."""
+
+    def test_flap_increases_CL(self, flap_aircraft):
+        """δf = +15° must increase CL compared to clean configuration."""
+        r0  = _vlm(flap_aircraft, deflections={})
+        r15 = _vlm(flap_aircraft, deflections={"flap": 15.0})
+        assert r15.CL > r0.CL, (
+            f"Flap +15°: expected CL increase, "
+            f"got CL={r15.CL:.4f} vs {r0.CL:.4f}"
+        )
+
+    def test_flap_preserves_symmetry(self, flap_aircraft):
+        """Symmetric flap must keep Cl ≈ 0."""
+        r = _vlm(flap_aircraft, deflections={"flap": 20.0})
+        assert abs(r.Cl) < 0.005, f"Cl={r.Cl:.6f} (expected ~0)"
+
+    def test_flap_CL_increases_with_deflection(self, flap_aircraft):
+        """CL must increase monotonically with flap deflection at fixed alpha."""
+        deflections = [0.0, 10.0, 20.0, 30.0]
+        CLs = [_vlm(flap_aircraft, deflections={"flap": d}).CL for d in deflections]
+        for i in range(len(CLs) - 1):
+            assert CLs[i] < CLs[i + 1], (
+                f"CL not monotone with flap: "
+                f"CL({deflections[i]}°)={CLs[i]:.4f}, "
+                f"CL({deflections[i+1]}°)={CLs[i+1]:.4f}"
+            )

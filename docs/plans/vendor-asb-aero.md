@@ -130,12 +130,25 @@ The solvers call `op_point.compute_freestream_velocity_geometry_axes()`,
 - ✅ **3e.** Both tutorials re-executed without errors. 13 figures in tutorial 02,
   5 figures in tutorial 03.
 
-### Phase 4 — Control surfaces (the reason we're doing this) ⬜ TODO
+### Phase 4 — Control surfaces (the reason we're doing this) ✅ COMPLETE
 
-- ⬜ **4a.** In vendored VLM: implement control surface deflection as panel geometry
-  rotation in mesh generation (rotate trailing-edge panels by deflection angle)
-- ⬜ **4b.** Wire `FlightCondition.deflections` dict into VLM mesh generation
-- ⬜ **4c.** Test: elevator deflection → Cm change, aileron → Cl change
+- ✅ **4a.** `_rodrigues()` + `_apply_control_deflections()` in `vlm.py`: trailing-edge
+  panels rotate around the physical hinge line (front edge of hinge-row panels) by
+  the deflection angle.  Both symmetric (elevator, flap) and antisymmetric (aileron)
+  modes supported via `ControlSurface.symmetric`.  Part-span surfaces handled by
+  spanwise masking.
+- ✅ **4b.** `FlightCondition.deflections` dict wired into `VortexLatticeMethod.run()`.
+  Aircraft object is never mutated — deflections are applied to the mesh copy each
+  time `run()` is called.
+- ✅ **4c.** 14-test suite in `TestElevatorDeflection`, `TestAileronDeflection`,
+  `TestFlapDeflection`.  Covers: Cm monotone with elevator, aileron antisymmetry,
+  flap CL increase, symmetry preservation, zero-deflection identity.  All 50 tests
+  in the file pass.
+
+  **Sign convention confirmed by tests:**
+  - Elevator: positive δ = TE-down → more nose-down Cm (Cm decreases).
+  - Aileron: positive δ = right TE-down → more lift on right wing → left roll (Cl < 0).
+  - Flap: positive δ = TE-down (symmetric) → CL increases at fixed α.
 
 ---
 
