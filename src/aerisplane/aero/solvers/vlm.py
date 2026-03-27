@@ -29,6 +29,121 @@ def _wide(a: np.ndarray) -> np.ndarray:
     return a.reshape(1, -1)
 
 
+def _rodrigues(points: np.ndarray, axis: np.ndarray, angle_rad: float, anchor: np.ndarray) -> np.ndarray:
+    """Rotate *points* around the line (anchor, axis) by angle_rad (Rodrigues formula).
+
+    Parameters
+    ----------
+    points : (N, 3) or (3,) array
+    axis   : (3,) unit-vector direction of rotation axis
+    angle_rad : float
+    anchor : (3,) any point on the rotation axis
+
+    Returns
+    -------
+    Rotated points, same shape as input.
+    """
+    u = axis / np.linalg.norm(axis)
+    p = points - anchor
+    cos_a = np.cos(angle_rad)
+    sin_a = np.sin(angle_rad)
+    if p.ndim == 1:
+        return anchor + p * cos_a + np.cross(u, p) * sin_a + u * np.dot(u, p) * (1.0 - cos_a)
+    dot = (p * u).sum(axis=1, keepdims=True)
+    return anchor + p * cos_a + np.cross(u, p) * sin_a + u * dot * (1.0 - cos_a)
+
+
+def _apply_control_deflections(
+    front_left: np.ndarray,
+    back_left: np.ndarray,
+    back_right: np.ndarray,
+    front_right: np.ndarray,
+    wing_records: list,
+    deflections: dict,
+    chordwise_resolution: int,
+) -> None:
+    """Rotate trailing-edge panels for each deflected control surface in-place.
+
+    Modifies *front_left*, *back_left*, *back_right*, *front_right* arrays
+    directly.  The hinge line is the front edge of the first panel that is
+    aft of (1 - chord_fraction) × chord.
+
+    Sign convention (positive deflection = trailing edge DOWN):
+    - symmetric surface (elevator, flap): both sides deflect TE-down.
+    - asymmetric surface (aileron): right side TE-down, left side TE-up.
+    """
+    N = chordwise_resolution
+
+    for rec in wing_records:
+        wing = rec["wing"]
+        if not wing.control_surfaces:
+            continue
+
+        panel_start = rec["panel_start"]
+        n_strips = rec["n_strips"]
+        is_symmetric = rec["is_symmetric"]
+        y_root = rec["y_root"]
+        y_tip = rec["y_tip"]
+        span = y_tip - y_root
+        if span <= 0.0:
+            continue
+
+        for cs in wing.control_surfaces:
+            deflection = deflections.get(cs.name, 0.0)
+            if deflection == 0.0:
+                continue
+
+            # First chordwise index that is aft of the hinge
+            j_hinge = max(0, min(N - 1, int(np.floor(N * (1.0 - cs.chord_fraction)))))
+
+            # Iterate over right side (always present) and optionally mirrored left side
+            sides = [("right", False)]
+            if is_symmetric:
+                sides.append(("left", True))
+
+            for _side_name, is_mirror in sides:
+                # Sign of angle.
+                # Both the right and left panel hinge directions point in roughly +y
+                # (from inboard to outboard on the right side, from outboard to inboard
+                # on the mirrored left side — both end up ≈ +y because the mirrored face
+                # winding reverses left/right vertex labels).
+                # Therefore: same angle sign → same physical TE direction on both sides.
+                #   symmetric=True  (elevator, flap): same sign → both TE-down simultaneously
+                #   symmetric=False (aileron):        negate for mirror → right TE-down, left TE-up
+                if is_mirror:
+                    angle_rad = np.radians(deflection) * (1.0 if cs.symmetric else -1.0)
+                else:
+                    angle_rad = np.radians(deflection)
+
+                strip_offset = (0 if not is_mirror else n_strips) * N
+
+                for s in range(n_strips):
+                    # Panel index of the hinge-row panel in this strip
+                    k0 = panel_start + strip_offset + s * N + j_hinge
+
+                    # Span fraction: use y-midpoint of the hinge-row panel's front edge
+                    y_mid = 0.5 * (float(front_left[k0, 1]) + float(front_right[k0, 1]))
+                    span_frac = (abs(y_mid) - y_root) / span
+
+                    if not (cs.span_start <= span_frac <= cs.span_end):
+                        continue
+
+                    # Hinge line: from front_left[k0] to front_right[k0]
+                    hl = front_left[k0].copy()
+                    hinge_dir = front_right[k0] - front_left[k0]
+
+                    # Rotate all panels at or aft of j_hinge within this strip
+                    for j in range(j_hinge, N):
+                        k = panel_start + strip_offset + s * N + j
+                        # Back vertices always rotate (they are aft of hinge)
+                        back_left[k] = _rodrigues(back_left[k], hinge_dir, angle_rad, hl)
+                        back_right[k] = _rodrigues(back_right[k], hinge_dir, angle_rad, hl)
+                        # Front vertices rotate only if strictly aft of hinge row
+                        if j > j_hinge:
+                            front_left[k] = _rodrigues(front_left[k], hinge_dir, angle_rad, hl)
+                            front_right[k] = _rodrigues(front_right[k], hinge_dir, angle_rad, hl)
+
+
 class VortexLatticeMethod:
     """3-D Vortex Lattice Method for an aerisplane Aircraft.
 
@@ -105,6 +220,8 @@ class VortexLatticeMethod:
         back_right_verts = []
         front_right_verts = []
         is_trailing_edge_list = []
+        wing_records = []   # per-wing info needed for control surface deflections
+        panel_offset = 0
 
         for wing in self.aircraft.wings:
             w = wing
@@ -118,19 +235,42 @@ class VortexLatticeMethod:
                 chordwise_spacing_function=self.chordwise_spacing_function,
                 add_camber=True,
             )
-            front_left_verts.append(points[faces[:, 0], :])
-            back_left_verts.append(points[faces[:, 1], :])
-            back_right_verts.append(points[faces[:, 2], :])
-            front_right_verts.append(points[faces[:, 3], :])
+            flv = points[faces[:, 0], :]
+            blv = points[faces[:, 1], :]
+            brv = points[faces[:, 2], :]
+            frv = points[faces[:, 3], :]
+            front_left_verts.append(flv)
+            back_left_verts.append(blv)
+            back_right_verts.append(brv)
+            front_right_verts.append(frv)
             is_trailing_edge_list.append(
                 (np.arange(len(faces)) + 1) % self.chordwise_resolution == 0
             )
+            n_strips = len(w.xsecs) - 1
+            wing_records.append({
+                "wing": wing,
+                "panel_start": panel_offset,
+                "n_strips": n_strips,
+                "is_symmetric": wing.symmetric,
+                "y_root": float(min(xsec.xyz_le[1] for xsec in w.xsecs)),
+                "y_tip": float(max(xsec.xyz_le[1] for xsec in w.xsecs)),
+            })
+            panel_offset += len(faces)
 
         front_left_vertices = np.concatenate(front_left_verts)
         back_left_vertices = np.concatenate(back_left_verts)
         back_right_vertices = np.concatenate(back_right_verts)
         front_right_vertices = np.concatenate(front_right_verts)
         is_trailing_edge = np.concatenate(is_trailing_edge_list)
+
+        # ── Control surface deflections ───────────────────────────────────
+        if self.condition.deflections:
+            _apply_control_deflections(
+                front_left_vertices, back_left_vertices,
+                back_right_vertices, front_right_vertices,
+                wing_records, self.condition.deflections,
+                self.chordwise_resolution,
+            )
 
         # ── Panel geometry ────────────────────────────────────────────────
         diag1 = front_right_vertices - back_left_vertices

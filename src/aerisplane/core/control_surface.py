@@ -53,6 +53,10 @@ class ControlSurface:
         Maximum trailing-edge-down deflection [deg].
     min_deflection : float
         Maximum trailing-edge-up deflection [deg] (negative).
+    symmetric : bool
+        If True (default), both sides of a symmetric wing deflect in the same
+        physical direction (elevator, flap).  If False, the mirrored side
+        deflects opposite (aileron, spoileron).
     servo : Servo or None
         Assigned servo actuator.
     """
@@ -63,4 +67,5 @@ class ControlSurface:
     chord_fraction: float
     max_deflection: float = 25.0
     min_deflection: float = -25.0
+    symmetric: bool = True
     servo: Optional[Servo] = None
