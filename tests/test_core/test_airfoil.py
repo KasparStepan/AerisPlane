@@ -76,12 +76,12 @@ class TestCustomCoordinates:
 
 
 class TestNoCoordinates:
-    """Airfoil with non-NACA name and no coordinates."""
+    """Airfoil with unknown name and no coordinates."""
 
     def test_coordinates_are_none(self):
-        airfoil = ap.Airfoil("ag35")
+        airfoil = ap.Airfoil("nonexistent_foil_xyz")
         assert airfoil.coordinates is None
 
     def test_thickness_returns_zero(self):
-        airfoil = ap.Airfoil("ag35")
+        airfoil = ap.Airfoil("nonexistent_foil_xyz")
         assert airfoil.thickness() == 0.0
