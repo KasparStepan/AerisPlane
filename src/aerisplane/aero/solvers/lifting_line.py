@@ -540,6 +540,11 @@ class LiftingLine:
             steady_freestream_velocities + rotation_freestream_velocities
         )
 
+        # Add fuselage displacement (upwash) effect on wing panels
+        if self.aircraft.fuselages:
+            fuselage_vel = self.calculate_fuselage_influences(vortex_centers)
+            freestream_velocities = freestream_velocities + fuselage_vel
+
         self.steady_freestream_velocity = steady_freestream_velocity
         self.steady_freestream_direction = steady_freestream_direction
         self.freestream_velocities = freestream_velocities
