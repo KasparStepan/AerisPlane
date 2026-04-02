@@ -836,7 +836,7 @@ class LiftingLine:
                 fuse_centers.append(
                     np.array([fuse.x_le + xsec.x, fuse.y_le, fuse.z_le])
                 )
-                fuse_radii.append(xsec.radius)
+                fuse_radii.append(xsec.equivalent_radius())
 
         if not fuse_centers:
             return np.zeros((len(points), 3))

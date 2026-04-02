@@ -29,33 +29,47 @@ class FuselageXSec:
     """
 
     x: float
-    radius: float
+    radius: Optional[float] = None
     shape: str = "circle"
     width: Optional[float] = None
     height: Optional[float] = None
+
+    def __post_init__(self):
+        if self.shape == "circle" and self.radius is None:
+            raise ValueError(
+                "FuselageXSec with shape='circle' requires 'radius'."
+            )
+        if self.shape in ("ellipse", "rectangle") and (self.width is None or self.height is None):
+            raise ValueError(
+                f"FuselageXSec with shape='{self.shape}' requires 'width' and 'height'."
+            )
+
+    def equivalent_radius(self) -> float:
+        """Radius of a circle with the same cross-sectional area [m]."""
+        return float(np.sqrt(self.area() / np.pi))
 
     def area(self) -> float:
         """Cross-sectional area [m^2]."""
         if self.shape == "circle":
             return np.pi * self.radius**2
-        elif self.shape == "ellipse" and self.width and self.height:
+        elif self.shape == "ellipse" and self.width is not None and self.height is not None:
             return np.pi * (self.width / 2.0) * (self.height / 2.0)
-        elif self.shape == "rectangle" and self.width and self.height:
+        elif self.shape == "rectangle" and self.width is not None and self.height is not None:
             return self.width * self.height
-        return np.pi * self.radius**2
+        return np.pi * (self.radius or 0.0)**2
 
     def perimeter(self) -> float:
         """Cross-section perimeter [m]."""
         if self.shape == "circle":
             return 2.0 * np.pi * self.radius
-        elif self.shape == "ellipse" and self.width and self.height:
+        elif self.shape == "ellipse" and self.width is not None and self.height is not None:
             a = self.width / 2.0
             b = self.height / 2.0
             # Ramanujan approximation
             return float(np.pi * (3.0 * (a + b) - np.sqrt((3.0 * a + b) * (a + 3.0 * b))))
-        elif self.shape == "rectangle" and self.width and self.height:
+        elif self.shape == "rectangle" and self.width is not None and self.height is not None:
             return 2.0 * (self.width + self.height)
-        return 2.0 * np.pi * self.radius
+        return 2.0 * np.pi * (self.radius or 0.0)
 
 
 @dataclass

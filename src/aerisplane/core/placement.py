@@ -167,7 +167,7 @@ def fuselage_contains_point(fuselage: Fuselage, point: np.ndarray) -> bool:
         return False
 
     # Interpolate radius at this x-position
-    radii = np.array([xsec.radius for xsec in fuselage.xsecs])
+    radii = np.array([xsec.equivalent_radius() for xsec in fuselage.xsecs])
     radius_at_x = float(np.interp(local_x, x_stations, radii))
 
     # Check if y-z distance from centerline is within radius
