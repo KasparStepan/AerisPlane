@@ -143,6 +143,7 @@ class NonlinearLiftingLine:
         areas = ll.areas
         chords = ll.chords
         airfoils = ll.airfoils
+        cs_corrections = ll.cs_corrections  # list of (delta_cl, delta_cm) per panel
         control_surfaces_list = ll.control_surfaces_list
         local_forward_direction = ll.local_forward_direction
         vortex_bound_leg = ll.vortex_bound_leg
@@ -224,7 +225,12 @@ class NonlinearLiftingLine:
         vortex_strengths = ll.vortex_strengths.copy()
 
         def _query_neuralfoil(alphas_eff: np.ndarray):
-            """Query NeuralFoil at each panel's effective alpha."""
+            """Query NeuralFoil at each panel's effective alpha.
+
+            Control surface corrections (thin-airfoil ΔCl, ΔCm) are added
+            on top of the NeuralFoil baseline at every iteration so the
+            fixed-point loop converges with deflected surfaces active.
+            """
             CLs_nf = np.empty(n_panels)
             CDs_nf = np.empty(n_panels)
             CMs_nf = np.empty(n_panels)
@@ -232,12 +238,12 @@ class NonlinearLiftingLine:
                 aero = af.get_aero_from_neuralfoil(
                     alpha=float(alphas_eff[i]),
                     Re=float(Res[i]),
-                    control_surfaces=control_surfaces_list[i],
                     model_size=self.model_size,
                 )
-                CLs_nf[i] = float(aero["CL"].flat[0])
+                delta_cl, delta_cm = cs_corrections[i]
+                CLs_nf[i] = float(aero["CL"].flat[0]) + delta_cl
                 CDs_nf[i] = float(aero["CD"].flat[0])
-                CMs_nf[i] = float(aero["CM"].flat[0])
+                CMs_nf[i] = float(aero["CM"].flat[0]) + delta_cm
             return CLs_nf, CDs_nf, CMs_nf
 
         # ---------------------------------------------------------------
@@ -421,3 +427,113 @@ class NonlinearLiftingLine:
         output["residuals"] = self.residuals
 
         return output
+
+    # ------------------------------------------------------------------
+    # Stability derivatives
+    # ------------------------------------------------------------------
+
+    def run_with_stability_derivatives(
+        self,
+        alpha: bool = True,
+        beta: bool = True,
+        p: bool = True,
+        q: bool = True,
+        r: bool = True,
+    ) -> Dict:
+        """Run with central-finite-difference stability derivatives.
+
+        Uses two perturbed NLL solves per derivative (±delta) for O(Δ²)
+        accuracy.  Each perturbed solve runs the full fixed-point iteration,
+        so this is more expensive than the linear LL equivalent.
+
+        Parameters
+        ----------
+        alpha, beta, p, q, r : bool
+            Which derivatives to compute (default all True).
+
+        Returns
+        -------
+        dict
+            All keys from ``run()``, plus e.g. "CLa", "CDa", "Cma",
+            "x_np", "x_np_lateral", etc.
+        """
+        import dataclasses
+
+        b_ref = self.aircraft.reference_span()
+        c_ref = self.aircraft.reference_chord()
+        V = self.condition.velocity
+
+        do_analysis = {"alpha": alpha, "beta": beta, "p": p, "q": q, "r": r}
+        abbreviations = {"alpha": "a", "beta": "b", "p": "p", "q": "q", "r": "r"}
+        # Step size in the perturbed variable (radians or rad/s)
+        fd_amounts = {
+            "alpha": 0.001,
+            "beta": 0.001,
+            "p": 0.001 * (2 * V) / b_ref,
+            "q": 0.001 * (2 * V) / c_ref,
+            "r": 0.001 * (2 * V) / b_ref,
+        }
+        # Scale derivative from (per rad) to (per deg) or nondimensional
+        scaling = {
+            "alpha": np.degrees(1),
+            "beta": np.degrees(1),
+            "p": (2 * V) / b_ref,
+            "q": (2 * V) / c_ref,
+            "r": (2 * V) / b_ref,
+        }
+
+        run_base = self.run()
+
+        for d, do in do_analysis.items():
+            if not do:
+                continue
+
+            def _perturbed_run(sign: float, var: str) -> Dict:
+                amt = sign * fd_amounts[var]
+                cond = self.condition.copy()
+                if var == "alpha":
+                    cond = dataclasses.replace(cond, alpha=cond.alpha + amt)
+                elif var == "beta":
+                    cond = dataclasses.replace(cond, beta=cond.beta + amt)
+                elif var == "p":
+                    cond = dataclasses.replace(cond, p=cond.p + amt)
+                elif var == "q":
+                    cond = dataclasses.replace(cond, q=cond.q + amt)
+                elif var == "r":
+                    cond = dataclasses.replace(cond, r=cond.r + amt)
+                nll = NonlinearLiftingLine(
+                    aircraft=self.aircraft,
+                    condition=cond,
+                    xyz_ref=self.xyz_ref,
+                    model_size=self.model_size,
+                    spanwise_resolution=self.spanwise_resolution,
+                    spanwise_spacing_function=self.spanwise_spacing_function,
+                    vortex_core_radius=self.vortex_core_radius,
+                    align_trailing_vortices_with_wind=self.align_trailing_vortices_with_wind,
+                    max_iter=self.max_iter,
+                    tolerance=self.tolerance,
+                    relaxation=self.relaxation,
+                    verbose=False,
+                )
+                return nll.run()
+
+            run_pos = _perturbed_run(+1.0, d)
+            run_neg = _perturbed_run(-1.0, d)
+
+            for num in ("CL", "CD", "CY", "Cl", "Cm", "Cn"):
+                name = num + abbreviations[d]
+                run_base[name] = (
+                    (run_pos[num] - run_neg[num]) / (2 * fd_amounts[d]) * scaling[d]
+                )
+
+            if d == "alpha":
+                CLa = np.where(run_base["CLa"] == 0, np.nan, run_base["CLa"])
+                run_base["x_np"] = self.xyz_ref[0] - run_base["Cma"] / CLa * c_ref
+
+            if d == "beta":
+                CYb = np.where(run_base["CYb"] == 0, np.nan, run_base["CYb"])
+                run_base["x_np_lateral"] = (
+                    self.xyz_ref[0] - run_base["Cnb"] / CYb * b_ref
+                )
+
+        return run_base

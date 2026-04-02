@@ -26,6 +26,7 @@ from aerisplane.aero.singularities import (
     calculate_induced_velocity_point_source,
 )
 from aerisplane.aero._np_compat import arccosd
+from aerisplane.aero.library.control_surface_effects import section_cs_corrections
 from aerisplane.utils.spacing import cosspace
 
 
@@ -290,7 +291,9 @@ class LiftingLine:
         q: bool = True,
         r: bool = True,
     ) -> Dict:
-        """Run with forward-finite-difference stability derivatives.
+        """Run with central-finite-difference stability derivatives.
+
+        Uses two perturbed solves per derivative (±delta) for O(Δ²) accuracy.
 
         Parameters
         ----------
@@ -303,12 +306,15 @@ class LiftingLine:
             All keys from ``run()``, plus e.g. "CLa", "CDa", "Cma",
             "x_np", etc.
         """
+        import dataclasses
+
         b_ref = self.aircraft.reference_span()
         c_ref = self.aircraft.reference_chord()
         V = self.condition.velocity
 
         do_analysis = {"alpha": alpha, "beta": beta, "p": p, "q": q, "r": r}
         abbreviations = {"alpha": "a", "beta": "b", "p": "p", "q": "q", "r": "r"}
+        # Step size in the perturbed variable (radians or rad/s)
         finite_difference_amounts = {
             "alpha": 0.001,
             "beta": 0.001,
@@ -316,6 +322,7 @@ class LiftingLine:
             "q": 0.001 * (2 * V) / c_ref,
             "r": 0.001 * (2 * V) / b_ref,
         }
+        # Scale derivative from (per rad) to (per deg) or nondimensional
         scaling_factors = {
             "alpha": np.degrees(1),
             "beta": np.degrees(1),
@@ -330,41 +337,40 @@ class LiftingLine:
             if not do:
                 continue
 
-            # Build incremented condition
-            cond = self.condition.copy()
             delta = finite_difference_amounts[d]
-            if d == "alpha":
-                import dataclasses
-                cond = dataclasses.replace(cond, alpha=cond.alpha + delta)
-            elif d == "beta":
-                import dataclasses
-                cond = dataclasses.replace(cond, beta=cond.beta + delta)
-            elif d == "p":
-                import dataclasses
-                cond = dataclasses.replace(cond, p=cond.p + delta)
-            elif d == "q":
-                import dataclasses
-                cond = dataclasses.replace(cond, q=cond.q + delta)
-            elif d == "r":
-                import dataclasses
-                cond = dataclasses.replace(cond, r=cond.r + delta)
 
-            ll_inc = LiftingLine(
-                aircraft=self.aircraft,
-                condition=cond,
-                xyz_ref=self.xyz_ref,
-                model_size=self.model_size,
-                spanwise_resolution=self.spanwise_resolution,
-                spanwise_spacing_function=self.spanwise_spacing_function,
-                vortex_core_radius=self.vortex_core_radius,
-                align_trailing_vortices_with_wind=self.align_trailing_vortices_with_wind,
-            )
-            run_inc = ll_inc.run()
+            def _perturbed_run(sign: float, var: str) -> Dict:
+                cond = self.condition.copy()
+                amt = sign * finite_difference_amounts[var]
+                if var == "alpha":
+                    cond = dataclasses.replace(cond, alpha=cond.alpha + amt)
+                elif var == "beta":
+                    cond = dataclasses.replace(cond, beta=cond.beta + amt)
+                elif var == "p":
+                    cond = dataclasses.replace(cond, p=cond.p + amt)
+                elif var == "q":
+                    cond = dataclasses.replace(cond, q=cond.q + amt)
+                elif var == "r":
+                    cond = dataclasses.replace(cond, r=cond.r + amt)
+                ll = LiftingLine(
+                    aircraft=self.aircraft,
+                    condition=cond,
+                    xyz_ref=self.xyz_ref,
+                    model_size=self.model_size,
+                    spanwise_resolution=self.spanwise_resolution,
+                    spanwise_spacing_function=self.spanwise_spacing_function,
+                    vortex_core_radius=self.vortex_core_radius,
+                    align_trailing_vortices_with_wind=self.align_trailing_vortices_with_wind,
+                )
+                return ll.run()
+
+            run_pos = _perturbed_run(+1.0, d)
+            run_neg = _perturbed_run(-1.0, d)
 
             for num in ("CL", "CD", "CY", "Cl", "Cm", "Cn"):
                 name = num + abbreviations[d]
                 run_base[name] = (
-                    (run_inc[num] - run_base[num]) / delta * scaling_factors[d]
+                    (run_pos[num] - run_neg[num]) / (2 * delta) * scaling_factors[d]
                 )
 
             if d == "alpha":
@@ -425,25 +431,31 @@ class LiftingLine:
 
             wing_airfoils = []
             wing_cs = []
-            for xsec_a, xsec_b in zip(wing.xsecs[:-1], wing.xsecs[1:]):
+            deflections = self.condition.deflections
+            for sect_idx, (xsec_a, xsec_b) in enumerate(
+                zip(wing.xsecs[:-1], wing.xsecs[1:])
+            ):
                 wing_airfoils.append(
                     xsec_a.airfoil.blend_with_another_airfoil(
                         airfoil=xsec_b.airfoil,
                         blend_fraction=0.5,
                     )
                 )
-                # TODO Phase 4: wire in xsec_a.control_surfaces
-                wing_cs.append([])
+                wing_cs.append(
+                    section_cs_corrections(wing, deflections, sect_idx, is_mirrored=False)
+                )
 
             airfoils.extend(wing_airfoils)
             control_surfaces_list.extend(wing_cs)
 
             if wing.symmetric:
                 airfoils.extend(wing_airfoils)
-                # Mirror control surfaces — symmetric ones unchanged,
-                # asymmetric ones get their deflection negated.
-                # TODO Phase 4: implement proper mirroring
-                control_surfaces_list.extend([[] for _ in wing_cs])
+                # Mirror: asymmetric surfaces (ailerons) get deflection negated.
+                mirror_cs = [
+                    section_cs_corrections(wing, deflections, s, is_mirrored=True)
+                    for s in range(len(wing.xsecs) - 1)
+                ]
+                control_surfaces_list.extend(mirror_cs)
 
         front_left_vertices = np.concatenate(front_left_vertices)
         back_left_vertices = np.concatenate(back_left_vertices)
@@ -484,6 +496,8 @@ class LiftingLine:
         self.back_right_vertices = back_right_vertices
         self.front_right_vertices = front_right_vertices
         self.airfoils = airfoils
+        # cs_corrections[i] = (delta_cl, delta_cm) for panel i from deflected CSs
+        self.cs_corrections = control_surfaces_list
         self.control_surfaces_list = control_surfaces_list
         self.normal_directions = normal_directions
         self.areas = areas
@@ -561,9 +575,8 @@ class LiftingLine:
             float(af.get_aero_from_neuralfoil(
                 alpha=float(alpha_geometrics[i]),
                 Re=float(Res[i]),
-                control_surfaces=control_surfaces_list[i],
                 model_size=self.model_size,
-            )["CL"].flat[0])
+            )["CL"].flat[0]) + control_surfaces_list[i][0]
             for i, af in enumerate(airfoils)
         ]
         # Linearised lift slope: 2π per section (thin airfoil theory)
@@ -634,15 +647,21 @@ class LiftingLine:
             af.get_aero_from_neuralfoil(
                 alpha=float(alphas[i]),
                 Re=float(Res[i]),
-                control_surfaces=control_surfaces_list[i],
                 model_size=self.model_size,
             )
             for i, af in enumerate(airfoils)
         ]
-        # NeuralFoil returns shape-(1,) arrays; flatten to 1-D float arrays
-        CLs = np.array([float(a["CL"].flat[0]) for a in aeros])
+        # NeuralFoil returns shape-(1,) arrays; flatten to 1-D float arrays.
+        # Add thin-airfoil control surface corrections (delta_cl, delta_cm).
+        CLs = np.array([
+            float(a["CL"].flat[0]) + control_surfaces_list[i][0]
+            for i, a in enumerate(aeros)
+        ])
         CDs = np.array([float(a["CD"].flat[0]) for a in aeros])
-        CMs = np.array([float(a["CM"].flat[0]) for a in aeros])
+        CMs = np.array([
+            float(a["CM"].flat[0]) + control_surfaces_list[i][1]
+            for i, a in enumerate(aeros)
+        ])
 
         # ----------------------------------------------------------
         # Near-field forces: inviscid (Kutta-Joukowski) + viscous profile

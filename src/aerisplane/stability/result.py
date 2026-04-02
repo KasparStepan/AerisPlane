@@ -10,12 +10,12 @@ import numpy as np
 
 @dataclass
 class StabilityResult:
-    """Static stability analysis result.
+    """Static and dynamic stability analysis result.
 
     Parameters
     ----------
-    Longitudinal stability
-    ---------------------
+    Longitudinal static stability
+    -----------------------------
     static_margin : float
         Static margin as fraction of MAC (positive = stable).
     neutral_point : float
@@ -25,19 +25,43 @@ class StabilityResult:
     CL_alpha : float
         Lift curve slope dCL/dalpha [1/deg].
 
-    Lateral-directional stability
-    ----------------------------
+    Lateral-directional static stability
+    -------------------------------------
     Cl_beta : float
         Roll-due-to-sideslip dCl/dbeta [1/deg]. Negative = stable (dihedral effect).
     Cn_beta : float
         Yaw-due-to-sideslip dCn/dbeta [1/deg]. Positive = stable (weathercock).
+
+    Rate derivatives  (None if compute_rate_derivatives=False)
+    -----------------------------------------------------------
+    CL_q, Cm_q : float or None
+        Lift and pitch moment due to pitch rate q_hat = qc/2V.
+        Cm_q is the pitch damping derivative — negative = damped.
+    Cl_p, Cn_p, CY_p : float or None
+        Roll, yaw, and side force due to roll rate p_hat = pb/2V.
+        Cl_p is the roll damping derivative — negative = damped.
+    Cn_r, Cl_r, CY_r : float or None
+        Yaw, roll, and side force due to yaw rate r_hat = rb/2V.
+        Cn_r is the yaw damping derivative — negative = damped.
+
+    Dynamic stability modes  (None if rate derivatives not computed)
+    ----------------------------------------------------------------
+    sp_frequency : float or None
+        Short-period natural frequency [rad/s].
+    sp_damping : float or None
+        Short-period damping ratio (positive = damped).
+    ph_frequency : float or None
+        Phugoid natural frequency [rad/s] (Lanchester approximation).
+    ph_damping : float or None
+        Phugoid damping ratio (Lanchester: CD/CL/√2).
 
     Trim
     ----
     trim_alpha : float
         Angle of attack for Cm = 0 at current CG [deg].
     trim_elevator : float
-        Elevator deflection for trimmed level flight [deg]. NaN if no elevator.
+        Elevator deflection for trimmed level flight [deg]. NaN if no elevator
+        found or insufficient authority.
 
     Tail volume coefficients
     -----------------------
@@ -70,36 +94,52 @@ class StabilityResult:
         Pitching moment coefficient at the analysis condition.
     """
 
-    # Longitudinal
+    # Longitudinal static
     static_margin: float
     neutral_point: float
     Cm_alpha: float
     CL_alpha: float
 
-    # Lateral-directional
+    # Lateral-directional static
     Cl_beta: float
     Cn_beta: float
 
+    # Rate derivatives (None when not computed)
+    CL_q: Optional[float] = None
+    Cm_q: Optional[float] = None
+    Cl_p: Optional[float] = None
+    Cn_p: Optional[float] = None
+    CY_p: Optional[float] = None
+    Cn_r: Optional[float] = None
+    Cl_r: Optional[float] = None
+    CY_r: Optional[float] = None
+
+    # Dynamic stability modes (None when not computed)
+    sp_frequency: Optional[float] = None   # short-period [rad/s]
+    sp_damping: Optional[float] = None     # short-period damping ratio
+    ph_frequency: Optional[float] = None   # phugoid [rad/s]
+    ph_damping: Optional[float] = None     # phugoid damping ratio
+
     # Trim
-    trim_alpha: float
-    trim_elevator: float
+    trim_alpha: float = float("nan")
+    trim_elevator: float = float("nan")
 
     # Tail volume coefficients
-    Vh: float
-    Vv: float
+    Vh: float = float("nan")
+    Vv: float = float("nan")
 
     # CG envelope
-    cg_forward_limit: float
-    cg_aft_limit: float
+    cg_forward_limit: float = 0.0
+    cg_aft_limit: float = 0.0
 
     # Reference
-    cg_x: float
-    mac: float
-    mac_le_x: float
+    cg_x: float = 0.0
+    mac: float = 0.0
+    mac_le_x: float = 0.0
 
     # Baseline
-    CL_baseline: float
-    Cm_baseline: float
+    CL_baseline: float = 0.0
+    Cm_baseline: float = 0.0
 
     # Optional Cm-vs-alpha sweep data for plotting
     _alpha_sweep: Optional[np.ndarray] = None
@@ -108,11 +148,11 @@ class StabilityResult:
     def report(self) -> str:
         """Formatted stability analysis report."""
         lines = []
-        lines.append("AerisPlane Static Stability Analysis")
+        lines.append("AerisPlane Stability Analysis")
         lines.append("=" * 60)
 
         lines.append("")
-        lines.append("Longitudinal Stability")
+        lines.append("Longitudinal Static Stability")
         lines.append("-" * 40)
         lines.append(f"  CL_alpha        {self.CL_alpha:>+10.5f}  1/deg")
         lines.append(f"  Cm_alpha        {self.Cm_alpha:>+10.5f}  1/deg")
@@ -124,7 +164,7 @@ class StabilityResult:
         lines.append(f"  Status          {status:>10s}")
 
         lines.append("")
-        lines.append("Lateral-Directional Stability")
+        lines.append("Lateral-Directional Static Stability")
         lines.append("-" * 40)
         lines.append(f"  Cl_beta         {self.Cl_beta:>+10.5f}  1/deg")
         lines.append(f"  Cn_beta         {self.Cn_beta:>+10.5f}  1/deg")
@@ -134,12 +174,47 @@ class StabilityResult:
         lines.append(f"  Dihedral effect {dihedral_ok:>16s}")
         lines.append(f"  Weathercock     {weathercock_ok:>16s}")
 
+        # Rate derivatives (only shown when computed)
+        if self.Cm_q is not None:
+            lines.append("")
+            lines.append("Rate Derivatives")
+            lines.append("-" * 40)
+            lines.append(f"  CL_q            {self.CL_q:>+10.4f}  (per qc/2V)")
+            lines.append(f"  Cm_q            {self.Cm_q:>+10.4f}  (per qc/2V)  pitch damping")
+            if self.Cl_p is not None:
+                lines.append(f"  Cl_p            {self.Cl_p:>+10.4f}  (per pb/2V)  roll damping")
+                lines.append(f"  Cn_p            {self.Cn_p:>+10.4f}  (per pb/2V)  adverse yaw")
+            if self.Cn_r is not None:
+                lines.append(f"  Cn_r            {self.Cn_r:>+10.4f}  (per rb/2V)  yaw damping")
+                lines.append(f"  Cl_r            {self.Cl_r:>+10.4f}  (per rb/2V)")
+
+        # Dynamic modes (only shown when computed)
+        if self.sp_frequency is not None:
+            lines.append("")
+            lines.append("Dynamic Stability Modes")
+            lines.append("-" * 40)
+            nan = float("nan")
+            if not np.isnan(self.sp_frequency):
+                sp_period = 2 * np.pi / self.sp_frequency if self.sp_frequency > 0 else nan
+                lines.append(f"  Short-period ω  {self.sp_frequency:>10.3f}  rad/s")
+                lines.append(f"  Short-period T  {sp_period:>10.3f}  s")
+                lines.append(f"  Short-period ζ  {self.sp_damping:>+10.4f}")
+                sp_ok = "OK (damped)" if self.sp_damping > 0 else "WARN (undamped)"
+                lines.append(f"  Short-period    {sp_ok:>16s}")
+            else:
+                lines.append(f"  Short-period        N/A  (check Cm_alpha, Cm_q signs)")
+            if not np.isnan(self.ph_frequency):
+                ph_period = 2 * np.pi / self.ph_frequency if self.ph_frequency > 0 else nan
+                lines.append(f"  Phugoid ω       {self.ph_frequency:>10.4f}  rad/s")
+                lines.append(f"  Phugoid T       {ph_period:>10.2f}  s")
+                lines.append(f"  Phugoid ζ       {self.ph_damping:>+10.4f}")
+
         lines.append("")
         lines.append("Trim")
         lines.append("-" * 40)
         lines.append(f"  Trim alpha      {self.trim_alpha:>10.2f}  deg")
         if np.isnan(self.trim_elevator):
-            lines.append(f"  Trim elevator       N/A  (no elevator)")
+            lines.append( "  Trim elevator       N/A  (no elevator or authority insufficient)")
         else:
             lines.append(f"  Trim elevator   {self.trim_elevator:>10.2f}  deg")
 
@@ -147,11 +222,11 @@ class StabilityResult:
         lines.append("Tail Volume Coefficients")
         lines.append("-" * 40)
         if np.isnan(self.Vh):
-            lines.append(f"  Vh                  N/A  (no htail identified)")
+            lines.append( "  Vh                  N/A  (no htail identified)")
         else:
             lines.append(f"  Vh              {self.Vh:>10.3f}")
         if np.isnan(self.Vv):
-            lines.append(f"  Vv                  N/A  (no vtail identified)")
+            lines.append( "  Vv                  N/A  (no vtail identified)")
         else:
             lines.append(f"  Vv              {self.Vv:>10.3f}")
 

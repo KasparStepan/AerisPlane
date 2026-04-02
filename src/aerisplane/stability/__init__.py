@@ -42,6 +42,7 @@ def analyze(
     condition: FlightCondition,
     weight_result: WeightResult,
     aero_method: str = "vlm",
+    compute_rate_derivatives: bool = False,
     **aero_kwargs,
 ) -> StabilityResult:
     """Run a full static stability analysis.
@@ -56,6 +57,10 @@ def analyze(
         Weight analysis result providing CG position.
     aero_method : str
         Aero solver method (default "vlm").
+    compute_rate_derivatives : bool
+        If True, also compute p, q, r rate derivatives and dynamic stability
+        modes (short-period, phugoid).  Adds 6 extra aero evaluations.
+        Default False.
     **aero_kwargs
         Additional keyword arguments passed to aero.analyze().
 
@@ -66,7 +71,9 @@ def analyze(
     """
     # Step 1: Compute stability derivatives
     deriv = compute_derivatives(
-        aircraft, condition, weight_result, aero_method, **aero_kwargs
+        aircraft, condition, weight_result, aero_method,
+        compute_rate_derivatives=compute_rate_derivatives,
+        **aero_kwargs,
     )
 
     # Step 2: Compute trim
@@ -82,6 +89,13 @@ def analyze(
     cg_forward_limit = max(np_frac - deriv.static_margin - _CG_MARGIN, 0.05)
     cg_aft_limit = np_frac - _CG_MARGIN
 
+    # Step 5: Dynamic stability modes (only when rate derivatives available)
+    sp_frequency = sp_damping = ph_frequency = ph_damping = None
+    if deriv.Cm_q is not None:
+        sp_frequency, sp_damping, ph_frequency, ph_damping = _dynamic_modes(
+            deriv, condition, weight_result, aircraft
+        )
+
     return StabilityResult(
         # Longitudinal
         static_margin=deriv.static_margin,
@@ -91,6 +105,15 @@ def analyze(
         # Lateral-directional
         Cl_beta=deriv.Cl_beta,
         Cn_beta=deriv.Cn_beta,
+        # Rate derivatives
+        CL_q=deriv.CL_q,
+        Cm_q=deriv.Cm_q,
+        Cl_p=deriv.Cl_p,
+        Cn_p=deriv.Cn_p,
+        CY_p=deriv.CY_p,
+        Cn_r=deriv.Cn_r,
+        Cl_r=deriv.Cl_r,
+        CY_r=deriv.CY_r,
         # Trim
         trim_alpha=trim_alpha,
         trim_elevator=trim_elevator,
@@ -100,6 +123,11 @@ def analyze(
         # CG envelope
         cg_forward_limit=cg_forward_limit,
         cg_aft_limit=cg_aft_limit,
+        # Dynamic modes
+        sp_frequency=sp_frequency,
+        sp_damping=sp_damping,
+        ph_frequency=ph_frequency,
+        ph_damping=ph_damping,
         # Reference
         cg_x=deriv.cg_x,
         mac=deriv.mac,
@@ -156,9 +184,24 @@ def _compute_trim(
         if cm_lo * cm_hi < 0:
             trim_alpha = brentq(_cm_at_alpha, alpha_lo, alpha_hi, xtol=0.01)
         else:
-            # No sign change — use linear extrapolation
+            # No sign change in bracket — Cm doesn't cross zero in ±10° window.
+            # Fall back to linear estimate and warn.
+            import warnings
+            warnings.warn(
+                f"Trim alpha not found in [{alpha_lo:.1f}, {alpha_hi:.1f}] deg "
+                f"(Cm signs: lo={cm_lo:+.4f}, hi={cm_hi:+.4f}). "
+                "Returning linear estimate — aircraft may not be trimmable.",
+                UserWarning,
+                stacklevel=4,
+            )
             trim_alpha = alpha_est
-    except Exception:
+    except Exception as exc:
+        import warnings
+        warnings.warn(
+            f"Trim alpha solver failed ({exc}). Returning linear estimate.",
+            UserWarning,
+            stacklevel=4,
+        )
         trim_alpha = alpha_est
 
     # --- Trim elevator: find elevator deflection for CL = CL_required ---
@@ -187,12 +230,95 @@ def _compute_trim(
         if cm_lo * cm_hi < 0:
             trim_elevator = brentq(_cm_at_elevator, -25.0, 25.0, xtol=0.05)
         else:
-            # Linear estimate from baseline
-            trim_elevator = 0.0
-    except Exception:
-        trim_elevator = 0.0
+            # Cm doesn't cross zero in ±25° — elevator authority insufficient.
+            import warnings
+            warnings.warn(
+                f"Trim elevator not found in [-25, 25] deg "
+                f"(Cm signs: lo={cm_lo:+.4f}, hi={cm_hi:+.4f}). "
+                "Returning NaN — elevator may lack authority for trim.",
+                UserWarning,
+                stacklevel=4,
+            )
+            trim_elevator = float("nan")
+    except Exception as exc:
+        import warnings
+        warnings.warn(
+            f"Trim elevator solver failed ({exc}). Returning NaN.",
+            UserWarning,
+            stacklevel=4,
+        )
+        trim_elevator = float("nan")
 
     return trim_alpha, trim_elevator
+
+
+def _dynamic_modes(
+    deriv,
+    condition: FlightCondition,
+    weight_result: WeightResult,
+    aircraft,
+) -> tuple:
+    """Compute short-period and phugoid frequency and damping.
+
+    Uses linearised longitudinal equations of motion.  Requires Cm_q and
+    Cm_alpha from the derivative result and I_yy from the weight result.
+
+    Short-period (2-DOF pitch + AoA):
+      ω_sp² = (q·S·c / I_yy) · [CL_alpha·|Cm_q| − |Cm_alpha|·(CL_alpha + CL_q)]
+      ζ_sp  = −(q·S·c² / (2·I_yy·V)) · (Cm_q + Cm_alpha_dot) / (2·ω_sp)
+              where Cm_alpha_dot ≈ 0 (not computed), so ζ_sp uses Cm_q only.
+
+    Phugoid (speed / altitude exchange, Lanchester approximation):
+      ω_ph = g·√2 / V
+      ζ_ph = (CD_baseline / CL_baseline) / √2
+
+    Returns (sp_frequency, sp_damping, ph_frequency, ph_damping).
+    Values are NaN when computation is not possible.
+    """
+    nan = float("nan")
+
+    q_dyn = condition.dynamic_pressure()
+    S = aircraft.reference_area()
+    c = aircraft.reference_chord()
+    V = float(condition.velocity)
+    m = float(weight_result.total_mass)
+    g = 9.81
+
+    # Moment of inertia about pitch axis (y-axis)
+    inertia = weight_result.inertia_tensor
+    I_yy = float(inertia[1, 1])
+    if I_yy <= 0 or q_dyn <= 0 or S <= 0 or c <= 0 or V <= 0:
+        return nan, nan, nan, nan
+
+    # Convert angle derivatives from 1/deg to 1/rad
+    CL_a = deriv.CL_alpha * np.degrees(1)   # 1/rad
+    Cm_a = deriv.Cm_alpha * np.degrees(1)   # 1/rad
+    Cm_q = deriv.Cm_q if deriv.Cm_q is not None else nan
+    CL_q = deriv.CL_q if deriv.CL_q is not None else 0.0
+
+    # --- Short-period ---
+    # ω_sp² = (q·S·c / I_yy) · (CL_a · |Cm_q| + |Cm_a| · (CL_a + CL_q))
+    # Convention: for a stable aircraft Cm_a < 0 and Cm_q < 0.
+    qSc_Iyy = (q_dyn * S * c) / I_yy
+    disc = qSc_Iyy * (CL_a * (-Cm_q) - (-Cm_a) * (CL_a + CL_q))
+    if disc > 0:
+        sp_frequency = float(np.sqrt(disc))
+        # ζ_sp = −Cm_q · (q·S·c²) / (2·I_yy·V·ω_sp)
+        sp_damping = float((-Cm_q) * (q_dyn * S * c**2) / (2.0 * I_yy * V * sp_frequency))
+    else:
+        sp_frequency = nan
+        sp_damping = nan
+
+    # --- Phugoid (Lanchester) ---
+    ph_frequency = float(g * np.sqrt(2.0) / V)
+    CL0 = deriv.baseline.CL
+    CD0 = deriv.baseline.CD
+    if abs(CL0) > 1e-6:
+        ph_damping = float((CD0 / CL0) / np.sqrt(2.0))
+    else:
+        ph_damping = nan
+
+    return sp_frequency, sp_damping, ph_frequency, ph_damping
 
 
 def _find_elevator(aircraft: Aircraft) -> str | None:

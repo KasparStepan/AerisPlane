@@ -27,6 +27,7 @@ from aerisplane.core.fuselage import Fuselage
 
 import aerisplane.aero.library as aerolib
 from aerisplane.aero.library import transonic
+from aerisplane.aero.library.control_surface_effects import section_cs_corrections
 from aerisplane.aero.fuselage_aero import (
     critical_mach,
     fuselage_base_drag_coefficient,
@@ -205,6 +206,8 @@ class AeroBuildup:
     ) -> dict:
         """Run analysis and compute stability derivatives via central finite differences.
 
+        Uses two perturbed solves per derivative (±delta) for O(Δ²) accuracy.
+
         Parameters
         ----------
         alpha, beta, p, q, r : bool
@@ -215,6 +218,8 @@ class AeroBuildup:
         dict from run(), plus extra keys like "CLa", "CLb", "CLp", etc.,
         and "x_np" (neutral point) if alpha derivatives are computed.
         """
+        import dataclasses
+
         do_analysis = {"alpha": alpha, "beta": beta, "p": p, "q": q, "r": r}
         abbreviations = {"alpha": "a", "beta": "b", "p": "p", "q": "q", "r": "r"}
 
@@ -222,6 +227,7 @@ class AeroBuildup:
         b_ref = self.aircraft.reference_span()
         c_ref = self.aircraft.reference_chord()
 
+        # Step size in the perturbed variable (radians or rad/s)
         fd_amounts = {
             "alpha": 0.001,
             "beta": 0.001,
@@ -229,6 +235,7 @@ class AeroBuildup:
             "q": 0.001 * (2 * V) / c_ref,
             "r": 0.001 * (2 * V) / b_ref,
         }
+        # Scale derivative from (per rad) to (per deg) or nondimensional
         scaling = {
             "alpha": np.degrees(1),
             "beta": np.degrees(1),
@@ -239,33 +246,35 @@ class AeroBuildup:
 
         run_base = self.run()
 
-        for d in do_analysis:
-            if not do_analysis[d]:
+        for d, do in do_analysis.items():
+            if not do:
                 continue
 
-            cond_inc = self.condition.copy()
-            if d == "alpha":
-                cond_inc = cond_inc.copy()
-                import dataclasses
-                cond_inc = dataclasses.replace(cond_inc, alpha=cond_inc.alpha + fd_amounts["alpha"])
-            elif d == "beta":
-                cond_inc = dataclasses.replace(cond_inc, beta=cond_inc.beta + fd_amounts["beta"])
-            elif d == "p":
-                cond_inc = dataclasses.replace(cond_inc, p=cond_inc.p + fd_amounts["p"])
-            elif d == "q":
-                cond_inc = dataclasses.replace(cond_inc, q=cond_inc.q + fd_amounts["q"])
-            elif d == "r":
-                cond_inc = dataclasses.replace(cond_inc, r=cond_inc.r + fd_amounts["r"])
+            def _perturbed_run(sign: float, var: str) -> dict:
+                amt = sign * fd_amounts[var]
+                cond = self.condition.copy()
+                if var == "alpha":
+                    cond = dataclasses.replace(cond, alpha=cond.alpha + amt)
+                elif var == "beta":
+                    cond = dataclasses.replace(cond, beta=cond.beta + amt)
+                elif var == "p":
+                    cond = dataclasses.replace(cond, p=cond.p + amt)
+                elif var == "q":
+                    cond = dataclasses.replace(cond, q=cond.q + amt)
+                elif var == "r":
+                    cond = dataclasses.replace(cond, r=cond.r + amt)
+                ab = copy.copy(self)
+                ab.condition = cond
+                return ab.run()
 
-            ab_inc = copy.copy(self)
-            ab_inc.condition = cond_inc
-            run_inc = ab_inc.run()
+            run_pos = _perturbed_run(+1.0, d)
+            run_neg = _perturbed_run(-1.0, d)
 
             for numerator in ["CL", "CD", "CY", "Cl", "Cm", "Cn"]:
                 deriv_name = numerator + abbreviations[d]
                 run_base[deriv_name] = (
-                    (run_inc[numerator] - run_base[numerator])
-                    / fd_amounts[d]
+                    (run_pos[numerator] - run_neg[numerator])
+                    / (2 * fd_amounts[d])
                     * scaling[d]
                 )
 
@@ -460,6 +469,13 @@ class AeroBuildup:
             sect_CL = (_nf(aero_a, "CL") * a_weight + _nf(aero_b, "CL") * b_weight) * AR_3D_factor**0.2
             sect_CDp = _nf(aero_a, "CD") * a_weight + _nf(aero_b, "CD") * b_weight
             sect_CM = _nf(aero_a, "CM") * a_weight + _nf(aero_b, "CM") * b_weight
+
+            # Thin-airfoil control surface corrections (ΔCl, ΔCm)
+            delta_cl, delta_cm = section_cs_corrections(
+                wing, condition.deflections, sect_id, is_mirrored=mirror_across_XZ
+            )
+            sect_CL += delta_cl
+            sect_CM += delta_cm
 
             if include_induced_drag:
                 sect_CDi = sect_CL**2 / (np.pi * AR_effective * e)
