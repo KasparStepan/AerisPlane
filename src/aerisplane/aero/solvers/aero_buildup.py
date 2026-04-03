@@ -149,6 +149,16 @@ class AeroBuildup:
         F_g_total = [sum(comp.F_g[i] for comp in aero_components) for i in range(3)]
         M_g_total = [sum(comp.M_g[i] for comp in aero_components) for i in range(3)]
 
+        # Wing-body junction interference drag
+        from aerisplane.aero.library.interference import total_junction_drag
+        D_junction = total_junction_drag(self.aircraft, self.condition)
+        if D_junction > 0:
+            D_junc_g = self.condition.convert_axes(
+                -D_junction, 0, 0, from_axes="wind", to_axes="geometry"
+            )
+            for i in range(3):
+                F_g_total[i] += D_junc_g[i]
+
         # Induced drag via Trefftz-plane model
         Q = self.condition.dynamic_pressure()
         span_effective_squared = softmax_scalefree(

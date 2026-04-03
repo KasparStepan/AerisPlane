@@ -578,3 +578,30 @@ class TestFuselageUpwashNLL:
     def test_CL_increase_is_small(self, result_no_fuse, result_with_fuse):
         delta = (result_with_fuse.CL - result_no_fuse.CL) / result_no_fuse.CL
         assert delta < 0.10, f"ΔCL/CL = {delta:.3f} is too large"
+
+
+class TestAeroBuildupInterference:
+    """AeroBuildup with fuselage should include junction drag."""
+
+    @pytest.fixture(scope="class")
+    def result_no_fuse(self, rect_aircraft, cruise_condition):
+        return analyze(rect_aircraft, cruise_condition, method="aero_buildup")
+
+    @pytest.fixture(scope="class")
+    def result_with_fuse(self, fuselage_aircraft, cruise_condition):
+        return analyze(fuselage_aircraft, cruise_condition, method="aero_buildup")
+
+    def test_CD_increases_with_fuselage(self, result_no_fuse, result_with_fuse):
+        """Fuselage adds skin friction + junction drag → higher CD."""
+        assert result_with_fuse.CD > result_no_fuse.CD
+
+
+class TestLLJunctionDrag:
+    """LL with fuselage should include junction drag."""
+
+    def test_ll_CD_with_fuse_higher_than_without(self, rect_aircraft, fuselage_aircraft, cruise_condition):
+        r_no = analyze(rect_aircraft, cruise_condition, method="lifting_line", spanwise_resolution=8)
+        r_with = analyze(fuselage_aircraft, cruise_condition, method="lifting_line", spanwise_resolution=8)
+        assert r_with.CD > r_no.CD, (
+            f"LL CD_fuse={r_with.CD:.5f} should be > CD_no_fuse={r_no.CD:.5f}"
+        )
