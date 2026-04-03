@@ -605,3 +605,36 @@ class TestLLJunctionDrag:
         assert r_with.CD > r_no.CD, (
             f"LL CD_fuse={r_with.CD:.5f} should be > CD_no_fuse={r_no.CD:.5f}"
         )
+
+
+# ------------------------------------------------------------------ #
+# Cross-solver fuselage interference consistency tests
+# ------------------------------------------------------------------ #
+
+class TestFuselageInterferenceCrossSolver:
+    """All solvers should show consistent fuselage interference effects."""
+
+    @pytest.fixture(scope="class")
+    def results(self, fuselage_aircraft, cruise_condition):
+        return {
+            method: analyze(fuselage_aircraft, cruise_condition, method=method,
+                            spanwise_resolution=8, model_size="medium")
+            for method in ["lifting_line", "nonlinear_lifting_line", "aero_buildup"]
+        }
+
+    def test_all_CL_positive(self, results):
+        for method, r in results.items():
+            assert r.CL > 0.2, f"{method}: CL={r.CL:.4f} too low"
+
+    def test_all_CD_positive(self, results):
+        for method, r in results.items():
+            assert r.CD > 0.005, f"{method}: CD={r.CD:.5f} too low"
+
+    def test_CL_within_30_percent(self, results):
+        """All methods should agree on CL within 30%."""
+        CLs = [r.CL for r in results.values()]
+        mean_CL = np.mean(CLs)
+        for method, r in results.items():
+            assert _rel(r.CL, mean_CL) < 0.30, (
+                f"{method}: CL={r.CL:.4f} vs mean={mean_CL:.4f}"
+            )
