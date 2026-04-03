@@ -161,12 +161,12 @@ class NonlinearLiftingLine:
         def _tall(a): return np.reshape(a, (-1, 1))
         def _wide(a): return np.reshape(a, (1, -1))
 
+        # Per-panel freestream directions (includes fuselage upwash if present)
+        freestream_magnitudes = np.linalg.norm(freestream_velocities, axis=1, keepdims=True)
+        per_panel_freestream_directions = freestream_velocities / np.maximum(freestream_magnitudes, 1e-12)
+
         alpha_geometrics = 90.0 - arccosd(
-            np.sum(
-                np.tile(_wide(steady_freestream_direction), (n_panels, 1))
-                * normal_directions,
-                axis=1,
-            )
+            np.sum(per_panel_freestream_directions * normal_directions, axis=1)
         )
 
         cos_sweeps = np.sum(
@@ -382,6 +382,16 @@ class NonlinearLiftingLine:
             for i in range(3):
                 force_total[i] += comp.F_g[i]
                 moment_total[i] += comp.M_g[i]
+
+        # Wing-body junction interference drag
+        from aerisplane.aero.library.interference import total_junction_drag
+        D_junction = total_junction_drag(self.aircraft, self.condition)
+        if D_junction > 0:
+            D_junc_g = self.condition.convert_axes(
+                -D_junction, 0, 0, from_axes="wind", to_axes="geometry"
+            )
+            for i in range(3):
+                force_total[i] += D_junc_g[i]
 
         # ---------------------------------------------------------------
         # Step 7 — Assemble output dict (same keys as LiftingLine.run())

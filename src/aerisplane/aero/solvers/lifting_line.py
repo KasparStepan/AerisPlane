@@ -27,6 +27,7 @@ from aerisplane.aero.singularities import (
 )
 from aerisplane.aero._np_compat import arccosd
 from aerisplane.aero.library.control_surface_effects import section_cs_corrections
+from aerisplane.aero.library.interference import total_junction_drag
 from aerisplane.utils.spacing import cosspace
 
 
@@ -238,7 +239,6 @@ class LiftingLine:
         ]
 
         # Wing-body junction interference drag
-        from aerisplane.aero.library.interference import total_junction_drag
         D_junction = total_junction_drag(self.aircraft, self.condition)
         if D_junction > 0:
             D_junc_g = self.condition.convert_axes(
@@ -559,13 +559,17 @@ class LiftingLine:
         self.steady_freestream_direction = steady_freestream_direction
         self.freestream_velocities = freestream_velocities
 
+        # Per-panel freestream directions (includes fuselage upwash if present)
+        freestream_magnitudes = np.linalg.norm(freestream_velocities, axis=1, keepdims=True)
+        freestream_directions = freestream_velocities / np.maximum(freestream_magnitudes, 1e-12)
+
         # ----------------------------------------------------------
         # Section aerodynamic conditions
         # ----------------------------------------------------------
         # Geometric AoA of each section (degrees) — angle between freestream
         # and section normal projected back to alpha
         alpha_geometrics = 90.0 - arccosd(
-            np.sum(steady_freestream_directions * normal_directions, axis=1)
+            np.sum(freestream_directions * normal_directions, axis=1)
         )
 
         # Sweep correction: component of freestream along chordwise direction

@@ -35,6 +35,7 @@ from aerisplane.aero.fuselage_aero import (
     jorgensen_eta,
     softmax_scalefree,
 )
+from aerisplane.aero.library.interference import total_junction_drag
 
 
 class AeroBuildup:
@@ -150,7 +151,6 @@ class AeroBuildup:
         M_g_total = [sum(comp.M_g[i] for comp in aero_components) for i in range(3)]
 
         # Wing-body junction interference drag
-        from aerisplane.aero.library.interference import total_junction_drag
         D_junction = total_junction_drag(self.aircraft, self.condition)
         if D_junction > 0:
             D_junc_g = self.condition.convert_axes(

@@ -26,6 +26,11 @@ def CDA_junction(
 ) -> float:
     """Junction drag area [m^2] (Hoerner Ch. 8).
 
+    The formula captures boundary-layer thickening at the wing-fuselage
+    junction (linear in *t*), not the horseshoe-vortex interference drag
+    (which scales as *t²*).  The streamwise BL run length is approximated
+    as half the fuselage circumference: ``x_junction = π * fuselage_radius``.
+
     Parameters
     ----------
     wing_root_thickness : float
@@ -44,6 +49,9 @@ def CDA_junction(
     """
     t = wing_root_thickness
     if t <= 0.0:
+        return 0.0
+
+    if Re_root <= 0.0:
         return 0.0
 
     x_junction = np.pi * fuselage_radius

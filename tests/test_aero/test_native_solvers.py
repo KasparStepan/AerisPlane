@@ -638,3 +638,20 @@ class TestFuselageInterferenceCrossSolver:
             assert _rel(r.CL, mean_CL) < 0.30, (
                 f"{method}: CL={r.CL:.4f} vs mean={mean_CL:.4f}"
             )
+
+
+# ------------------------------------------------------------------ #
+# NLL junction drag tests
+# ------------------------------------------------------------------ #
+
+class TestNLLJunctionDrag:
+    """NLL should include junction drag — CD with fuselage > CD without."""
+
+    def test_nll_CD_with_fuse_higher(self, rect_aircraft, fuselage_aircraft, cruise_condition):
+        r_no = analyze(rect_aircraft, cruise_condition, method="nonlinear_lifting_line",
+                       spanwise_resolution=8)
+        r_with = analyze(fuselage_aircraft, cruise_condition, method="nonlinear_lifting_line",
+                         spanwise_resolution=8)
+        assert r_with.CD > r_no.CD, (
+            f"NLL CD_fuse={r_with.CD:.5f} should be > CD_no_fuse={r_no.CD:.5f}"
+        )
