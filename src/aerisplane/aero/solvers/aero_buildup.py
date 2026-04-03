@@ -35,7 +35,7 @@ from aerisplane.aero.fuselage_aero import (
     jorgensen_eta,
     softmax_scalefree,
 )
-from aerisplane.aero.library.interference import total_junction_drag
+from aerisplane.aero.library.interference import total_junction_drag, aircraft_carryover_factors
 
 
 class AeroBuildup:
@@ -159,6 +159,15 @@ class AeroBuildup:
             for i in range(3):
                 F_g_total[i] += D_junc_g[i]
 
+        # Wing-body lift carryover (Schlichting & Truckenbrodt K_L)
+        K_L, K_D = aircraft_carryover_factors(self.aircraft)
+        if K_L != 1.0:
+            _, _, lift_pre = self.condition.convert_axes(*F_g_total, from_axes="geometry", to_axes="wind")
+            delta_L = (K_L - 1.0) * (-lift_pre)
+            lift_carryover_g = self.condition.convert_axes(0, 0, -delta_L, from_axes="wind", to_axes="geometry")
+            for i in range(3):
+                F_g_total[i] += lift_carryover_g[i]
+
         # Induced drag via Trefftz-plane model
         Q = self.condition.dynamic_pressure()
         span_effective_squared = softmax_scalefree(
@@ -168,7 +177,7 @@ class AeroBuildup:
         _, sideforce, lift = self.condition.convert_axes(
             *F_g_total, from_axes="geometry", to_axes="wind"
         )
-        D_induced = (lift**2 + sideforce**2) / (Q * np.pi * span_effective_squared)
+        D_induced = K_D * (lift**2 + sideforce**2) / (Q * np.pi * span_effective_squared)
         D_induced_g = self.condition.convert_axes(-D_induced, 0, 0, from_axes="wind", to_axes="geometry")
 
         for i in range(3):

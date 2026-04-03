@@ -384,7 +384,7 @@ class NonlinearLiftingLine:
                 moment_total[i] += comp.M_g[i]
 
         # Wing-body junction interference drag
-        from aerisplane.aero.library.interference import total_junction_drag
+        from aerisplane.aero.library.interference import total_junction_drag, aircraft_carryover_factors
         D_junction = total_junction_drag(self.aircraft, self.condition)
         if D_junction > 0:
             D_junc_g = self.condition.convert_axes(
@@ -392,6 +392,16 @@ class NonlinearLiftingLine:
             )
             for i in range(3):
                 force_total[i] += D_junc_g[i]
+
+        # Wing-body lift carryover (Schlichting & Truckenbrodt K_L)
+        # K_D is not applied here; induced drag is implicit in section polars.
+        K_L, _ = aircraft_carryover_factors(self.aircraft)
+        if K_L != 1.0:
+            _, _, lift_pre = self.condition.convert_axes(*force_total, from_axes="geometry", to_axes="wind")
+            delta_L = (K_L - 1.0) * (-lift_pre)
+            lift_carryover_g = self.condition.convert_axes(0, 0, -delta_L, from_axes="wind", to_axes="geometry")
+            for i in range(3):
+                force_total[i] += lift_carryover_g[i]
 
         # ---------------------------------------------------------------
         # Step 7 — Assemble output dict (same keys as LiftingLine.run())

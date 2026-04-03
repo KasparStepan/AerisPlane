@@ -117,6 +117,52 @@ def wing_carryover_drag_factor(
 # Aircraft-level helper
 # ---------------------------------------------------------------------------
 
+def aircraft_carryover_factors(aircraft: Aircraft) -> tuple[float, float]:
+    """Lift and drag carryover factors for the aircraft (K_L, K_D).
+
+    Matches the largest symmetric wing to the first fuselage and returns
+    the Schlichting & Truckenbrodt lift carryover factor K_L and the
+    Multhopp drag carryover factor K_D.
+
+    Returns (1.0, 1.0) when no fuselage or no symmetric wing is present.
+
+    Parameters
+    ----------
+    aircraft : Aircraft
+
+    Returns
+    -------
+    K_L : float
+        Multiplicative factor on lift (>= 1.0).
+    K_D : float
+        Multiplicative factor on induced drag (>= 1.0).
+    """
+    if not aircraft.fuselages or not aircraft.wings:
+        return 1.0, 1.0
+
+    # Find main wing: first symmetric wing with the largest semi-span
+    main_wing = None
+    max_span = 0.0
+    for w in aircraft.wings:
+        if w.symmetric and len(w.xsecs) >= 2:
+            semi_span = abs(w.xsecs[-1].xyz_le[1] - w.xsecs[0].xyz_le[1])
+            total_span = 2.0 * semi_span
+            if total_span > max_span:
+                max_span = total_span
+                main_wing = w
+
+    if main_wing is None or max_span <= 0.0:
+        return 1.0, 1.0
+
+    fuse = aircraft.fuselages[0]
+    max_radius = max((xs.equivalent_radius() for xs in fuse.xsecs), default=0.0)
+    fuse_diameter = 2.0 * max_radius
+
+    K_L = wing_carryover_lift_factor(fuse_diameter, max_span)
+    K_D = wing_carryover_drag_factor(fuse_diameter, max_span)
+    return K_L, K_D
+
+
 def total_junction_drag(aircraft: Aircraft, condition: FlightCondition) -> float:
     """Total wing-fuselage junction drag force [N].
 

@@ -7,6 +7,7 @@ from aerisplane.aero.library.interference import (
     wing_carryover_lift_factor,
     wing_carryover_drag_factor,
     total_junction_drag,
+    aircraft_carryover_factors,
 )
 
 
@@ -80,3 +81,78 @@ class TestTotalJunctionDrag:
         cond = ap.FlightCondition(velocity=20.0, altitude=0.0, alpha=4.0)
         D = total_junction_drag(aircraft, cond)
         assert D > 0.0
+
+
+class TestAircraftCarryoverFactors:
+    def _make_aircraft(self, d_fuse=0.12, span=2.0):
+        import aerisplane as ap
+        fuse = ap.Fuselage(name="f", xsecs=[
+            ap.FuselageXSec(x=0.0, radius=d_fuse / 2),
+            ap.FuselageXSec(x=1.0, radius=d_fuse / 2),
+        ])
+        wing = ap.Wing(name="w", xsecs=[
+            ap.WingXSec(xyz_le=[0.1, 0, 0], chord=0.2),
+            ap.WingXSec(xyz_le=[0.1, span / 2, 0], chord=0.2),
+        ], symmetric=True)
+        return ap.Aircraft(name="a", wings=[wing], fuselages=[fuse])
+
+    def test_no_fuselage_returns_unity(self):
+        import aerisplane as ap
+        aircraft = ap.Aircraft(name="nofuse", wings=[
+            ap.Wing(name="w", xsecs=[
+                ap.WingXSec(xyz_le=[0, 0, 0], chord=0.2),
+                ap.WingXSec(xyz_le=[0, 1, 0], chord=0.2),
+            ], symmetric=True)
+        ])
+        K_L, K_D = aircraft_carryover_factors(aircraft)
+        assert K_L == pytest.approx(1.0)
+        assert K_D == pytest.approx(1.0)
+
+    def test_no_symmetric_wing_returns_unity(self):
+        import aerisplane as ap
+        fuse = ap.Fuselage(name="f", xsecs=[
+            ap.FuselageXSec(x=0.0, radius=0.05),
+            ap.FuselageXSec(x=1.0, radius=0.05),
+        ])
+        vtail = ap.Wing(name="v", xsecs=[
+            ap.WingXSec(xyz_le=[0, 0, 0], chord=0.1),
+            ap.WingXSec(xyz_le=[0, 0.2, 0], chord=0.06),
+        ], symmetric=False)
+        aircraft = ap.Aircraft(name="a", wings=[vtail], fuselages=[fuse])
+        K_L, K_D = aircraft_carryover_factors(aircraft)
+        assert K_L == pytest.approx(1.0)
+        assert K_D == pytest.approx(1.0)
+
+    def test_typical_rc_factors_gt_one(self):
+        # d/b ~ 5%: K_L and K_D should be just above 1.0
+        aircraft = self._make_aircraft(d_fuse=0.10, span=2.0)
+        K_L, K_D = aircraft_carryover_factors(aircraft)
+        assert K_L > 1.0
+        assert K_D > 1.0
+
+    def test_larger_fuselage_larger_factors(self):
+        aircraft_small = self._make_aircraft(d_fuse=0.10, span=2.0)
+        aircraft_large = self._make_aircraft(d_fuse=0.40, span=2.0)
+        K_L_s, K_D_s = aircraft_carryover_factors(aircraft_small)
+        K_L_l, K_D_l = aircraft_carryover_factors(aircraft_large)
+        assert K_L_l > K_L_s
+        assert K_D_l > K_D_s
+
+    def test_selects_largest_symmetric_wing(self):
+        import aerisplane as ap
+        fuse = ap.Fuselage(name="f", xsecs=[
+            ap.FuselageXSec(x=0.0, radius=0.06),
+            ap.FuselageXSec(x=1.0, radius=0.06),
+        ])
+        small_wing = ap.Wing(name="htail", xsecs=[
+            ap.WingXSec(xyz_le=[0.8, 0, 0], chord=0.12),
+            ap.WingXSec(xyz_le=[0.8, 0.3, 0], chord=0.08),
+        ], symmetric=True)
+        main_wing = ap.Wing(name="main", xsecs=[
+            ap.WingXSec(xyz_le=[0.1, 0, 0], chord=0.2),
+            ap.WingXSec(xyz_le=[0.1, 1.2, 0], chord=0.2),
+        ], symmetric=True)
+        aircraft = ap.Aircraft(name="a", wings=[small_wing, main_wing], fuselages=[fuse])
+        K_L, _ = aircraft_carryover_factors(aircraft)
+        # d/b using main wing (span=2.4): K_L = 1 + 0.41*(0.12/2.4)^2 ≈ 1.00103
+        assert K_L == pytest.approx(1.0 + 0.41 * (0.12 / 2.4) ** 2, abs=1e-6)
