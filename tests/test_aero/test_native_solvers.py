@@ -555,3 +555,26 @@ class TestFuselageUpwashLL:
     def test_CD_increases_with_fuselage(self, result_no_fuse, result_with_fuse):
         """Fuselage adds its own drag contribution."""
         assert result_with_fuse.CD > result_no_fuse.CD
+
+
+class TestFuselageUpwashNLL:
+    """Fuselage displacement effect in nonlinear lifting line."""
+
+    @pytest.fixture(scope="class")
+    def result_no_fuse(self, rect_aircraft, cruise_condition):
+        return analyze(rect_aircraft, cruise_condition,
+                       method="nonlinear_lifting_line", spanwise_resolution=8)
+
+    @pytest.fixture(scope="class")
+    def result_with_fuse(self, fuselage_aircraft, cruise_condition):
+        return analyze(fuselage_aircraft, cruise_condition,
+                       method="nonlinear_lifting_line", spanwise_resolution=8)
+
+    def test_CL_increases_with_fuselage(self, result_no_fuse, result_with_fuse):
+        assert result_with_fuse.CL > result_no_fuse.CL, (
+            f"CL_fuse={result_with_fuse.CL:.4f} <= CL_no_fuse={result_no_fuse.CL:.4f}"
+        )
+
+    def test_CL_increase_is_small(self, result_no_fuse, result_with_fuse):
+        delta = (result_with_fuse.CL - result_no_fuse.CL) / result_no_fuse.CL
+        assert delta < 0.10, f"ΔCL/CL = {delta:.3f} is too large"
