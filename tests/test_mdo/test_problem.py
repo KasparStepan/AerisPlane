@@ -198,6 +198,17 @@ def test_n_vars_with_pool(test_aircraft, cruise_condition):
     assert hi[1] == 1.0
 
 
+def test_invalid_constraint_path_prefix_raises(test_aircraft, cruise_condition):
+    with pytest.raises(ValueError, match="unknown discipline prefix"):
+        MDOProblem(
+            aircraft=test_aircraft,
+            condition=cruise_condition,
+            design_variables=[DesignVar("wings[0].xsecs[0].chord", lower=0.18, upper=0.38)],
+            constraints=[Constraint("notadiscipline.value", upper=5.0)],
+            objective=Objective("weights.total_mass", maximize=False),
+        )
+
+
 from unittest.mock import patch, MagicMock
 
 
@@ -253,6 +264,7 @@ def test_evaluate_caches(mock_w, mock_a, mock_s, simple_problem):
     simple_problem.evaluate(x)
     simple_problem.evaluate(x)
     assert mock_w.call_count == 1   # ran once only
+    assert simple_problem._n_evals == 1  # incremented only on first call
 
 
 @patch("aerisplane.stability.analyze")
@@ -269,6 +281,31 @@ def test_evaluate_objective_minimise(mock_w, mock_a, mock_s, simple_problem):
     result = simple_problem.evaluate(x)
     # maximize=False → sign +1 → objective = 2.5
     assert result["objective"] == pytest.approx(2.5)
+
+
+@patch("aerisplane.stability.analyze")
+@patch("aerisplane.aero.analyze")
+@patch("aerisplane.weights.analyze")
+def test_evaluate_objective_maximise(mock_w, mock_a, mock_s, test_aircraft, cruise_condition):
+    """maximize=True → sign -1 → objective = -raw_value (optimizer minimises internally)."""
+    from aerisplane.mdo.problem import MDOProblem
+    problem = MDOProblem(
+        aircraft=test_aircraft,
+        condition=cruise_condition,
+        design_variables=[DesignVar("wings[0].xsecs[0].chord", lower=0.18, upper=0.38)],
+        constraints=[Constraint("stability.static_margin", lower=0.05)],
+        objective=Objective("weights.total_mass", maximize=True),
+    )
+    wr = _mock_weight_result()
+    wr.total_mass = 2.5
+    mock_w.return_value = wr
+    mock_a.return_value = _mock_aero_result()
+    mock_s.return_value = _mock_stab_result()
+    lo, hi = problem.get_bounds()
+    x = (lo + hi) / 2.0
+    result = problem.evaluate(x)
+    # maximize=True → sign -1 → objective = -2.5
+    assert result["objective"] == pytest.approx(-2.5)
 
 
 @patch("aerisplane.stability.analyze")

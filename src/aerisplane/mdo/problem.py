@@ -212,7 +212,7 @@ class MDOProblem:
         for dv in self._dvars:
             try:
                 _get_dv_value(self._baseline, dv.path)
-            except (AttributeError, IndexError, TypeError) as exc:
+            except (AttributeError, IndexError, TypeError, ValueError) as exc:
                 raise ValueError(
                     f"DesignVar path '{dv.path}' does not resolve on the aircraft: {exc}"
                 ) from exc
@@ -224,6 +224,23 @@ class MDOProblem:
             if bad:
                 raise ValueError(
                     f"Paths {bad} reference 'mission' but mission=None."
+                )
+
+        # Check constraint/objective path prefixes are recognised disciplines
+        objectives = self._objective if isinstance(self._objective, list) else [self._objective]
+        all_paths = [c.path for c in self._constraints] + [o.path for o in objectives]
+        for path in all_paths:
+            prefix = path.split(".")[0]
+            if prefix not in DISCIPLINE_ORDER:
+                raise ValueError(
+                    f"Path '{path}' has unknown discipline prefix '{prefix}'. "
+                    f"Valid prefixes: {DISCIPLINE_ORDER}."
+                )
+            if prefix not in self._disciplines:
+                raise ValueError(
+                    f"Path '{path}' references discipline '{prefix}' which is not in the "
+                    f"active discipline set {self._disciplines}. "
+                    "Use extra_disciplines to enable it or remove the path."
                 )
 
         from aerisplane.catalog import get_airfoil
@@ -272,6 +289,10 @@ class MDOProblem:
 
         # 1. Weights (always)
         results["weights"] = weights_mod.analyze(ac)
+
+        # Set moment reference to CG for all subsequent aero/stability calls
+        cg = results["weights"].cg
+        ac.xyz_ref = [float(cg[0]), float(cg[1]), float(cg[2])]
 
         # 2. Flight condition
         from aerisplane.core.flight_condition import FlightCondition
@@ -340,9 +361,11 @@ class MDOProblem:
         self._history.append((x_scaled.copy(), objective_value, constraint_values))
 
         if _LOG.isEnabledFor(logging.INFO):
-            best_obj = min((h[1] for h in self._history), default=objective_value)
+            log_obj = objective_value[0] if isinstance(objective_value, list) else objective_value
+            history_scalars = [h[1][0] if isinstance(h[1], list) else h[1] for h in self._history]
+            best_obj = min(history_scalars, default=log_obj)
             _LOG.info("[%5d]  obj=%.4g  best=%.4g  t=%.2fs",
-                      self._n_evals, objective_value, best_obj, elapsed)
+                      self._n_evals, log_obj, best_obj, elapsed)
         return ev
 
     def _trim_condition(self, aircraft, weight_result):
@@ -368,8 +391,14 @@ class MDOProblem:
             cm_hi = cm_at(15.0)
             if cm_lo * cm_hi < 0.0:
                 alpha_trim = brentq(cm_at, -5.0, 15.0, xtol=0.1)
-        except Exception:
-            pass
+            else:
+                _LOG.warning(
+                    "Trim: Cm does not change sign in [-5, 15] deg "
+                    "(Cm_lo=%.3f, Cm_hi=%.3f). Falling back to alpha=%.1f deg.",
+                    cm_lo, cm_hi, alpha_trim,
+                )
+        except Exception as exc:
+            _LOG.warning("Trim solver failed (%s). Falling back to alpha=%.1f deg.", exc, alpha_trim)
         return FlightCondition(velocity=V, altitude=alt, alpha=alpha_trim, beta=beta)
 
     def objective_function(self, x_scaled: np.ndarray) -> float:
@@ -401,4 +430,9 @@ class MDOProblem:
         import pickle
         with open(path, "rb") as f:
             loaded = pickle.load(f)
+        if not isinstance(loaded, dict):
+            raise ValueError(
+                f"Cache file '{path}' does not contain a dict (got {type(loaded).__name__}). "
+                "File may be corrupted or from an incompatible version."
+            )
         self._cache.update(loaded)
