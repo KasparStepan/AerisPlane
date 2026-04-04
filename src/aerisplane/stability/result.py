@@ -146,7 +146,30 @@ class StabilityResult:
     _Cm_sweep: Optional[np.ndarray] = None
 
     def report(self) -> str:
-        """Formatted stability analysis report."""
+        """Formatted plain-text stability analysis report.
+
+        Sections always included:
+          • Longitudinal Static Stability — CL_alpha, Cm_alpha, neutral point,
+            CG position, static margin, and a STABLE / UNSTABLE verdict.
+          • Lateral-Directional Static Stability — Cl_beta (dihedral effect)
+            and Cn_beta (weathercock), each with an OK / WARN flag.
+          • Trim — trim alpha and trim elevator (or N/A if unavailable).
+          • Tail Volume Coefficients — Vh and Vv (or N/A if not identified).
+          • CG Envelope — forward and aft limits as % MAC, with current CG.
+          • Baseline Coefficients — CL and Cm at the analysis condition.
+
+        Sections shown only when rate derivatives were computed:
+          • Rate Derivatives — CL_q, Cm_q (pitch damping), Cl_p, Cn_p
+            (roll damping, adverse yaw), Cn_r, Cl_r (yaw damping).
+          • Dynamic Stability Modes — short-period ω, T, ζ and phugoid ω, T, ζ
+            (Lanchester approximation); N/A printed when computation failed.
+
+        Returns
+        -------
+        str
+            Multi-line string suitable for printing to a terminal or saving
+            to a text file.  No trailing newline.
+        """
         lines = []
         lines.append("AerisPlane Stability Analysis")
         lines.append("=" * 60)
@@ -252,11 +275,29 @@ class StabilityResult:
         return (self.cg_x - self.mac_le_x) / self.mac
 
     def plot(self):
-        """Static stability summary plot.
+        """Static stability summary figure (two panels).
 
-        Returns a matplotlib Figure with:
-        1. Cm vs alpha curve with trim point and stability slope
-        2. CG envelope on a MAC bar diagram
+        Left panel — Pitch Stability (Cm vs alpha):
+            If a Cm-alpha sweep was stored in _alpha_sweep / _Cm_sweep (e.g.
+            from a polar run), the full curve is plotted.  Otherwise a tangent
+            line spanning ±3° around trim_alpha is drawn, labelled with
+            Cm_alpha.  A dashed horizontal line marks Cm = 0, and a dotted
+            vertical line marks the trim angle of attack.
+
+        Right panel — CG Envelope:
+            A horizontal bar representing the full MAC (leading edge at 0,
+            trailing edge at 1) is drawn in light grey.  The allowable CG
+            range (forward_limit to aft_limit, both as fractions of MAC) is
+            shaded.  The current CG is marked with a downward triangle and
+            the neutral point with a diamond.  Dashed and dash-dot red lines
+            show the forward and aft CG limits.  LE / TE labels appear below
+            the bar.  The figure title states the static margin in % MAC.
+
+        Returns
+        -------
+        matplotlib.figure.Figure
+            1×2 figure, 14×6 inches.  Call ``plt.show()`` or
+            ``fig.savefig(...)`` on the returned object.
         """
         import matplotlib.pyplot as plt
         import seaborn as sns

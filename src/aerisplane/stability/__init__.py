@@ -146,10 +146,52 @@ def _compute_trim(
     aero_method: str,
     **aero_kwargs,
 ) -> tuple[float, float]:
-    """Find trim alpha (Cm=0) and trim elevator for level flight.
+    """Find trim alpha and trim elevator for steady level flight.
 
-    Returns (trim_alpha, trim_elevator). trim_elevator is NaN if no
-    elevator control surface is found.
+    Two-step process:
+
+    Step 1 — Trim alpha:
+        Find the angle of attack where Cm = 0 (pitching moment balanced)
+        using Brent's method in a ±10° bracket around the linear estimate.
+        The linear estimate is alpha_0 − Cm_0 / Cm_alpha.  If the bracket
+        does not contain a sign change (aircraft may not be trimmable),
+        the linear estimate is returned with a UserWarning.
+
+    Step 2 — Trim elevator:
+        At the trim alpha found in step 1, find the elevator deflection
+        that also satisfies CL = W/(q·S) (lift equals weight) by solving
+        Cm = 0 over the deflection range [−25, 25] deg with Brent's method.
+        The elevator is identified by searching control surface names for
+        "elevator" or "elev" (case-insensitive).  Returns NaN if:
+          • no elevator control surface exists on the aircraft, or
+          • Cm does not change sign over ±25° (authority insufficient).
+
+    Positive elevator deflection convention follows the aero solver
+    (typically trailing-edge-down = positive Cm contribution).
+
+    Parameters
+    ----------
+    aircraft : Aircraft
+        Aircraft geometry definition.  Moment reference is overridden
+        internally to the CG from weight_result.
+    condition : FlightCondition
+        Baseline operating point used for speed and altitude.
+    weight_result : WeightResult
+        Provides CG position and total mass for level-flight CL.
+    deriv : DerivativeResult
+        Pre-computed derivatives used to seed the alpha bracket.
+    aero_method : str
+        Aero solver method string passed to aero.analyze().
+    **aero_kwargs
+        Extra keyword arguments forwarded to aero.analyze().
+
+    Returns
+    -------
+    trim_alpha : float
+        Angle of attack for Cm = 0 at the current CG [deg].
+    trim_elevator : float
+        Elevator deflection for trimmed level flight [deg].
+        NaN if elevator is absent or lacks authority.
     """
     from scipy.optimize import brentq
 
