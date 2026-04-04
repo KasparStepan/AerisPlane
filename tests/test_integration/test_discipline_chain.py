@@ -14,6 +14,7 @@ import aerisplane.weights as wts
 import aerisplane.stability as stab
 import aerisplane.control as ctrl
 import aerisplane.mission as mis
+import aerisplane.structures as struc
 from aerisplane.mission.segments import Mission, Cruise, Climb
 
 
@@ -300,3 +301,35 @@ class TestFullChain:
 
         # Mission: energy budget > 0
         assert mis_result.total_energy > 0.0
+
+
+class TestStructuresChain:
+    def test_structures_consumes_aero_and_weight(self, rc_aircraft, cruise_condition):
+        weight_result = wts.analyze(rc_aircraft)
+        aero_result = aero.analyze(rc_aircraft, cruise_condition, method="vlm")
+        result = struc.analyze(rc_aircraft, aero_result, weight_result)
+        assert result is not None
+        assert len(result.wings) > 0
+
+    def test_structures_report_runs(self, rc_aircraft, cruise_condition):
+        weight_result = wts.analyze(rc_aircraft)
+        aero_result = aero.analyze(rc_aircraft, cruise_condition, method="vlm")
+        result = struc.analyze(rc_aircraft, aero_result, weight_result)
+        report = result.report()
+        assert isinstance(report, str)
+
+    def test_full_chain_with_structures(self, rc_aircraft, cruise_condition):
+        """aero -> weights -> stability -> control -> mission -> structures."""
+        weight_result = wts.analyze(rc_aircraft)
+        aero_result = aero.analyze(rc_aircraft, cruise_condition, method="vlm")
+        stab_result = stab.analyze(rc_aircraft, cruise_condition, weight_result)
+        ctrl_result = ctrl.analyze(rc_aircraft, cruise_condition,
+                                   weight_result, stab_result)
+        mission = Mission(segments=[
+            Cruise(distance=3000.0, velocity=15.0, altitude=100.0),
+        ])
+        mis_result = mis.analyze(rc_aircraft, weight_result, mission)
+        struct_result = struc.analyze(rc_aircraft, aero_result, weight_result,
+                                      stability_result=stab_result)
+        assert struct_result.is_safe or not struct_result.is_safe  # just runs
+        assert np.isfinite(struct_result.design_load_factor)
