@@ -254,10 +254,10 @@ Architecture section in the MkDocs site.
 Add `[project.urls]` block:
 ```toml
 [project.urls]
-Homepage = "https://github.com/<owner>/AerisPlane"
-Documentation = "https://<owner>.github.io/AerisPlane"
-Repository = "https://github.com/<owner>/AerisPlane"
-"Bug Tracker" = "https://github.com/<owner>/AerisPlane/issues"
+Homepage = "https://github.com/KasparStepan/AerisPlane"
+Documentation = "https://kasparstepan.github.io/AerisPlane"
+Repository = "https://github.com/KasparStepan/AerisPlane"
+"Bug Tracker" = "https://github.com/KasparStepan/AerisPlane/issues"
 ```
 
 Add MkDocs dependencies to `[project.optional-dependencies]`:
@@ -284,7 +284,7 @@ Steps: install `.[dev]`, run `pytest tests/`.
 
 Trigger: push to `main`.
 Steps: install `.[docs]`, run `mkdocs gh-deploy --force`.
-Deploys to `gh-pages` branch → served at `https://<owner>.github.io/AerisPlane`.
+Deploys to `gh-pages` branch → served at `https://kasparstepan.github.io/AerisPlane`.
 
 ---
 
