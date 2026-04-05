@@ -3,25 +3,6 @@ from __future__ import annotations
 
 
 def get_airfoil(name: str):
-    """Load an airfoil from the catalog by name.
-
-    Parameters
-    ----------
-    name : str
-        Airfoil name, e.g. ``"naca2412"``, ``"e423"``.  NACA 4-digit names
-        are generated analytically; all others are loaded from the catalog
-        .dat files in ``catalog/airfoils/``.
-
-    Returns
-    -------
-    Airfoil
-        Airfoil with coordinates populated.
-
-    Raises
-    ------
-    ValueError
-        If the name cannot be resolved (not NACA and not in catalog).
-    """
     from aerisplane.core.airfoil import Airfoil
     af = Airfoil(name)
     if af.coordinates is None:
@@ -32,4 +13,34 @@ def get_airfoil(name: str):
     return af
 
 
-__all__ = ["get_airfoil"]
+def list_motors():
+    import aerisplane.catalog.motors as _m
+    from aerisplane.core.propulsion import Motor
+    return [v for v in vars(_m).values() if isinstance(v, Motor)]
+
+
+def list_batteries():
+    import aerisplane.catalog.batteries as _b
+    from aerisplane.core.propulsion import Battery
+    return [v for v in vars(_b).values() if isinstance(v, Battery)]
+
+
+def list_propellers():
+    import aerisplane.catalog.propellers as _p
+    from aerisplane.core.propulsion import Propeller
+    return [v for v in vars(_p).values() if isinstance(v, Propeller)]
+
+
+def list_servos():
+    import aerisplane.catalog.servos as _s
+    from aerisplane.core.control_surface import Servo
+    return [v for v in vars(_s).values() if isinstance(v, Servo)]
+
+
+__all__ = [
+    "get_airfoil",
+    "list_motors",
+    "list_batteries",
+    "list_propellers",
+    "list_servos",
+]
