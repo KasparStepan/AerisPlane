@@ -12,10 +12,8 @@ import numpy as np
 class StabilityResult:
     """Static and dynamic stability analysis result.
 
-    Parameters
+    Attributes
     ----------
-    Longitudinal static stability
-    -----------------------------
     static_margin : float
         Static margin as fraction of MAC (positive = stable).
     neutral_point : float
@@ -24,28 +22,26 @@ class StabilityResult:
         Pitch moment derivative dCm/dalpha [1/deg]. Negative = stable.
     CL_alpha : float
         Lift curve slope dCL/dalpha [1/deg].
-
-    Lateral-directional static stability
-    -------------------------------------
     Cl_beta : float
         Roll-due-to-sideslip dCl/dbeta [1/deg]. Negative = stable (dihedral effect).
     Cn_beta : float
         Yaw-due-to-sideslip dCn/dbeta [1/deg]. Positive = stable (weathercock).
-
-    Rate derivatives  (None if compute_rate_derivatives=False)
-    -----------------------------------------------------------
-    CL_q, Cm_q : float or None
-        Lift and pitch moment due to pitch rate q_hat = qc/2V.
-        Cm_q is the pitch damping derivative — negative = damped.
-    Cl_p, Cn_p, CY_p : float or None
-        Roll, yaw, and side force due to roll rate p_hat = pb/2V.
-        Cl_p is the roll damping derivative — negative = damped.
-    Cn_r, Cl_r, CY_r : float or None
-        Yaw, roll, and side force due to yaw rate r_hat = rb/2V.
-        Cn_r is the yaw damping derivative — negative = damped.
-
-    Dynamic stability modes  (None if rate derivatives not computed)
-    ----------------------------------------------------------------
+    CL_q : float or None
+        Lift due to pitch rate (q_hat = qc/2V). None if rate derivatives not computed.
+    Cm_q : float or None
+        Pitch damping derivative (negative = damped). None if rate derivatives not computed.
+    Cl_p : float or None
+        Roll damping derivative (negative = damped). None if rate derivatives not computed.
+    Cn_p : float or None
+        Yaw due to roll rate — adverse yaw. None if rate derivatives not computed.
+    CY_p : float or None
+        Side force due to roll rate. None if rate derivatives not computed.
+    Cn_r : float or None
+        Yaw damping derivative (negative = damped). None if rate derivatives not computed.
+    Cl_r : float or None
+        Roll due to yaw rate. None if rate derivatives not computed.
+    CY_r : float or None
+        Side force due to yaw rate. None if rate derivatives not computed.
     sp_frequency : float or None
         Short-period natural frequency [rad/s].
     sp_damping : float or None
@@ -53,41 +49,26 @@ class StabilityResult:
     ph_frequency : float or None
         Phugoid natural frequency [rad/s] (Lanchester approximation).
     ph_damping : float or None
-        Phugoid damping ratio (Lanchester: CD/CL/√2).
-
-    Trim
-    ----
+        Phugoid damping ratio (Lanchester: CD/CL/sqrt(2)).
     trim_alpha : float
         Angle of attack for Cm = 0 at current CG [deg].
     trim_elevator : float
         Elevator deflection for trimmed level flight [deg]. NaN if no elevator
         found or insufficient authority.
-
-    Tail volume coefficients
-    -----------------------
     Vh : float
         Horizontal tail volume coefficient. NaN if no htail found.
     Vv : float
         Vertical tail volume coefficient. NaN if no vtail found.
-
-    CG envelope
-    -----------
     cg_forward_limit : float
         Forward CG limit as fraction of MAC from wing LE.
     cg_aft_limit : float
         Aft CG limit as fraction of MAC from wing LE.
-
-    Reference
-    ---------
     cg_x : float
         CG x-position used for analysis [m].
     mac : float
         Mean aerodynamic chord [m].
     mac_le_x : float
         MAC leading edge x-position [m].
-
-    Baseline coefficients
-    --------------------
     CL_baseline : float
         Lift coefficient at the analysis condition.
     Cm_baseline : float

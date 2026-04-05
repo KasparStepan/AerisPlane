@@ -169,7 +169,7 @@ class Wing:
         return np.array([x_mac, y_mac, z_mac])
 
     def aerodynamic_center(self) -> np.ndarray:
-        """Approximate aerodynamic center at quarter-chord of MAC [x, y, z] [m]."""
+        """Approximate aerodynamic center at quarter-chord of MAC ``[x, y, z]`` in metres."""
         mac_le = self.mean_aerodynamic_chord_le()
         mac = self.mean_aerodynamic_chord()
         # AC is at 25% MAC from the LE
@@ -261,7 +261,7 @@ class Wing:
         return result
 
     def sectional_aerodynamic_centers(self) -> list[np.ndarray]:
-        """Approximate aerodynamic center of each section [x, y, z] [m].
+        """Approximate aerodynamic center of each section ``[x, y, z]`` in metres.
 
         Computed as the midpoint of the section's quarter-chord line.
         Returns one (3,) array per section (len(xsecs) - 1 entries).

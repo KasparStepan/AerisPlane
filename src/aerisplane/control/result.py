@@ -12,46 +12,32 @@ import numpy as np
 class ControlResult:
     """Control authority analysis result.
 
-    Parameters
+    Attributes
     ----------
-    Roll
-    ----
     max_roll_rate : float
         Steady-state roll rate at max aileron deflection [deg/s].
     aileron_authority : float
         Normalized 0-1 (1.0 = meets 180 deg/s requirement).
     Cl_delta_a : float
         Roll moment per degree aileron [1/deg].
-
-    Pitch
-    -----
     elevator_authority : float
         Normalized 0-1.
     Cm_delta_e : float
         Pitch moment per degree elevator [1/deg].
     max_pitch_acceleration : float
         Max pitch angular acceleration from full elevator [deg/s^2].
-
-    Yaw
-    ---
     rudder_authority : float
         Normalized 0-1 (1.0 = can hold 5 m/s crosswind).
     Cn_delta_r : float
         Yaw moment per degree rudder [1/deg].
     max_crosswind : float
         Max crosswind for coordinated flight [m/s].
-
-    Servo loads
-    -----------
     aileron_hinge_moment : float or None
-        Hinge moment at max deflection [N*m]. None if no servo.
+        Hinge moment at max deflection [N·m]. None if no servo.
     elevator_hinge_moment : float or None
-        Hinge moment at max deflection [N*m]. None if no servo.
+        Hinge moment at max deflection [N·m]. None if no servo.
     rudder_hinge_moment : float or None
-        Hinge moment at max deflection [N*m]. None if no servo.
-
-    Servo adequacy
-    -------------
+        Hinge moment at max deflection [N·m]. None if no servo.
     aileron_servo_margin : float or None
         Servo torque / hinge moment (>1 = OK). None if no servo.
     elevator_servo_margin : float or None
