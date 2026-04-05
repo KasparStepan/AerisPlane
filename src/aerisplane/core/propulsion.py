@@ -238,12 +238,14 @@ class ESC:
 
     Parameters
     ----------
+    name : str
+        ESC name for display.
     max_current : float
         Maximum continuous current [A].
-    resistance : float
-        Internal resistance [Ω].
     mass : float
         ESC mass [kg]. Default 0.03.
+    has_telemetry : bool
+        Whether the ESC provides telemetry data. Default False.
     """
 
     name: str
@@ -276,7 +278,7 @@ class PropulsionSystem:
     ...     motor=sunnysky_x2216_1250,
     ...     propeller=apc_10x4_7sf,
     ...     battery=tattu_4s_5200,
-    ...     esc=ESC(max_current=60.0, resistance=0.002),
+    ...     esc=ESC(name="generic_60A", max_current=60.0, mass=0.025),
     ... )
     """
 
