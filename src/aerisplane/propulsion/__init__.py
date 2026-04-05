@@ -11,15 +11,38 @@ __all__ = ["PropulsionResult", "analyze"]
 
 
 def analyze(aircraft, condition, throttle: float = 1.0) -> PropulsionResult:
-    """Compute propulsion operating point.
+    """Compute propulsion system operating point at a given throttle.
+
+    Solves motor RPM and current by matching torque supply and demand,
+    then computes thrust, efficiency, battery C-rate, and estimated endurance.
 
     Parameters
     ----------
-    aircraft : Aircraft — must have a propulsion attribute (PropulsionSystem)
+    aircraft : Aircraft
+        Aircraft with a ``propulsion`` attribute
+        (:class:`~aerisplane.core.propulsion.PropulsionSystem`).
     condition : FlightCondition
-    throttle : float — [0-1]
+        Operating point. Uses ``condition.velocity`` and ``condition.altitude``.
+    throttle : float, optional
+        Throttle setting in [0, 1]. Default 1.0 (full throttle).
 
-    Raises ValueError if aircraft has no PropulsionSystem.
+    Returns
+    -------
+    PropulsionResult
+        Thrust [N], current [A], RPM, motor efficiency, propulsive efficiency,
+        electrical power [W], shaft power [W], endurance [s], C-rate,
+        and over-current flag.
+
+    Raises
+    ------
+    ValueError
+        If ``aircraft.propulsion`` is None.
+
+    Examples
+    --------
+    >>> from aerisplane.propulsion import analyze
+    >>> result = analyze(aircraft, condition, throttle=0.6)
+    >>> print(result.report())
     """
     from aerisplane.propulsion.solver import solve_operating_point
     from aerisplane.utils.atmosphere import isa

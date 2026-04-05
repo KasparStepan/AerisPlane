@@ -36,16 +36,25 @@ def _load_from_catalog(name: str) -> Optional[np.ndarray]:
 
 @dataclass(eq=False)
 class Airfoil:
-    """Airfoil defined by name and/or coordinates.
+    """Airfoil defined by name and/or coordinate array.
+
+    If ``name`` is given and ``coordinates`` is None, the catalog is searched
+    for a matching ``.dat`` file. NACA 4-digit names (e.g. ``"naca2412"``) are
+    generated analytically if not found in the catalog.
 
     Parameters
     ----------
     name : str
-        Airfoil name (e.g., "naca2412", "ag35", "custom").
-    coordinates : ndarray or None
-        (N, 2) array of [x, y] coordinates in Selig format
-        (trailing edge → upper surface → leading edge → lower surface → trailing edge).
-        If None and name starts with "naca", coordinates are generated automatically.
+        Airfoil name, e.g. ``"ag35"``, ``"naca2412"``, ``"e387"``.
+        Used for catalog lookup and plot labels.
+    coordinates : ndarray of shape (N, 2) or None
+        Explicit (x, y) coordinate array in Selig format (upper surface first,
+        x from 0 to 1 and back to 0). If None, loaded from catalog by name.
+
+    Examples
+    --------
+    >>> af = Airfoil(name="ag35")         # loads from catalog
+    >>> af = Airfoil(name="naca2412")     # generated analytically
     """
 
     name: str

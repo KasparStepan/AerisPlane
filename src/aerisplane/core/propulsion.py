@@ -15,17 +15,22 @@ class Motor:
     Parameters
     ----------
     name : str
-        Model name.
+        Motor name for display and catalog lookup.
     kv : float
         Motor velocity constant [RPM/V].
     resistance : float
-        Winding resistance [ohm].
+        Winding resistance [Ω].
     no_load_current : float
         No-load current [A].
     max_current : float
         Maximum continuous current [A].
     mass : float
         Motor mass [kg].
+
+    Examples
+    --------
+    >>> from aerisplane.catalog.motors import sunnysky_x2216_1250
+    >>> motor = sunnysky_x2216_1250   # 1250 KV, 28 A max
     """
 
     name: str
@@ -90,7 +95,7 @@ class PropellerPerfData:
 
 @dataclass
 class Propeller:
-    """Propeller model with parametric or lookup-table performance.
+    """Fixed-pitch propeller model.
 
     Parameters
     ----------
@@ -101,10 +106,12 @@ class Propeller:
     mass : float
         Propeller mass [kg].
     num_blades : int
-        Number of blades.
-    performance_data : PropellerPerfData or None
-        Optional lookup table. If provided, thrust/power use interpolation.
-        Otherwise, a simplified parametric model is used.
+        Number of blades. Default 2.
+
+    Examples
+    --------
+    >>> from aerisplane.catalog.propellers import apc_10x4_7sf
+    >>> prop = apc_10x4_7sf   # 10×4.7 in, 18 g
     """
 
     diameter: float
@@ -179,24 +186,29 @@ class Propeller:
 
 @dataclass
 class Battery:
-    """LiPo battery pack.
+    """LiPo battery model.
 
     Parameters
     ----------
     name : str
-        Model name.
+        Battery name for display.
     capacity_ah : float
         Capacity [Ah].
     nominal_voltage : float
-        Nominal voltage [V] (e.g., 14.8 for 4S).
+        Nominal voltage [V] (3.7 V × n_cells).
     cell_count : int
-        Number of series cells.
+        Number of cells in series.
     c_rating : float
-        Maximum continuous discharge rate [C].
+        Continuous discharge C-rating.
     mass : float
-        Pack mass [kg].
+        Battery mass [kg].
     internal_resistance : float
-        Total pack internal resistance [ohm].
+        Internal resistance [Ω].
+
+    Examples
+    --------
+    >>> from aerisplane.catalog.batteries import tattu_4s_5200
+    >>> batt = tattu_4s_5200   # 5.2 Ah, 14.8 V, 45C, 470 g
     """
 
     name: str
@@ -226,14 +238,12 @@ class ESC:
 
     Parameters
     ----------
-    name : str
-        Model name.
     max_current : float
         Maximum continuous current [A].
+    resistance : float
+        Internal resistance [Ω].
     mass : float
-        ESC mass [kg].
-    has_telemetry : bool
-        Whether ESC supports telemetry feedback.
+        ESC mass [kg]. Default 0.03.
     """
 
     name: str
@@ -244,7 +254,10 @@ class ESC:
 
 @dataclass
 class PropulsionSystem:
-    """Complete propulsion system: motor + prop + battery + ESC.
+    """Complete electric propulsion system.
+
+    Combines motor, propeller, battery, and ESC into a single component
+    that can be analysed by ``aerisplane.propulsion.analyze()``.
 
     Parameters
     ----------
@@ -252,10 +265,19 @@ class PropulsionSystem:
     propeller : Propeller
     battery : Battery
     esc : ESC
-    position : array-like
-        Installation position [x, y, z] in aircraft frame [m].
-    direction : array-like
-        Thrust direction unit vector. Default [-1, 0, 0] = forward thrust.
+
+    Examples
+    --------
+    >>> from aerisplane.catalog.motors import sunnysky_x2216_1250
+    >>> from aerisplane.catalog.batteries import tattu_4s_5200
+    >>> from aerisplane.catalog.propellers import apc_10x4_7sf
+    >>> from aerisplane.core.propulsion import ESC, PropulsionSystem
+    >>> prop_sys = PropulsionSystem(
+    ...     motor=sunnysky_x2216_1250,
+    ...     propeller=apc_10x4_7sf,
+    ...     battery=tattu_4s_5200,
+    ...     esc=ESC(max_current=60.0, resistance=0.002),
+    ... )
     """
 
     motor: Motor
