@@ -137,11 +137,11 @@ aerisplane/
 
 | Notebook | Content |
 |---|---|
-| `tutorials/01_getting_started.ipynb` | Aircraft definition, geometry plotting |
-| `tutorials/02_aerodynamics_executed.ipynb` | Alpha/velocity/altitude sweeps, polar plots, spanwise loading |
-| `tutorials/02_weight_buildup.ipynb` | Mass breakdown, CG analysis, hardware overrides |
-| `tutorials/03_control_surfaces.ipynb` | Defining control surfaces, elevator/aileron sweeps, mesh visualisation |
-| `tutorials/04_flow_visualisation.ipynb` | Surface Cp, XZ/YZ streamlines, interactive 3-D Plotly flow field |
+| `docs/tutorials/01_getting_started.ipynb` | Aircraft definition, geometry plotting |
+| `docs/tutorials/02_aerodynamics_executed.ipynb` | Alpha/velocity/altitude sweeps, polar plots, spanwise loading |
+| `docs/tutorials/02_weight_buildup.ipynb` | Mass breakdown, CG analysis, hardware overrides |
+| `docs/tutorials/03_control_surfaces.ipynb` | Defining control surfaces, elevator/aileron sweeps, mesh visualisation |
+| `docs/tutorials/04_flow_visualisation.ipynb` | Surface Cp, XZ/YZ streamlines, interactive 3-D Plotly flow field |
 
 ## Tests
 

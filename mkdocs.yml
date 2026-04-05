@@ -1,0 +1,80 @@
+site_name: AerisPlane
+site_url: https://kasparstepan.github.io/AerisPlane
+repo_url: https://github.com/KasparStepan/AerisPlane
+repo_name: KasparStepan/AerisPlane
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: false
+            show_root_heading: true
+            members_order: source
+            show_if_no_docstring: false
+  - mkdocs-jupyter:
+      execute: false
+      include_source: true
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Getting Started: getting-started.md
+  - Tutorials:
+    - "01 — Aircraft Definition": tutorials/01_getting_started.ipynb
+    - "02 — Aerodynamics": tutorials/02_aerodynamics_executed.ipynb
+    - "02 — Weight Buildup": tutorials/02_weight_buildup.ipynb
+    - "03 — Control Surfaces": tutorials/03_control_surfaces.ipynb
+    - "04 — Flow Visualisation": tutorials/04_flow_visualisation.ipynb
+    - "05 — Flight Performance": tutorials/05_flight_performance.ipynb
+    - "06 — Full Discipline Chain": tutorials/06_full_discipline_chain.ipynb
+    - "07 — MDO Optimization": tutorials/07_mdo_optimization.ipynb
+    - "08 — Propulsion & Endurance": tutorials/08_propulsion_and_endurance.ipynb
+  - API Reference:
+    - Core: api/core.md
+    - Aerodynamics: api/aero.md
+    - Weights: api/weights.md
+    - Structures: api/structures.md
+    - Stability: api/stability.md
+    - Control: api/control.md
+    - Mission: api/mission.md
+    - Propulsion: api/propulsion.md
+    - MDO: api/mdo.md
+    - Catalog: api/catalog.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Design: architecture/design.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - tables
+  - toc:
+      permalink: true
