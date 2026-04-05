@@ -3,6 +3,8 @@ site_url: https://kasparstepan.github.io/AerisPlane
 repo_url: https://github.com/KasparStepan/AerisPlane
 repo_name: KasparStepan/AerisPlane
 docs_dir: docs
+exclude_docs: |
+  superpowers/
 
 theme:
   name: material
