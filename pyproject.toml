@@ -16,7 +16,19 @@ oas = ["openaerostruct>=2.7", "openmdao>=3.30"]
 optimize = ["pygmo>=2.19"]
 interactive = ["plotly>=5.0"]
 dev = ["pytest>=7.0", "ruff>=0.1.0"]
-all = ["aerisplane[oas,optimize,interactive,dev]"]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.24",
+    "mkdocs-jupyter>=0.24",
+]
+all = ["aerisplane[oas,optimize,interactive,dev,docs]"]
+
+[project.urls]
+Homepage = "https://github.com/KasparStepan/AerisPlane"
+Documentation = "https://kasparstepan.github.io/AerisPlane"
+Repository = "https://github.com/KasparStepan/AerisPlane"
+"Bug Tracker" = "https://github.com/KasparStepan/AerisPlane/issues"
 
 [build-system]
 requires = ["setuptools>=68.0"]
