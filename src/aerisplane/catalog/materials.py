@@ -90,3 +90,10 @@ monokote = Material(
     yield_strength=50e6,
     poisson_ratio=0.4,
 )
+
+# ---------------------------------------------------------------------------
+# Aliases
+# ---------------------------------------------------------------------------
+
+#: Unidirectional carbon fibre reinforced polymer — alias for carbon_fiber_tube.
+CFRP_UD = carbon_fiber_tube

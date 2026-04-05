@@ -7,8 +7,8 @@ from typing import Optional
 
 import numpy as np
 
-# _trapz was added in NumPy 2.0; fall back to np.trapz for NumPy <2.
-_trapz = getattr(np, "trapezoid", np.trapz)
+# np.trapezoid was added in NumPy 2.0; np.trapz was removed in NumPy 2.0.
+_trapz = getattr(np, "trapezoid", None) or getattr(np, "trapz")
 
 from aerisplane.core.structures import Material
 

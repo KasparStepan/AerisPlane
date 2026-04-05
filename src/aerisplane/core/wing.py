@@ -8,7 +8,7 @@ from typing import Callable, Optional, Sequence
 import numpy as np
 
 # _trapz was added in NumPy 2.0; fall back to np.trapz for NumPy <2.
-_trapz = getattr(np, "trapezoid", np.trapz)
+_trapz = getattr(np, "trapezoid", None) or getattr(np, "trapz")
 
 from aerisplane.core.airfoil import Airfoil
 from aerisplane.core.control_surface import ControlSurface
