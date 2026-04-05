@@ -123,9 +123,9 @@ Returned by `analyze()`. All quantities are in SI units.
 | `CY` | — | Side force coefficient |
 | `CDi` | — | Induced drag coefficient (`None` for LL/NLL/AeroBuildup) |
 | `CDp` | — | Profile drag coefficient (`None` for VLM/LL/NLL) |
-| `L` | N | Lift force (wind axes) |
-| `D` | N | Drag force (wind axes) |
-| `Y` | N | Side force (wind axes) |
+| `L` | `N` | Lift force (wind axes) |
+| `D` | `N` | Drag force (wind axes) |
+| `Y` | `N` | Side force (wind axes) |
 
 ### Moments and coefficients
 
@@ -134,9 +134,9 @@ Returned by `analyze()`. All quantities are in SI units.
 | `Cl` | — | Rolling moment coefficient (body axes) |
 | `Cm` | — | Pitching moment coefficient (body axes) |
 | `Cn` | — | Yawing moment coefficient (body axes) |
-| `l_b` | N·m | Rolling moment (body axes) |
-| `m_b` | N·m | Pitching moment (body axes) |
-| `n_b` | N·m | Yawing moment (body axes) |
+| `l_b` | `N·m` | Rolling moment (body axes) |
+| `m_b` | `N·m` | Pitching moment (body axes) |
+| `n_b` | `N·m` | Yawing moment (body axes) |
 
 Moments are taken about `aircraft.xyz_ref` (default: origin). Set `xyz_ref` to the
 CG location for stability analysis.
@@ -145,12 +145,12 @@ CG location for stability analysis.
 
 | Field | Description |
 |---|---|
-| `F_g` | Force vector in geometry axes [Fx, Fy, Fz] [N] |
-| `F_b` | Force vector in body axes [N] |
-| `F_w` | Force vector in wind axes [N] |
-| `M_g` | Moment vector in geometry axes [Mx, My, Mz] [N·m] |
-| `M_b` | Moment vector in body axes [N·m] |
-| `M_w` | Moment vector in wind axes [N·m] |
+| `F_g` | Force vector in geometry axes [Fx, Fy, Fz] [`N`] |
+| `F_b` | Force vector in body axes [`N`] |
+| `F_w` | Force vector in wind axes [`N`] |
+| `M_g` | Moment vector in geometry axes [Mx, My, Mz] [`N·m`] |
+| `M_b` | Moment vector in body axes [`N·m`] |
+| `M_w` | Moment vector in wind axes [`N·m`] |
 
 ### Operating condition (echoed)
 
