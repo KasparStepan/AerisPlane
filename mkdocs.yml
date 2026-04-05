@@ -5,6 +5,10 @@ repo_name: KasparStepan/AerisPlane
 docs_dir: docs
 exclude_docs: |
   superpowers/
+  plans/
+  overview.md
+  architecture.md
+  weights-module-plan.md
 
 theme:
   name: material
@@ -51,8 +55,6 @@ nav:
     - "04 — Flow Visualisation": tutorials/04_flow_visualisation.ipynb
     - "05 — Flight Performance": tutorials/05_flight_performance.ipynb
     - "06 — Full Discipline Chain": tutorials/06_full_discipline_chain.ipynb
-    - "07 — MDO Optimization": tutorials/07_mdo_optimization.ipynb
-    - "08 — Propulsion & Endurance": tutorials/08_propulsion_and_endurance.ipynb
   - API Reference:
     - Core: api/core.md
     - Aerodynamics: api/aero.md

@@ -142,6 +142,8 @@ aerisplane/
 | `docs/tutorials/02_weight_buildup.ipynb` | Mass breakdown, CG analysis, hardware overrides |
 | `docs/tutorials/03_control_surfaces.ipynb` | Defining control surfaces, elevator/aileron sweeps, mesh visualisation |
 | `docs/tutorials/04_flow_visualisation.ipynb` | Surface Cp, XZ/YZ streamlines, interactive 3-D Plotly flow field |
+| `docs/tutorials/05_flight_performance.ipynb` | Flight envelope, performance maps |
+| `docs/tutorials/06_full_discipline_chain.ipynb` | All modules in one loop |
 
 ## Tests
 
