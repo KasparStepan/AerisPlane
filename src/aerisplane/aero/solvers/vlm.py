@@ -121,9 +121,10 @@ def _apply_control_deflections(
                     # Panel index of the hinge-row panel in this strip
                     k0 = panel_start + strip_offset + s * N + j_hinge
 
-                    # Span fraction: use y-midpoint of the hinge-row panel's front edge
-                    y_mid = 0.5 * (float(front_left[k0, 1]) + float(front_right[k0, 1]))
-                    span_frac = (abs(y_mid) - y_root) / span
+                    # Span fraction: use midpoint along dominant span axis
+                    span_ax = rec.get("span_axis", 1)
+                    coord_mid = 0.5 * (float(front_left[k0, span_ax]) + float(front_right[k0, span_ax]))
+                    span_frac = (abs(coord_mid) - y_root) / span
 
                     if not (cs.span_start <= span_frac <= cs.span_end):
                         continue
@@ -247,14 +248,20 @@ class VortexLatticeMethod:
                 (np.arange(len(faces)) + 1) % self.chordwise_resolution == 0
             )
             n_strips = len(w.xsecs) - 1
+            ys = [xsec.xyz_le[1] for xsec in w.xsecs]
+            zs = [xsec.xyz_le[2] for xsec in w.xsecs]
+            use_z = (max(zs) - min(zs)) > (max(ys) - min(ys))
+            span_coords = zs if use_z else ys
+            span_axis = 2 if use_z else 1
             wing_records.append({
                 "wing": wing,
                 "panel_start": panel_offset,
                 "n_panels": len(faces),
                 "n_strips": n_strips,
                 "is_symmetric": wing.symmetric,
-                "y_root": float(min(xsec.xyz_le[1] for xsec in w.xsecs)),
-                "y_tip": float(max(xsec.xyz_le[1] for xsec in w.xsecs)),
+                "span_axis": span_axis,
+                "y_root": float(min(span_coords)),
+                "y_tip": float(max(span_coords)),
             })
             panel_offset += len(faces)
 

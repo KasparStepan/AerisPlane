@@ -100,8 +100,8 @@ def rc_aircraft():
     vtail = ap.Wing(
         name="vtail",
         xsecs=[
-            ap.WingXSec(xyz_le=[0.75, 0.0, 0.0], chord=0.10),
-            ap.WingXSec(xyz_le=[0.75, 0.20, 0.0], chord=0.06),
+            ap.WingXSec(xyz_le=[0.75, 0.0, 0.00], chord=0.10),
+            ap.WingXSec(xyz_le=[0.75, 0.0, 0.20], chord=0.06),
         ],
         symmetric=False,
         control_surfaces=[
