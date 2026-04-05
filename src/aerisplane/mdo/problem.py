@@ -436,3 +436,71 @@ class MDOProblem:
                 "File may be corrupted or from an incompatible version."
             )
         self._cache.update(loaded)
+
+    def optimize(
+        self,
+        method: str = "scipy_de",
+        options: dict = None,
+        verbose: bool = True,
+        report_interval: int = None,
+        log_path: str = None,
+        callback=None,
+        checkpoint_path: str = None,
+        checkpoint_interval: int = None,
+    ):
+        """Run optimisation and return an OptimizationResult.
+
+        Parameters
+        ----------
+        method : str
+            One of ``"scipy_de"``, ``"scipy_minimize"``, ``"scipy_shgo"``,
+            ``"pygmo_de"``, ``"pygmo_sade"``, ``"pygmo_nsga2"``.
+        options : dict or None
+            Passed directly to the underlying optimiser.
+            scipy_de: ``maxiter``, ``popsize``, ``seed``, ``tol``, ...
+            pygmo:    ``gen``, ``pop_size``, ``seed``, ...
+        verbose : bool
+            Print a one-line log after every evaluation.  Default True.
+        report_interval : int or None
+            Print a detailed summary every N evaluations.  None → off.
+        log_path : str or None
+            Path for CSV log (appended if file exists).  None → no file.
+        callback : callable or None
+            Called with ``OptimisationSnapshot`` after each evaluation.
+            Return ``"stop"`` to terminate early.
+        checkpoint_path : str or None
+            Base path (no extension) for checkpoint files.
+            Existing checkpoint is loaded and run resumes automatically.
+        checkpoint_interval : int or None
+            Save checkpoint every N evaluations.
+            None → every popsize evaluations.
+
+        Returns
+        -------
+        OptimizationResult
+        """
+        from aerisplane.mdo.drivers import ScipyDriver, PygmoDriver
+
+        opts = options or {}
+
+        if method.startswith("scipy_"):
+            driver = ScipyDriver(self)
+        elif method.startswith("pygmo_"):
+            driver = PygmoDriver(self)
+        else:
+            raise ValueError(
+                f"Unknown method '{method}'. "
+                "Choose from: scipy_de, scipy_minimize, scipy_shgo, "
+                "pygmo_de, pygmo_sade, pygmo_nsga2."
+            )
+
+        return driver.run(
+            method=method,
+            options=opts,
+            report_interval=report_interval,
+            log_path=log_path,
+            callback=callback,
+            verbose=verbose,
+            checkpoint_path=checkpoint_path,
+            checkpoint_interval=checkpoint_interval,
+        )

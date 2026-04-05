@@ -311,6 +311,24 @@ def test_evaluate_objective_maximise(mock_w, mock_a, mock_s, test_aircraft, crui
 @patch("aerisplane.stability.analyze")
 @patch("aerisplane.aero.analyze")
 @patch("aerisplane.weights.analyze")
+def test_optimize_returns_result(mock_w, mock_a, mock_s, simple_problem):
+    mock_w.return_value = _mock_weight_result()
+    mock_a.return_value = _mock_aero_result()
+    mock_s.return_value = _mock_stab_result()
+    from aerisplane.mdo.result import OptimizationResult
+    result = simple_problem.optimize(
+        method="scipy_de",
+        options={"maxiter": 2, "popsize": 4, "seed": 0},
+        verbose=False,
+    )
+    assert isinstance(result, OptimizationResult)
+    assert result.n_evaluations > 0
+    assert len(result.convergence_history) == result.n_evaluations
+
+
+@patch("aerisplane.stability.analyze")
+@patch("aerisplane.aero.analyze")
+@patch("aerisplane.weights.analyze")
 def test_constraint_violation_vector(mock_w, mock_a, mock_s, simple_problem):
     mock_w.return_value = _mock_weight_result()
     mock_a.return_value = _mock_aero_result()
