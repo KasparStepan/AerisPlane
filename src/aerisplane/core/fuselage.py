@@ -7,6 +7,9 @@ from typing import Optional
 
 import numpy as np
 
+# _trapz was added in NumPy 2.0; fall back to np.trapz for NumPy <2.
+_trapz = getattr(np, "trapezoid", np.trapz)
+
 from aerisplane.core.structures import Material
 
 
@@ -125,13 +128,13 @@ class Fuselage:
         """Approximate internal volume by trapezoidal integration of cross-section areas [m^3]."""
         if len(self.xsecs) < 2:
             return 0.0
-        return float(np.trapezoid(self._areas(), self._x_stations()))
+        return float(_trapz(self._areas(), self._x_stations()))
 
     def wetted_area(self) -> float:
         """Approximate wetted (external) area by trapezoidal integration of perimeters [m^2]."""
         if len(self.xsecs) < 2:
             return 0.0
-        return float(np.trapezoid(self._perimeters(), self._x_stations()))
+        return float(_trapz(self._perimeters(), self._x_stations()))
 
     def max_cross_section_area(self) -> float:
         """Maximum cross-section area [m^2]."""

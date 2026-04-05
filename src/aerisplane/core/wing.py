@@ -7,6 +7,9 @@ from typing import Callable, Optional, Sequence
 
 import numpy as np
 
+# _trapz was added in NumPy 2.0; fall back to np.trapz for NumPy <2.
+_trapz = getattr(np, "trapezoid", np.trapz)
+
 from aerisplane.core.airfoil import Airfoil
 from aerisplane.core.control_surface import ControlSurface
 from aerisplane.core.structures import Skin, Spar
@@ -72,8 +75,20 @@ class Wing:
     control_surfaces: list[ControlSurface] = field(default_factory=list)
 
     def _y_stations(self) -> np.ndarray:
-        """Y-coordinates of each cross-section."""
-        return np.array([xsec.xyz_le[1] for xsec in self.xsecs])
+        """Spanwise coordinate along the dominant span direction [m].
+
+        For a conventional wing (span in Y) returns the Y coordinates.
+        For a vertical tail (span in Z) returns the Z coordinates measured
+        from root, so that area() and semispan() give correct values in both
+        cases.  The dominant direction is whichever of Y or Z has the larger
+        range across the cross-sections.
+        """
+        ys = np.array([xs.xyz_le[1] for xs in self.xsecs])
+        zs = np.array([xs.xyz_le[2] for xs in self.xsecs])
+        if np.max(zs) - np.min(zs) > np.max(ys) - np.min(ys):
+            # Z-dominant surface (vertical tail): integrate along Z from root
+            return zs - zs[0]
+        return ys
 
     def _chords(self) -> np.ndarray:
         """Chord at each cross-section."""
@@ -105,7 +120,7 @@ class Wing:
         c = self._chords()
 
         # Trapezoidal integration of chord along span
-        semi_area = float(np.trapezoid(c, y))
+        semi_area = float(_trapz(c, y))
         return 2.0 * semi_area if self.symmetric else semi_area
 
     def aspect_ratio(self) -> float:
@@ -123,12 +138,12 @@ class Wing:
         y = self._y_stations()
         c = self._chords()
 
-        semi_area = float(np.trapezoid(c, y))
+        semi_area = float(_trapz(c, y))
         if semi_area == 0.0:
             return 0.0
 
         c_squared = c**2
-        return float(np.trapezoid(c_squared, y)) / semi_area
+        return float(_trapz(c_squared, y)) / semi_area
 
     def mean_aerodynamic_chord_le(self) -> np.ndarray:
         """Leading-edge position of the MAC [x, y, z] in aircraft frame [m].
@@ -138,17 +153,18 @@ class Wing:
         y = self._y_stations()
         c = self._chords()
 
-        semi_area = float(np.trapezoid(c, y))
+        semi_area = float(_trapz(c, y))
         if semi_area == 0.0:
             return np.array([0.0, 0.0, 0.0])
 
-        # Area-weighted LE position
+        # Area-weighted LE position (use actual coordinates, arc-length as measure)
         x_le = np.array([xsec.xyz_le[0] for xsec in self.xsecs])
+        y_le = np.array([xsec.xyz_le[1] for xsec in self.xsecs])
         z_le = np.array([xsec.xyz_le[2] for xsec in self.xsecs])
 
-        x_mac = float(np.trapezoid(x_le * c, y)) / semi_area
-        y_mac = float(np.trapezoid(y * c, y)) / semi_area
-        z_mac = float(np.trapezoid(z_le * c, y)) / semi_area
+        x_mac = float(_trapz(x_le * c, y)) / semi_area
+        y_mac = float(_trapz(y_le * c, y)) / semi_area
+        z_mac = float(_trapz(z_le * c, y)) / semi_area
 
         return np.array([x_mac, y_mac, z_mac])
 

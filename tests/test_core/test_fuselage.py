@@ -3,6 +3,8 @@
 import numpy as np
 import pytest
 
+_trapz = getattr(np, "trapezoid", np.trapz)
+
 import aerisplane as ap
 from aerisplane.core.fuselage import Fuselage, FuselageXSec
 
@@ -64,7 +66,7 @@ class TestFuselageVolume:
             np.pi * 0.02**2,
         ])
         x_stations = np.array([0.0, 0.15, 0.70, 0.95])
-        expected_volume = float(np.trapezoid(areas, x_stations))
+        expected_volume = float(_trapz(areas, x_stations))
         assert simple_fuselage.volume() == pytest.approx(expected_volume, rel=1e-10)
 
 
@@ -79,7 +81,7 @@ class TestFuselageWettedArea:
             2.0 * np.pi * 0.02,
         ])
         x_stations = np.array([0.0, 0.15, 0.70, 0.95])
-        expected_wetted = float(np.trapezoid(perimeters, x_stations))
+        expected_wetted = float(_trapz(perimeters, x_stations))
         assert simple_fuselage.wetted_area() == pytest.approx(expected_wetted, rel=1e-10)
 
 

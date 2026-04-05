@@ -420,7 +420,14 @@ def _build_snapshot(problem, best, t_start) -> OptimisationSnapshot:
 def _build_optimization_result(problem, x_opt, obj_opt, t_start) -> OptimizationResult:
     x0 = problem._x0_scaled()
     ev0 = problem._cache.get(tuple(np.round(x0, 10)), {})
-    obj0 = ev0.get("objective", float("nan"))
+    obj0 = ev0.get("objective", None)
+    if obj0 is None:
+        # x0 was never evaluated (e.g. DE uses random initial population).
+        # Evaluate it now so the report shows a meaningful baseline.
+        try:
+            obj0 = problem.evaluate(x0).get("objective", float("nan"))
+        except Exception:
+            obj0 = float("nan")
 
     ev_opt = problem._cache.get(tuple(np.round(x_opt, 10)), {})
     results = ev_opt.get("results", {})

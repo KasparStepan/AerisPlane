@@ -14,6 +14,9 @@ from typing import Optional
 
 import numpy as np
 
+# _trapz was added in NumPy 2.0; fall back to np.trapz for NumPy <2.
+_trapz = getattr(np, "trapezoid", np.trapz)
+
 from aerisplane.aero import analyze as aero_analyze
 from aerisplane.aero.result import AeroResult
 from aerisplane.core.aircraft import Aircraft
@@ -199,7 +202,7 @@ def estimate_roll_damping(aircraft: Aircraft, condition: FlightCondition) -> flo
     # Strip theory integrand: (c / c_ref) * eta^2
     integrand = (c / c_ref) * eta**2
 
-    integral = float(np.trapezoid(integrand, eta))
+    integral = float(_trapz(integrand, eta))
 
     # Cl_p for the full wing (both sides contribute equally)
     # The factor accounts for both sides of a symmetric wing
