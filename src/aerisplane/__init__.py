@@ -1,5 +1,9 @@
 """AerisPlane — Conceptual MDO toolkit for RC/UAV aircraft design."""
 
+# Discipline modules
+from aerisplane import propulsion
+from aerisplane.propulsion import PropulsionResult
+
 # Core geometry and components
 from aerisplane.core.aircraft import Aircraft
 from aerisplane.core.airfoil import Airfoil
@@ -47,6 +51,8 @@ __all__ = [
     "Battery",
     "ESC",
     "PropulsionSystem",
+    "PropulsionResult",
+    "propulsion",
     # Placement
     "ComponentBox",
     "Collision",

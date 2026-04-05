@@ -108,7 +108,7 @@ from aerisplane.mdo._paths import (  # noqa: E402
 
 _LOG = logging.getLogger(__name__)
 
-DISCIPLINE_ORDER = ["weights", "aero", "structures", "stability", "control", "mission"]
+DISCIPLINE_ORDER = ["weights", "aero", "structures", "stability", "control", "propulsion", "mission"]
 _ALWAYS_RUN = {"weights", "aero"}
 
 
@@ -173,6 +173,7 @@ class MDOProblem:
         alpha: float = None,
         aero_method: str = "vlm",
         load_factor: float = 3.5,
+        throttle: float = 1.0,
         extra_disciplines: tuple = (),
         skip_disciplines: tuple = (),
     ):
@@ -186,6 +187,7 @@ class MDOProblem:
         self._alpha = alpha
         self.aero_method = aero_method
         self.load_factor = load_factor
+        self._throttle = throttle
 
         self._pool_entries = _build_pool_entries(self._baseline, self._pools)
         self._n_continuous = len(self._dvars)
@@ -329,7 +331,12 @@ class MDOProblem:
                 aero_method=self.aero_method,
             )
 
-        # 7. Mission
+        # 7. Propulsion
+        if "propulsion" in self._disciplines:
+            from aerisplane.propulsion import analyze as _propulsion_analyze
+            results["propulsion"] = _propulsion_analyze(ac, cond, throttle=self._throttle)
+
+        # 8. Mission
         if "mission" in self._disciplines and self._mission is not None:
             results["mission"] = mission_mod.analyze(
                 ac, results["weights"], self._mission, aero_method=self.aero_method,
