@@ -17,6 +17,12 @@ from aerisplane.core.propulsion import (
     PropellerPerfData,
     PropulsionSystem,
 )
+from aerisplane.core.placement import (
+    Collision,
+    ComponentBox,
+    PlacementResult,
+    validate_placement,
+)
 from aerisplane.core.structures import Material, Skin, Spar, TubeSection
 from aerisplane.core.wing import Wing, WingXSec
 
@@ -41,4 +47,8 @@ __all__ = [
     "TubeSection",
     "Wing",
     "WingXSec",
+    "ComponentBox",
+    "Collision",
+    "PlacementResult",
+    "validate_placement",
 ]

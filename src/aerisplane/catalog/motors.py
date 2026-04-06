@@ -1,0 +1,23 @@
+"""Brushless motor catalog entries."""
+from aerisplane.core.propulsion import Motor
+
+sunnysky_x2216_1250 = Motor("SunnySky X2216 1250KV", 1250, 0.117, 0.5, 28.0, 0.058)
+sunnysky_x2216_2400 = Motor("SunnySky X2216 2400KV", 2400, 0.065, 0.8, 28.0, 0.058)
+sunnysky_x2212_980 = Motor("SunnySky X2212 980KV", 980, 0.135, 0.5, 20.0, 0.052)
+tiger_mn3110_700 = Motor("T-Motor MN3110 700KV", 700, 0.180, 0.3, 16.0, 0.102)
+tiger_mn3110_780 = Motor("T-Motor MN3110 780KV", 780, 0.165, 0.3, 16.0, 0.102)
+tiger_mn2213_950 = Motor("T-Motor MN2213 950KV", 950, 0.130, 0.4, 14.0, 0.060)
+tiger_mn4014_330 = Motor("T-Motor MN4014 330KV", 330, 0.220, 0.2, 22.0, 0.176)
+tiger_mn5212_340 = Motor("T-Motor MN5212 340KV", 340, 0.190, 0.2, 30.0, 0.215)
+t_motor_f80_1900 = Motor("T-Motor F80 1900KV", 1900, 0.048, 1.0, 30.0, 0.068)
+t_motor_f60_2550 = Motor("T-Motor F60 2550KV", 2550, 0.031, 1.2, 35.0, 0.055)
+emax_mt2213_935 = Motor("Emax MT2213 935KV", 935, 0.145, 0.5, 20.0, 0.057)
+emax_mt2216_810 = Motor("Emax MT2216 810KV", 810, 0.175, 0.4, 20.0, 0.075)
+emax_rs2205_2600 = Motor("Emax RS2205 2600KV", 2600, 0.038, 1.0, 30.0, 0.030)
+rctimer_5010_360 = Motor("RCTimer 5010 360KV", 360, 0.120, 0.3, 40.0, 0.190)
+scorpion_m2205_2350 = Motor("Scorpion M2205 2350KV", 2350, 0.042, 1.1, 30.0, 0.035)
+scorpion_hkii_2221_900 = Motor("Scorpion HKII-2221 900KV", 900, 0.140, 0.6, 22.0, 0.068)
+axi_2217_20 = Motor("AXi 2217/20", 1050, 0.098, 0.4, 18.0, 0.095)
+turnigy_d3530_1400 = Motor("Turnigy D3530/14 1400KV", 1400, 0.085, 0.5, 21.0, 0.086)
+hacker_a20_26 = Motor("Hacker A20-26L", 1020, 0.120, 0.4, 16.0, 0.072)
+dualsky_eco_2315c_1100 = Motor("Dualsky ECO 2315C 1100KV", 1100, 0.110, 0.5, 18.0, 0.065)

@@ -7,6 +7,9 @@ from typing import Optional
 
 import numpy as np
 
+# np.trapezoid was added in NumPy 2.0; np.trapz was removed in NumPy 2.0.
+_trapz = getattr(np, "trapezoid", None) or getattr(np, "trapz")
+
 from aerisplane.core.structures import Material
 
 
@@ -29,33 +32,47 @@ class FuselageXSec:
     """
 
     x: float
-    radius: float
+    radius: Optional[float] = None
     shape: str = "circle"
     width: Optional[float] = None
     height: Optional[float] = None
+
+    def __post_init__(self):
+        if self.shape == "circle" and self.radius is None:
+            raise ValueError(
+                "FuselageXSec with shape='circle' requires 'radius'."
+            )
+        if self.shape in ("ellipse", "rectangle") and (self.width is None or self.height is None):
+            raise ValueError(
+                f"FuselageXSec with shape='{self.shape}' requires 'width' and 'height'."
+            )
+
+    def equivalent_radius(self) -> float:
+        """Radius of a circle with the same cross-sectional area [m]."""
+        return float(np.sqrt(self.area() / np.pi))
 
     def area(self) -> float:
         """Cross-sectional area [m^2]."""
         if self.shape == "circle":
             return np.pi * self.radius**2
-        elif self.shape == "ellipse" and self.width and self.height:
+        elif self.shape == "ellipse" and self.width is not None and self.height is not None:
             return np.pi * (self.width / 2.0) * (self.height / 2.0)
-        elif self.shape == "rectangle" and self.width and self.height:
+        elif self.shape == "rectangle" and self.width is not None and self.height is not None:
             return self.width * self.height
-        return np.pi * self.radius**2
+        return np.pi * (self.radius or 0.0)**2
 
     def perimeter(self) -> float:
         """Cross-section perimeter [m]."""
         if self.shape == "circle":
             return 2.0 * np.pi * self.radius
-        elif self.shape == "ellipse" and self.width and self.height:
+        elif self.shape == "ellipse" and self.width is not None and self.height is not None:
             a = self.width / 2.0
             b = self.height / 2.0
             # Ramanujan approximation
             return float(np.pi * (3.0 * (a + b) - np.sqrt((3.0 * a + b) * (a + 3.0 * b))))
-        elif self.shape == "rectangle" and self.width and self.height:
+        elif self.shape == "rectangle" and self.width is not None and self.height is not None:
             return 2.0 * (self.width + self.height)
-        return 2.0 * np.pi * self.radius
+        return 2.0 * np.pi * (self.radius or 0.0)
 
 
 @dataclass
@@ -111,13 +128,13 @@ class Fuselage:
         """Approximate internal volume by trapezoidal integration of cross-section areas [m^3]."""
         if len(self.xsecs) < 2:
             return 0.0
-        return float(np.trapezoid(self._areas(), self._x_stations()))
+        return float(_trapz(self._areas(), self._x_stations()))
 
     def wetted_area(self) -> float:
         """Approximate wetted (external) area by trapezoidal integration of perimeters [m^2]."""
         if len(self.xsecs) < 2:
             return 0.0
-        return float(np.trapezoid(self._perimeters(), self._x_stations()))
+        return float(_trapz(self._perimeters(), self._x_stations()))
 
     def max_cross_section_area(self) -> float:
         """Maximum cross-section area [m^2]."""
@@ -132,3 +149,24 @@ class Fuselage:
             return 0.0
         max_diameter = 2.0 * np.sqrt(max_area / np.pi)
         return self.length() / max_diameter
+
+    def area_base(self) -> float:
+        """Cross-section area of the tail (base) station [m^2]."""
+        if not self.xsecs:
+            return 0.0
+        return self.xsecs[-1].area()
+
+    def area_wetted(self) -> float:
+        """Wetted (external) surface area [m^2]. Alias for wetted_area()."""
+        return self.wetted_area()
+
+    def xsec_centers(self) -> list[np.ndarray]:
+        """3-D centre position of each cross-section in aircraft frame [m].
+
+        Returns a list of (3,) arrays [x, y, z], one per xsec.
+        Assumes the fuselage is aligned with the x-axis at (x_le, y_le, z_le).
+        """
+        return [
+            np.array([self.x_le + xsec.x, self.y_le, self.z_le])
+            for xsec in self.xsecs
+        ]

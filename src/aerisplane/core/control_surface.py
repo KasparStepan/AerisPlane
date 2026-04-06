@@ -33,28 +33,37 @@ class Servo:
 
 @dataclass
 class ControlSurface:
-    """A control surface on a wing or tail.
-
-    Span fractions are relative to the wing's spanwise extent:
-    0.0 = root (first xsec), 1.0 = tip (last xsec).
-    This applies to both symmetric and asymmetric wings.
+    """A hinged control surface on a wing.
 
     Parameters
     ----------
     name : str
-        Surface identifier: "aileron", "elevator", "rudder", "flap".
+        Surface name used to key ``FlightCondition.deflections``.
+        Conventional names: ``"elevator"``, ``"aileron"``, ``"rudder"``, ``"flap"``.
     span_start : float
-        Start of surface as fraction of wing spanwise extent [0-1].
+        Start of the surface as a fraction of the wing semi-span [0, 1].
     span_end : float
-        End of surface as fraction of wing spanwise extent [0-1].
+        End of the surface as a fraction of the wing semi-span [0, 1].
     chord_fraction : float
-        Fraction of local chord occupied by the surface [0-1].
+        Hinge chord fraction [0, 1]. 0.25 means the surface occupies the aft 25%
+        of the local chord.
+    symmetric : bool
+        If True, deflects the same way on both sides (elevator, flap).
+        If False, the sign is mirrored on the left side (aileron).
     max_deflection : float
-        Maximum trailing-edge-down deflection [deg].
-    min_deflection : float
-        Maximum trailing-edge-up deflection [deg] (negative).
-    servo : Servo or None
-        Assigned servo actuator.
+        Maximum deflection magnitude [deg]. Used for authority calculations.
+
+    Notes
+    -----
+    Sign convention: positive deflection = trailing edge down.
+    For ``symmetric=False`` (ailerons): positive = right side TE-down / left side TE-up.
+
+    Examples
+    --------
+    >>> elevator = ControlSurface(name="elevator", span_start=0.0, span_end=1.0,
+    ...                            chord_fraction=0.35, symmetric=True, max_deflection=25.0)
+    >>> aileron = ControlSurface(name="aileron", span_start=0.5, span_end=0.9,
+    ...                           chord_fraction=0.25, symmetric=False, max_deflection=20.0)
     """
 
     name: str
@@ -63,4 +72,5 @@ class ControlSurface:
     chord_fraction: float
     max_deflection: float = 25.0
     min_deflection: float = -25.0
+    symmetric: bool = True
     servo: Optional[Servo] = None
