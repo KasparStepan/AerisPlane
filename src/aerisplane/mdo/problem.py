@@ -511,3 +511,23 @@ class MDOProblem:
             checkpoint_path=checkpoint_path,
             checkpoint_interval=checkpoint_interval,
         )
+
+    def sensitivity(
+        self,
+        x: "np.ndarray",
+        step: float = 1e-4,
+    ) -> "SensitivityResult":
+        """Compute finite-difference sensitivity at a given design point.
+
+        Parameters
+        ----------
+        x : ndarray — design vector in scaled optimizer space
+        step : float — forward finite-difference step in scaled space
+
+        Returns
+        -------
+        SensitivityResult
+            Gradients and normalized sensitivities ranked by objective influence.
+        """
+        from aerisplane.mdo.sensitivity import compute_sensitivity
+        return compute_sensitivity(self, x, step=step)

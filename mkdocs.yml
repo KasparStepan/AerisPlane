@@ -6,7 +6,7 @@ docs_dir: docs
 exclude_docs: |
   superpowers/
   plans/
-  overview.md
+  /overview.md
   architecture.md
   weights-module-plan.md
 

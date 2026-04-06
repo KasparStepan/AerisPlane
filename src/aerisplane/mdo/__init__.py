@@ -7,6 +7,7 @@ from aerisplane.mdo.problem import (
     Objective,
 )
 from aerisplane.mdo.result import OptimisationSnapshot, OptimizationResult
+from aerisplane.mdo.sensitivity import SensitivityResult
 
 __all__ = [
     "MDOProblem",
@@ -16,4 +17,5 @@ __all__ = [
     "Objective",
     "OptimizationResult",
     "OptimisationSnapshot",
+    "SensitivityResult",
 ]
