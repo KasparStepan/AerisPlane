@@ -27,8 +27,8 @@ def solve_operating_point(
     Kt = 30.0 / (math.pi * motor.kv)
 
     def torque_residual(rpm: float) -> float:
-        omega_rads = rpm / motor.kv  # back-EMF volts
-        I = (V_eff - omega_rads) / motor.resistance
+        back_emf_v = rpm / motor.kv  # back-EMF volts
+        I = (V_eff - back_emf_v) / motor.resistance
         I = max(0.0, min(I, motor.max_current))
         Q_motor = Kt * (I - motor.no_load_current)
 
@@ -53,7 +53,7 @@ def solve_operating_point(
     else:
         rpm_eq = brentq(torque_residual, 1.0, rpm_max, xtol=0.1)
 
-    omega_rads = rpm_eq / motor.kv
-    current = (V_eff - omega_rads) / motor.resistance
+    back_emf_v = rpm_eq / motor.kv
+    current = (V_eff - back_emf_v) / motor.resistance
     current = max(0.0, min(current, motor.max_current))
     return float(rpm_eq), float(current)

@@ -133,10 +133,9 @@ class Propeller:
         Linear CT model fitted to typical RC fixed-pitch propellers:
             CT = CT0 * (1 - J / J0)
 
-        J0 (zero-thrust advance ratio) is set to 1.5 * pitch_ratio, which
-        matches APC test data where thrust reaches zero at J ≈ 1.4–1.6 × p/D.
-        The earlier value of 0.8 was non-physical and caused zero thrust at
-        realistic cruise advance ratios.
+        j0 = 1.5 * pitch_ratio based on typical RC propeller behaviour
+        (zero-thrust J ≈ 1.4–1.6 × p/D). Parametric approximation; use
+        PropellerPerfData for validated performance.
         """
         pitch_ratio = self.pitch / self.diameter
         ct0 = 0.075 * pitch_ratio   # static thrust coefficient estimate
