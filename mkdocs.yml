@@ -56,6 +56,7 @@ nav:
     - "05 — Flight Performance": tutorials/05_flight_performance.ipynb
     - "06 — Full Discipline Chain": tutorials/06_full_discipline_chain.ipynb
     - "Tutorial 07 — MDO Optimization": tutorials/07_mdo_optimization.ipynb
+    - "Tutorial 08 — Propulsion & Endurance": tutorials/08_propulsion_and_endurance.ipynb
   - API Reference:
     - Core: api/core.md
     - Aerodynamics: api/aero.md
