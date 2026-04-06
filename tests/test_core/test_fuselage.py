@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-_trapz = getattr(np, "trapezoid", np.trapz)
+_trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
 
 import aerisplane as ap
 from aerisplane.core.fuselage import Fuselage, FuselageXSec
