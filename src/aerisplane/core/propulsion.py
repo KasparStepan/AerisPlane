@@ -128,11 +128,19 @@ class Propeller:
         return velocity / (n * self.diameter)
 
     def _parametric_ct(self, J: float) -> float:
-        """Simplified thrust coefficient model based on pitch/diameter ratio."""
+        """Simplified thrust coefficient model based on pitch/diameter ratio.
+
+        Linear CT model fitted to typical RC fixed-pitch propellers:
+            CT = CT0 * (1 - J / J0)
+
+        J0 (zero-thrust advance ratio) is set to 1.5 * pitch_ratio, which
+        matches APC test data where thrust reaches zero at J ≈ 1.4–1.6 × p/D.
+        The earlier value of 0.8 was non-physical and caused zero thrust at
+        realistic cruise advance ratios.
+        """
         pitch_ratio = self.pitch / self.diameter
-        # Linear CT model: CT = CT0 * (1 - J / J0)
-        ct0 = 0.075 * pitch_ratio  # static thrust coefficient estimate
-        j0 = 0.8 * pitch_ratio      # zero-thrust advance ratio
+        ct0 = 0.075 * pitch_ratio   # static thrust coefficient estimate
+        j0 = 1.5 * pitch_ratio      # zero-thrust advance ratio (~1.4–1.6 × p/D)
         if j0 == 0.0:
             return ct0
         ct = ct0 * (1.0 - J / j0)
