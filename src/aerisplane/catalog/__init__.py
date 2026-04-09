@@ -92,10 +92,67 @@ def list_servos() -> list:
     return [v for v in vars(_s).values() if isinstance(v, Servo)]
 
 
+def list_aircraft() -> dict:
+    """Return all reference aircraft factory functions keyed by name.
+
+    Returns
+    -------
+    dict
+        Mapping of aircraft name → factory callable.  Call the factory with no
+        arguments to obtain a fresh :class:`~aerisplane.core.aircraft.Aircraft`
+        instance, e.g.::
+
+            from aerisplane.catalog import list_aircraft
+            factories = list_aircraft()
+            ac = factories["trainer"]()
+
+    Examples
+    --------
+    >>> from aerisplane.catalog import list_aircraft
+    >>> for name, factory in list_aircraft().items():
+    ...     ac = factory()
+    ...     print(f"{name}: {ac.name}")
+    """
+    from aerisplane.catalog.aircraft import AIRCRAFT_CATALOG
+    return AIRCRAFT_CATALOG
+
+
+def get_aircraft(name: str):
+    """Return a reference aircraft by name.
+
+    Parameters
+    ----------
+    name : str
+        One of ``"small_uav"``, ``"trainer"``, ``"ultralight"``,
+        ``"glider"``, ``"business_jet"``, ``"transport"``.
+
+    Returns
+    -------
+    Aircraft
+
+    Raises
+    ------
+    KeyError
+        If ``name`` is not in the catalog.
+
+    Examples
+    --------
+    >>> from aerisplane.catalog import get_aircraft
+    >>> ac = get_aircraft("trainer")
+    """
+    from aerisplane.catalog.aircraft import AIRCRAFT_CATALOG
+    if name not in AIRCRAFT_CATALOG:
+        available = ", ".join(AIRCRAFT_CATALOG)
+        raise KeyError(f"Aircraft '{name}' not in catalog. Available: {available}")
+    return AIRCRAFT_CATALOG[name]()
+
+
 __all__ = [
     "get_airfoil",
     "list_motors",
     "list_batteries",
     "list_propellers",
     "list_servos",
+    "list_aircraft",
+    "get_aircraft",
 ]
