@@ -260,12 +260,12 @@ class Airfoil:
         self,
         alpha: float,
         Re: float,
+        mach: float = 0.0,
         n_crit: float = 9.0,
         xtr_upper: float = 1.0,
         xtr_lower: float = 1.0,
         model_size: str = "large",
         control_surfaces=None,
-        # Legacy kwargs silently ignored (mach, include_360_deg_effects not in NF 0.3.x)
         **_ignored,
     ) -> dict:
         """2-D aerodynamic coefficients from NeuralFoil.
@@ -313,7 +313,7 @@ class Airfoil:
                     "converted to Kulfan parameters for NeuralFoil."
                 )
 
-        return nf.get_aero_from_coordinates(
+        result = nf.get_aero_from_coordinates(
             coordinates=coords,
             alpha=alpha,
             Re=Re,
@@ -322,6 +322,20 @@ class Airfoil:
             xtr_upper=xtr_upper,
             xtr_lower=xtr_lower,
         )
+
+        # Prandtl-Glauert compressibility correction.
+        # Scales CL, CD, CM by 1/β where β = sqrt(1 - M²).
+        # Valid for subsonic flow (M < ~0.8).  Above that, wave drag dominates
+        # and a dedicated transonic model is needed.
+        mach_pg = float(np.clip(mach, 0.0, 0.99))
+        if mach_pg > 0.01:
+            beta = (1.0 - mach_pg**2) ** 0.5
+            result = dict(result)   # shallow copy — do not mutate NeuralFoil's output
+            result["CL"] = result["CL"] / beta
+            result["CD"] = result["CD"] / beta
+            result["CM"] = result["CM"] / beta
+
+        return result
 
 
 def naca4_coordinates(designation: str, n_points: int = 100) -> np.ndarray:

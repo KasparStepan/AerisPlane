@@ -604,6 +604,7 @@ class LiftingLine:
             float(af.get_aero_from_neuralfoil(
                 alpha=float(alpha_geometrics[i]),
                 Re=float(Res[i]),
+                mach=float(machs[i]),
                 model_size=self.model_size,
             )["CL"].flat[0]) + control_surfaces_list[i][0]
             for i, af in enumerate(airfoils)
@@ -676,6 +677,7 @@ class LiftingLine:
             af.get_aero_from_neuralfoil(
                 alpha=float(alphas[i]),
                 Re=float(Res[i]),
+                mach=float(machs[i]),
                 model_size=self.model_size,
             )
             for i, af in enumerate(airfoils)
@@ -950,3 +952,166 @@ class LiftingLine:
         if self.verbose:
             print("Streamlines calculated.")
         return streamlines
+
+    # ------------------------------------------------------------------
+    # Visualisation
+    # ------------------------------------------------------------------
+
+    def draw(
+        self,
+        c: np.ndarray = None,
+        cmap: str = None,
+        colorbar_label: str = None,
+        show: bool = True,
+        draw_streamlines: bool = True,
+        recalculate_streamlines: bool = False,
+        backend: str = "pyvista",
+    ) -> object:
+        """Draw the solved LL: wing panels coloured by a scalar + 3-D streamlines.
+
+        Must be called after ``run()`` or ``wing_aerodynamics()``.
+
+        Parameters
+        ----------
+        c : (N,) array or None
+            Scalar field for panel colouring. Defaults to ``vortex_strengths``.
+        cmap : str or None
+            Matplotlib colormap name. Defaults to ``"viridis"``.
+        colorbar_label : str or None
+            Label for the colour bar.
+        show : bool
+            Display the figure immediately.
+        draw_streamlines : bool
+            Overlay 3-D streamlines.
+        recalculate_streamlines : bool
+            Force re-tracing even if ``self.streamlines`` already exists.
+        backend : str
+            ``"pyvista"`` (default) or ``"plotly"``.
+
+        Returns
+        -------
+        pyvista Plotter or plotly Figure.
+        """
+        if c is None:
+            c = self.vortex_strengths
+            colorbar_label = colorbar_label or "Vortex strength [m²/s]"
+        if cmap is None:
+            cmap = "viridis"
+
+        if draw_streamlines and (recalculate_streamlines or not hasattr(self, "streamlines")):
+            self.calculate_streamlines()
+
+        if backend == "pyvista":
+            return self._draw_pyvista(c, cmap, colorbar_label, show, draw_streamlines)
+        elif backend == "plotly":
+            return self._draw_plotly(c, cmap, colorbar_label, show, draw_streamlines)
+        else:
+            raise ValueError(f"Unknown backend '{backend}'. Choose 'pyvista' or 'plotly'.")
+
+    def _draw_pyvista(self, c, cmap, colorbar_label, show, draw_streamlines):
+        import pyvista as pv
+
+        fl = self.front_left_vertices
+        bl = self.back_left_vertices
+        br = self.back_right_vertices
+        fr = self.front_right_vertices
+        N = len(fl)
+
+        points_pv = np.concatenate([fl, bl, br, fr])
+        r = np.arange(N)
+        faces_pv = np.column_stack([
+            np.full(N, 4, dtype=np.intp),
+            r, r + N, r + 2 * N, r + 3 * N,
+        ]).ravel()
+        mesh = pv.PolyData(points_pv, faces_pv)
+
+        plotter = pv.Plotter()
+        plotter.title = "AerisPlane LiftingLine"
+        plotter.add_axes()
+        plotter.show_grid(color="gray")
+
+        scalar_bar_args = {}
+        if colorbar_label:
+            scalar_bar_args["title"] = colorbar_label
+        plotter.add_mesh(
+            mesh=mesh,
+            scalars=c,
+            cmap=cmap,
+            show_edges=True,
+            show_scalar_bar=True,
+            scalar_bar_args=scalar_bar_args,
+        )
+
+        if draw_streamlines:
+            for i in range(self.streamlines.shape[0]):
+                pts = self.streamlines[i, :, :].T
+                plotter.add_mesh(
+                    pv.Spline(pts),
+                    color="#88AAFF",
+                    opacity=0.6,
+                    line_width=1,
+                )
+
+        if show:
+            plotter.show()
+        return plotter
+
+    def _draw_plotly(self, c, cmap, colorbar_label, show, draw_streamlines):
+        import plotly.graph_objects as go
+
+        fl = self.front_left_vertices
+        bl = self.back_left_vertices
+        br = self.back_right_vertices
+        fr = self.front_right_vertices
+        N = len(fl)
+
+        all_v = np.vstack([fl, bl, br, fr])
+        r = np.arange(N)
+        tri_i = np.concatenate([r,       r      ])
+        tri_j = np.concatenate([r + N,   r + 2*N])
+        tri_k = np.concatenate([r + 2*N, r + 3*N])
+        tri_c = np.concatenate([c, c])
+
+        vmax = float(np.percentile(np.abs(c), 98)) or 1.0
+        wing_trace = go.Mesh3d(
+            x=all_v[:, 0], y=all_v[:, 1], z=all_v[:, 2],
+            i=tri_i, j=tri_j, k=tri_k,
+            intensity=tri_c,
+            colorscale=cmap,
+            cmin=-vmax, cmid=0.0, cmax=vmax,
+            colorbar=dict(title=dict(text=colorbar_label or ""), x=1.02),
+            name="Wing",
+            showscale=True,
+            opacity=0.95,
+            flatshading=True,
+        )
+
+        traces = [wing_trace]
+        if draw_streamlines:
+            for i in range(self.streamlines.shape[0]):
+                pts = self.streamlines[i, :, :].T
+                pts = pts[::3]
+                traces.append(go.Scatter3d(
+                    x=pts[:, 0], y=pts[:, 1], z=pts[:, 2],
+                    mode="lines",
+                    line=dict(color="rgba(136, 170, 255, 0.55)", width=2),
+                    showlegend=False,
+                    hoverinfo="skip",
+                ))
+
+        fig = go.Figure(data=traces)
+        fig.update_layout(
+            title=dict(text="AerisPlane LiftingLine"),
+            scene=dict(
+                xaxis=dict(title="x [m]"),
+                yaxis=dict(title="y [m]"),
+                zaxis=dict(title="z [m]"),
+                aspectmode="data",
+                camera=dict(eye=dict(x=1.5, y=-1.8, z=0.8)),
+            ),
+            margin=dict(l=10, r=10, t=50, b=10),
+        )
+
+        if show:
+            fig.show()
+        return fig

@@ -440,8 +440,8 @@ class VortexLatticeMethod:
             "Cl": Cl, "Cm": Cm, "Cn": Cn,
         }
 
-    def get_velocity_at_points(self, points: np.ndarray) -> np.ndarray:
-        """Total velocity (freestream + induced) at given points.
+    def get_induced_velocity_at_points(self, points: np.ndarray) -> np.ndarray:
+        """Induced-only velocity (no freestream) at given points.
 
         Parameters
         ----------
@@ -449,7 +449,7 @@ class VortexLatticeMethod:
 
         Returns
         -------
-        (N, 3) array of velocity vectors in geometry axes.
+        (N, 3) array of induced velocity vectors in geometry axes.
         """
         u_induced, v_induced, w_induced = calculate_induced_velocity_horseshoe(
             x_field=_tall(points[:, 0]),
@@ -475,12 +475,245 @@ class VortexLatticeMethod:
         u_induced = np.nan_to_num(u_induced, nan=0.0, posinf=0.0, neginf=0.0)
         v_induced = np.nan_to_num(v_induced, nan=0.0, posinf=0.0, neginf=0.0)
         w_induced = np.nan_to_num(w_induced, nan=0.0, posinf=0.0, neginf=0.0)
-        u_induced_total = np.sum(u_induced, axis=1)
-        v_induced_total = np.sum(v_induced, axis=1)
-        w_induced_total = np.sum(w_induced, axis=1)
+        return np.stack([
+            np.sum(u_induced, axis=1),
+            np.sum(v_induced, axis=1),
+            np.sum(w_induced, axis=1),
+        ], axis=1)
 
-        V_induced = np.stack([u_induced_total, v_induced_total, w_induced_total], axis=1)
+    def get_velocity_at_points(self, points: np.ndarray) -> np.ndarray:
+        """Total velocity (freestream + induced) at given points.
+
+        Parameters
+        ----------
+        points : (N, 3) array
+
+        Returns
+        -------
+        (N, 3) array of velocity vectors in geometry axes.
+        """
+        V_induced = self.get_induced_velocity_at_points(points)
         V_freestream = self.steady_freestream_velocity.reshape(1, 3) + \
             self.condition.rotation_velocity_geometry_axes(points)
-
         return V_freestream + V_induced
+
+    def calculate_streamlines(
+        self,
+        seed_points: np.ndarray | None = None,
+        n_steps: int = 300,
+        length: float | None = None,
+    ) -> np.ndarray:
+        """Trace streamlines from seed points using forward-Euler integration.
+
+        Integrates the total velocity field (freestream + induced) with a fixed
+        arc-length step.  Seeds default to the trailing-edge panel midpoints,
+        which naturally captures the tip vortices and wake.
+
+        Parameters
+        ----------
+        seed_points : (N, 3) array or None
+            Starting points for streamlines.  Auto-generated from the trailing
+            edge if not given.
+        n_steps : int
+            Number of integration steps.
+        length : float or None
+            Total arc length of each streamline [m].  Defaults to 5 × c_ref.
+
+        Returns
+        -------
+        streamlines : (n_seeds, 3, n_steps) array
+            Also stored as ``self.streamlines``.
+        """
+        if length is None:
+            length = self.c_ref * 5
+        if seed_points is None:
+            te_mask = self.is_trailing_edge.astype(bool)
+            left_te = self.back_left_vertices[te_mask]
+            right_te = self.back_right_vertices[te_mask]
+            n_target = 200
+            per_panel = max(1, n_target // len(left_te))
+            nodes = np.linspace(0, 1, per_panel + 1)
+            mids = (nodes[1:] + nodes[:-1]) / 2
+            seed_points = np.concatenate([
+                t * left_te + (1 - t) * right_te for t in mids
+            ])
+
+        n_seeds = len(seed_points)
+        streamlines = np.empty((n_seeds, 3, n_steps))
+        streamlines[:, :, 0] = seed_points
+        step_ds = length / n_steps
+        for i in range(1, n_steps):
+            V = self.get_velocity_at_points(streamlines[:, :, i - 1])
+            speed = np.linalg.norm(V, axis=1, keepdims=True)
+            speed = np.where(speed < 1e-10, 1e-10, speed)   # avoid div-by-zero
+            streamlines[:, :, i] = streamlines[:, :, i - 1] + step_ds * V / speed
+
+        self.streamlines = streamlines
+        return streamlines
+
+    def draw(
+        self,
+        c: np.ndarray | None = None,
+        cmap: str | None = None,
+        colorbar_label: str | None = None,
+        show: bool = True,
+        draw_streamlines: bool = True,
+        recalculate_streamlines: bool = False,
+        backend: str = "pyvista",
+    ) -> object:
+        """Draw the solved VLM: wing panels coloured by a scalar + 3-D streamlines.
+
+        Must be called after ``run()``.
+
+        Parameters
+        ----------
+        c : (N,) array or None
+            Scalar field to colour the panels.  Defaults to ``vortex_strengths``.
+        cmap : str or None
+            Matplotlib colormap name.  Defaults to ``"viridis"``.
+        colorbar_label : str or None
+            Label for the colour bar.
+        show : bool
+            Display the figure immediately.
+        draw_streamlines : bool
+            Overlay 3-D streamlines.
+        recalculate_streamlines : bool
+            Force re-tracing even if ``self.streamlines`` already exists.
+        backend : str
+            ``"pyvista"`` (default, interactive 3-D window) or ``"plotly"``
+            (inline-friendly HTML figure).
+
+        Returns
+        -------
+        pyvista Plotter or plotly Figure, depending on backend.
+        """
+        if c is None:
+            c = self.vortex_strengths
+            colorbar_label = colorbar_label or "Vortex strength [m²/s]"
+        if cmap is None:
+            cmap = "viridis"
+
+        if draw_streamlines and (recalculate_streamlines or not hasattr(self, "streamlines")):
+            self.calculate_streamlines()
+
+        if backend == "pyvista":
+            return self._draw_pyvista(c, cmap, colorbar_label, show, draw_streamlines)
+        elif backend == "plotly":
+            return self._draw_plotly(c, cmap, colorbar_label, show, draw_streamlines)
+        else:
+            raise ValueError(f"Unknown backend '{backend}'. Choose 'pyvista' or 'plotly'.")
+
+    # ------------------------------------------------------------------ #
+    # draw() back-ends
+    # ------------------------------------------------------------------ #
+
+    def _draw_pyvista(self, c, cmap, colorbar_label, show, draw_streamlines):
+        import pyvista as pv
+
+        fl = self.front_left_vertices
+        bl = self.back_left_vertices
+        br = self.back_right_vertices
+        fr = self.front_right_vertices
+        N = len(fl)
+
+        # Build PolyData: vertices stacked in four blocks, one quad per panel
+        points_pv = np.concatenate([fl, bl, br, fr])   # (4N, 3)
+        r = np.arange(N)
+        # pyvista face format: [4, i0, i1, i2, i3, 4, i0, ...]
+        faces_pv = np.column_stack([
+            np.full(N, 4, dtype=np.intp),
+            r, r + N, r + 2 * N, r + 3 * N,
+        ]).ravel()
+        mesh = pv.PolyData(points_pv, faces_pv)
+
+        plotter = pv.Plotter()
+        plotter.title = "AerisPlane VLM"
+        plotter.add_axes()
+        plotter.show_grid(color="gray")
+
+        scalar_bar_args = {}
+        if colorbar_label:
+            scalar_bar_args["title"] = colorbar_label
+        plotter.add_mesh(
+            mesh=mesh,
+            scalars=c,
+            cmap=cmap,
+            show_edges=True,
+            show_scalar_bar=True,
+            scalar_bar_args=scalar_bar_args,
+        )
+
+        if draw_streamlines:
+            for i in range(self.streamlines.shape[0]):
+                pts = self.streamlines[i, :, :].T   # (n_steps, 3)
+                plotter.add_mesh(
+                    pv.Spline(pts),
+                    color="#88AAFF",
+                    opacity=0.6,
+                    line_width=1,
+                )
+
+        if show:
+            plotter.show()
+        return plotter
+
+    def _draw_plotly(self, c, cmap, colorbar_label, show, draw_streamlines):
+        import plotly.graph_objects as go
+
+        fl = self.front_left_vertices
+        bl = self.back_left_vertices
+        br = self.back_right_vertices
+        fr = self.front_right_vertices
+        N = len(fl)
+
+        # Triangulate each quad into 2 triangles for Mesh3d
+        all_v = np.vstack([fl, bl, br, fr])   # (4N, 3)
+        r = np.arange(N)
+        tri_i = np.concatenate([r,       r      ])
+        tri_j = np.concatenate([r + N,   r + 2*N])
+        tri_k = np.concatenate([r + 2*N, r + 3*N])
+        tri_c = np.concatenate([c, c])
+
+        vmax = float(np.percentile(np.abs(c), 98)) or 1.0
+        wing_trace = go.Mesh3d(
+            x=all_v[:, 0], y=all_v[:, 1], z=all_v[:, 2],
+            i=tri_i, j=tri_j, k=tri_k,
+            intensity=tri_c,
+            colorscale=cmap,
+            cmin=-vmax, cmid=0.0, cmax=vmax,
+            colorbar=dict(title=dict(text=colorbar_label or ""), x=1.02),
+            name="Wing",
+            showscale=True,
+            opacity=0.95,
+            flatshading=True,
+        )
+
+        traces = [wing_trace]
+        if draw_streamlines:
+            for i in range(self.streamlines.shape[0]):
+                pts = self.streamlines[i, :, :].T   # (n_steps, 3)
+                pts = pts[::3]                       # thin for file size
+                traces.append(go.Scatter3d(
+                    x=pts[:, 0], y=pts[:, 1], z=pts[:, 2],
+                    mode="lines",
+                    line=dict(color="rgba(136, 170, 255, 0.55)", width=2),
+                    showlegend=False,
+                    hoverinfo="skip",
+                ))
+
+        fig = go.Figure(data=traces)
+        fig.update_layout(
+            title=dict(text="AerisPlane VLM", font=dict(color="white")),
+            scene=dict(
+                xaxis=dict(title="x [m]"),
+                yaxis=dict(title="y [m]"),
+                zaxis=dict(title="z [m]"),
+                aspectmode="data",
+                camera=dict(eye=dict(x=1.5, y=-1.8, z=0.8)),
+            ),
+            margin=dict(l=10, r=10, t=50, b=10),
+        )
+
+        if show:
+            fig.show()
+        return fig
