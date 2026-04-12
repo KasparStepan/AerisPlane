@@ -43,6 +43,32 @@ class _Var(float):
         return new
 
 
+class _IntVar(_Var):
+    """An integer-valued design variable declared inline.
+
+    The optimizer sees an integer in [lower, upper].  Use via
+    ``opti.integer_variable()``.
+
+    Unlike ``opti.variable()`` (continuous), the step between adjacent
+    values is always 1.  scale is fixed at 1.0.
+    """
+
+    def __new__(cls, value: int, lower: int, upper: int) -> "_IntVar":
+        obj = float.__new__(cls, value)
+        obj._lower = float(lower)
+        obj._upper = float(upper)
+        obj._scale = 1.0
+        obj._is_integer = True
+        obj._var_id = next(_id_counter)
+        return obj
+
+    def __deepcopy__(self, memo):
+        new = _IntVar(int(self), int(self._lower), int(self._upper))
+        new._var_id = self._var_id
+        memo[id(self)] = new
+        return new
+
+
 class _Choice:
     """A discrete catalog selection sentinel.
 
@@ -146,6 +172,30 @@ class Opti:
         self._vars[v._var_id] = v
         return v
 
+    def integer_variable(self, init: int, lower: int, upper: int) -> "_IntVar":
+        """Declare an integer design variable.
+
+        Use for parameters that are naturally integers but not a catalog list:
+        number of battery cells, propeller blades, ribs, motor pole pairs, etc.
+
+        Parameters
+        ----------
+        init : int
+            Initial (baseline) value.
+        lower : int
+            Lower bound (inclusive).
+        upper : int
+            Upper bound (inclusive).
+
+        Returns
+        -------
+        _IntVar
+            A float subclass — assign it exactly like ``opti.variable()``.
+        """
+        v = _IntVar(init, lower=lower, upper=upper)
+        self._vars[v._var_id] = v
+        return v
+
     def choice(self, options: list, init: int = 0) -> "_Choice":
         """Declare a discrete catalog choice variable.
 
@@ -229,13 +279,13 @@ class Opti:
         # Discover _Var (continuous) and _Choice (discrete) fields
         found_vars, found_choices = _discover_vars(aircraft)
 
-        # Continuous design variables — DesignVar does not yet have integrality field
         design_variables = [
             DesignVar(
                 path=path,
                 lower=var._lower,
                 upper=var._upper,
                 scale=var._scale,
+                integrality=var._is_integer,
             )
             for path, var in found_vars.items()
         ]

@@ -267,3 +267,49 @@ def test_opti_problem_with_choice(simple_aircraft):
     assert isinstance(cv, ChoiceVar)
     assert cv.path == "wings[0].xsecs[0].airfoil"
     assert len(cv.options) == 2
+
+
+from aerisplane.mdo.opti import _IntVar
+import numpy as np
+
+
+def test_int_var_is_float():
+    v = _IntVar(4, lower=2, upper=8)
+    assert isinstance(v, float)
+    assert float(v) == pytest.approx(4.0)
+
+
+def test_int_var_has_integrality_flag():
+    v = _IntVar(4, lower=2, upper=8)
+    assert v._is_integer is True
+
+
+def test_int_var_scale_fixed_at_one():
+    v = _IntVar(4, lower=2, upper=8)
+    assert v._scale == pytest.approx(1.0)
+
+
+def test_opti_integer_variable_returns_int_var():
+    opti = Opti()
+    v = opti.integer_variable(4, lower=2, upper=8)
+    assert isinstance(v, _IntVar)
+    assert float(v) == pytest.approx(4.0)
+
+
+def test_opti_integer_variable_creates_integer_desvar(simple_aircraft):
+    """MDOProblem from integer variable has integrality=True for that var."""
+    opti2 = Opti()
+    opti_base, aircraft = simple_aircraft
+    # Override one chord with an integer variable
+    aircraft.wings[0].xsecs[0].chord = opti2.integer_variable(3, lower=2, upper=6)
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti2.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+    int_dvars = [dv for dv in problem._dvars if dv.integrality]
+    assert len(int_dvars) == 1
+    assert int_dvars[0].path == "wings[0].xsecs[0].chord"
+    assert problem._integrality[0] is np.bool_(True)

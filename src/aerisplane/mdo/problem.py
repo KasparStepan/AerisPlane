@@ -29,6 +29,7 @@ class DesignVar:
     lower: float
     upper: float
     scale: float = 1.0
+    integrality: bool = False  # True → optimizer treats this as integer
 
 
 @dataclass
@@ -225,7 +226,7 @@ class MDOProblem:
         self._n_choices = len(self._choice_vars)
         self._n_vars = self._n_continuous + self._n_pool + self._n_choices
         self._integrality = np.array(
-            [False] * self._n_continuous
+            [dv.integrality for dv in self._dvars]
             + [True] * self._n_pool
             + [True] * self._n_choices,
             dtype=bool,

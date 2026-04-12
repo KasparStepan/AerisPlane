@@ -124,7 +124,10 @@ def _unpack(aircraft, dvars: list, pool_entries: list, x: np.ndarray):
 
     ac = copy.deepcopy(aircraft)
     for i, dv in enumerate(dvars):
-        _set_dv_value(ac, dv.path, float(x[i]) * dv.scale)
+        val = float(x[i]) * dv.scale
+        if getattr(dv, "integrality", False):
+            val = float(round(val))
+        _set_dv_value(ac, dv.path, val)
     for j, (wing_path, xi, pool) in enumerate(pool_entries):
         raw_idx = float(x[len(dvars) + j])
         idx = int(round(raw_idx))
