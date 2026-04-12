@@ -48,6 +48,16 @@ class WingXSec:
         if self.airfoil is None:
             self.airfoil = Airfoil("naca0012")
 
+    def xsec_area(self) -> float:
+        """Cross-sectional area of this wing section [m^2].
+
+        Computed as nondimensional airfoil area * chord^2.
+        Returns 0.0 if no airfoil is set.
+        """
+        if self.airfoil is None:
+            return 0.0
+        return self.airfoil.nondim_area() * self.chord ** 2
+
 
 @dataclass
 class Wing:
@@ -111,17 +121,54 @@ class Wing:
         s = self.semispan()
         return 2.0 * s if self.symmetric else s
 
-    def area(self) -> float:
-        """Planform area by trapezoidal integration [m^2].
+    def area(self, type: str = "planform") -> float:
+        """Wing area [m^2].
 
-        For symmetric wings, returns the total area (both sides).
+        Parameters
+        ----------
+        type : str
+            "planform" (default): trapezoidal planform area.
+            "wetted": surface area including airfoil thickness, both surfaces.
+            "xy": planform area projected onto XY plane (top-down view).
+            "xz": area projected onto XZ plane (side view).
+
+        For symmetric wings, returns the total area for both sides in all modes.
         """
-        y = self._y_stations()
-        c = self._chords()
+        if type == "planform":
+            y = self._y_stations()
+            c = self._chords()
+            semi_area = float(_trapz(c, y))
+            return 2.0 * semi_area if self.symmetric else semi_area
 
-        # Trapezoidal integration of chord along span
-        semi_area = float(_trapz(c, y))
-        return 2.0 * semi_area if self.symmetric else semi_area
+        elif type == "wetted":
+            spans = self.sectional_span_yz()
+            total = 0.0
+            for i, span in enumerate(spans):
+                xa, xb = self.xsecs[i], self.xsecs[i + 1]
+                p_a = xa.airfoil.nondim_perimeter() if xa.airfoil is not None else 2.0
+                p_b = xb.airfoil.nondim_perimeter() if xb.airfoil is not None else 2.0
+                avg_wetted_chord = (xa.chord * p_a + xb.chord * p_b) / 2.0
+                total += span * avg_wetted_chord
+            return 2.0 * total if self.symmetric else total
+
+        elif type == "xy":
+            total = 0.0
+            for xa, xb in zip(self.xsecs[:-1], self.xsecs[1:]):
+                dy = abs(xb.xyz_le[1] - xa.xyz_le[1])
+                total += dy * (xa.chord + xb.chord) / 2.0
+            return 2.0 * total if self.symmetric else total
+
+        elif type == "xz":
+            total = 0.0
+            for xa, xb in zip(self.xsecs[:-1], self.xsecs[1:]):
+                dz = abs(xb.xyz_le[2] - xa.xyz_le[2])
+                total += dz * (xa.chord + xb.chord) / 2.0
+            return 2.0 * total if self.symmetric else total
+
+        else:
+            raise ValueError(
+                f"type must be 'planform', 'wetted', 'xy', or 'xz', got '{type!r}'"
+            )
 
     def aspect_ratio(self) -> float:
         """Aspect ratio AR = b^2 / S."""
@@ -232,6 +279,40 @@ class Wing:
         Dihedral of the line connecting root and tip LE points, in the yz-plane.
         """
         return self.dihedral()
+
+    def mean_geometric_chord(self) -> float:
+        """Mean geometric chord: area / span [m]."""
+        s = self.span()
+        return 0.0 if s == 0.0 else self.area() / s
+
+    def mean_twist_angle(self) -> float:
+        """Area-weighted mean twist angle [deg].
+
+        Positive = nose-up. Zero for an untwisted wing.
+        """
+        areas = self.sectional_areas()
+        total_area = sum(areas)
+        if total_area == 0.0:
+            return 0.0
+        twists = [
+            (xa.twist + xb.twist) / 2.0
+            for xa, xb in zip(self.xsecs[:-1], self.xsecs[1:])
+        ]
+        return float(sum(t * a for t, a in zip(twists, areas)) / total_area)
+
+    def volume(self) -> float:
+        """Total structural volume of the wing [m^3].
+
+        Uses the Prismatoid formula per section (exact for frustum-shaped bodies).
+        Includes both sides for symmetric wings.
+        """
+        spans = self.sectional_span_yz()
+        total = 0.0
+        for i, span in enumerate(spans):
+            a_a = self.xsecs[i].xsec_area()
+            a_b = self.xsecs[i + 1].xsec_area()
+            total += span / 3.0 * (a_a + a_b + (a_a * a_b + 1e-100) ** 0.5)
+        return 2.0 * total if self.symmetric else total
 
     def sectional_span_yz(self) -> list[float]:
         """Span of each section measured in the YZ plane [m].

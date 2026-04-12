@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 import aerisplane as ap
+from aerisplane.core.wing import Wing, WingXSec
 
 
 # ---------------------------------------------------------------------------
@@ -151,3 +152,93 @@ class TestAerodynamicCenter:
         expected = mac_le + np.array([0.25 * mac, 0.0, 0.0])
 
         np.testing.assert_allclose(ac, expected, rtol=1e-3)
+
+
+# ---------------------------------------------------------------------------
+# Task 4: Wing area types, volume, twist, chord utilities
+# ---------------------------------------------------------------------------
+
+class TestWingWettedArea:
+    def test_wetted_area_greater_than_planform(self, simple_wing):
+        assert simple_wing.area("wetted") > simple_wing.area("planform")
+
+    def test_wetted_area_less_than_three_times_planform(self, simple_wing):
+        assert simple_wing.area("wetted") < 3 * simple_wing.area("planform")
+
+    def test_bad_type_raises(self, simple_wing):
+        with pytest.raises(ValueError):
+            simple_wing.area("volume")
+
+
+class TestWingProjectedArea:
+    def test_xy_area_rectangular_wing(self, rectangular_wing):
+        # Rectangular wing with no sweep, no dihedral → XY == planform
+        assert rectangular_wing.area("xy") == pytest.approx(
+            rectangular_wing.area("planform"), rel=1e-3
+        )
+
+    def test_xz_area_zero_for_flat_wing(self, rectangular_wing):
+        # Flat wing (no dihedral) → XZ projected area is zero
+        assert rectangular_wing.area("xz") == pytest.approx(0.0, abs=1e-10)
+
+
+class TestWingVolume:
+    def test_volume_positive(self, simple_wing):
+        assert simple_wing.volume() > 0.0
+
+    def test_volume_scales_with_chord(self):
+        # Double chord on a rectangular symmetric wing → volume * 4 (chord^2 effect)
+        af = ap.Airfoil.from_naca("0012")
+        wing1 = Wing(
+            xsecs=[
+                WingXSec(xyz_le=[0, 0, 0], chord=0.1, airfoil=af),
+                WingXSec(xyz_le=[0, 0.5, 0], chord=0.1, airfoil=af),
+            ],
+            symmetric=True,
+        )
+        wing2 = Wing(
+            xsecs=[
+                WingXSec(xyz_le=[0, 0, 0], chord=0.2, airfoil=af),
+                WingXSec(xyz_le=[0, 0.5, 0], chord=0.2, airfoil=af),
+            ],
+            symmetric=True,
+        )
+        assert wing2.volume() == pytest.approx(4.0 * wing1.volume(), rel=1e-3)
+
+
+class TestWingMeanTwistAngle:
+    def test_no_twist_returns_zero(self, rectangular_wing):
+        assert rectangular_wing.mean_twist_angle() == pytest.approx(0.0)
+
+    def test_uniform_twist_returns_that_angle(self):
+        af = ap.Airfoil.from_naca("0012")
+        wing = Wing(
+            xsecs=[
+                WingXSec(xyz_le=[0, 0, 0], chord=0.2, twist=5.0, airfoil=af),
+                WingXSec(xyz_le=[0, 0.75, 0], chord=0.2, twist=5.0, airfoil=af),
+            ],
+            symmetric=True,
+        )
+        assert wing.mean_twist_angle() == pytest.approx(5.0, rel=1e-3)
+
+
+class TestWingMeanGeometricChord:
+    def test_rectangular_mgc_equals_chord(self, rectangular_wing):
+        assert rectangular_wing.mean_geometric_chord() == pytest.approx(0.2, rel=1e-3)
+
+    def test_mgc_equals_area_over_span(self, simple_wing):
+        expected = simple_wing.area() / simple_wing.span()
+        assert simple_wing.mean_geometric_chord() == pytest.approx(expected, rel=1e-9)
+
+
+class TestWingXSecArea:
+    def test_xsec_area_positive(self):
+        af = ap.Airfoil.from_naca("0012")
+        xsec = WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af)
+        assert xsec.xsec_area() > 0.0
+
+    def test_xsec_area_scales_with_chord_squared(self):
+        af = ap.Airfoil.from_naca("0012")
+        xsec1 = WingXSec(xyz_le=[0, 0, 0], chord=0.1, airfoil=af)
+        xsec2 = WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af)
+        assert xsec2.xsec_area() == pytest.approx(9.0 * xsec1.xsec_area(), rel=1e-6)
