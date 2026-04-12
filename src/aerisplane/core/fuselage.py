@@ -173,6 +173,11 @@ class Fuselage:
     z_le: float = 0.0
     material: Optional[Material] = None
     wall_thickness: float = 0.001
+    color: Optional[str] = None
+    """Optional display colour for visualization. Any CSS colour string, e.g. "#808080".
+
+    If None, the visualization module picks from its default palette.
+    """
 
     def _x_stations(self) -> np.ndarray:
         """Axial positions of cross-sections."""
@@ -383,6 +388,11 @@ class Fuselage:
         new.y_le = self.y_le + float(xyz[1])
         new.z_le = self.z_le + float(xyz[2])
         return new
+
+    def draw(self, backend: str = "plotly", show: bool = True, **kwargs):
+        """Visualize this fuselage. See ``aerisplane.viz.draw`` for full docs."""
+        from aerisplane.viz import draw
+        return draw(self, backend=backend, show=show, **kwargs)
 
     def wetted_area(self) -> float:
         """Approximate wetted (external) area by trapezoidal integration of perimeters [m^2]."""

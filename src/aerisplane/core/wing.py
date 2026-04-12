@@ -90,6 +90,11 @@ class Wing:
     xsecs: list[WingXSec] = field(default_factory=list)
     symmetric: bool = True
     control_surfaces: list[ControlSurface] = field(default_factory=list)
+    color: "str | None" = None
+    """Optional display colour for visualization. Any CSS colour string, e.g. "#FF4444".
+
+    If None, the visualization module picks from its default palette.
+    """
 
     def _y_stations(self) -> np.ndarray:
         """Spanwise coordinate along the dominant span direction [m].
@@ -408,6 +413,11 @@ class Wing:
         new = copy.copy(self)
         new.xsecs = [xsec.translate(xyz) for xsec in self.xsecs]
         return new
+
+    def draw(self, backend: str = "plotly", show: bool = True, **kwargs):
+        """Visualize this wing. See ``aerisplane.viz.draw`` for full docs."""
+        from aerisplane.viz import draw
+        return draw(self, backend=backend, show=show, **kwargs)
 
     def sectional_span_yz(self) -> list[float]:
         """Span of each section measured in the YZ plane [m].

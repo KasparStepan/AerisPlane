@@ -96,3 +96,8 @@ class Aircraft:
         Returns True for an aircraft with no wings.
         """
         return all(wing.is_entirely_symmetric() for wing in self.wings)
+
+    def draw(self, backend: str = "plotly", show: bool = True, **kwargs):
+        """Visualize this aircraft. See ``aerisplane.viz.draw`` for full docs."""
+        from aerisplane.viz import draw
+        return draw(self, backend=backend, show=show, **kwargs)
