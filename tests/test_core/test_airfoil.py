@@ -85,3 +85,40 @@ class TestNoCoordinates:
     def test_thickness_returns_zero(self):
         airfoil = ap.Airfoil("nonexistent_foil_xyz")
         assert airfoil.thickness() == 0.0
+
+
+class TestAirfoilNondimPerimeter:
+    def test_flat_plate_perimeter(self):
+        # A flat plate (zero thickness) should have perimeter ≈ 2.0
+        # (upper surface 1.0 + lower surface 1.0)
+        af = ap.Airfoil(
+            name="flat_plate",
+            coordinates=np.array([[1.0, 0.0], [0.5, 0.0], [0.0, 0.0],
+                                   [0.5, 0.0], [1.0, 0.0]]),
+        )
+        assert af.nondim_perimeter() == pytest.approx(2.0, rel=1e-3)
+
+    def test_naca0012_perimeter_above_two(self):
+        # NACA 0012 is thicker than a flat plate, so perimeter > 2.0
+        af = ap.Airfoil.from_naca("0012")
+        assert af.nondim_perimeter() > 2.0
+        assert af.nondim_perimeter() < 2.2  # sanity upper bound
+
+    def test_no_coordinates_returns_two(self):
+        af = ap.Airfoil(name="unknown_xyz_abc")
+        assert af.nondim_perimeter() == pytest.approx(2.0)
+
+
+class TestAirfoilNondimArea:
+    def test_symmetric_airfoil_has_positive_area(self):
+        af = ap.Airfoil.from_naca("0012")
+        assert af.nondim_area() > 0.0
+
+    def test_naca0012_area_approximate(self):
+        # NACA 0012: thickness 12%, nondim area roughly 0.06-0.12
+        af = ap.Airfoil.from_naca("0012")
+        assert 0.06 < af.nondim_area() < 0.12
+
+    def test_no_coordinates_returns_zero(self):
+        af = ap.Airfoil(name="unknown_xyz_abc")
+        assert af.nondim_area() == pytest.approx(0.0)

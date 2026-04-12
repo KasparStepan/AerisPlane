@@ -256,6 +256,31 @@ class Airfoil:
         return float(np.max(np.abs(camber_line)))
 
 
+    def nondim_perimeter(self) -> float:
+        """Normalized perimeter (arc length around full profile) as fraction of chord.
+
+        For a zero-thickness flat plate this equals 2.0 (upper + lower = 1 + 1).
+        For NACA 0012 it is approximately 2.03.
+        Returns 2.0 if no coordinates are available.
+        """
+        if self.coordinates is None or len(self.coordinates) < 2:
+            return 2.0
+        diffs = np.diff(self.coordinates, axis=0)
+        return float(np.sum(np.sqrt(np.sum(diffs ** 2, axis=1))))
+
+    def nondim_area(self) -> float:
+        """Normalized cross-sectional area as fraction of chord^2.
+
+        Computed via the shoelace formula on the coordinate polygon.
+        For NACA 0012 this is approximately 0.086.
+        Returns 0.0 if no coordinates are available.
+        """
+        if self.coordinates is None or len(self.coordinates) < 3:
+            return 0.0
+        x = self.coordinates[:, 0]
+        y = self.coordinates[:, 1]
+        return float(0.5 * abs(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1))))
+
     def get_aero_from_neuralfoil(
         self,
         alpha: float,
