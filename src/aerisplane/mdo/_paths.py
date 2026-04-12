@@ -87,6 +87,34 @@ def _get_result_value(results: dict, path: str) -> Any:
     return _resolve_to_obj(obj, parts[1])
 
 
+def _get_result_value_multicond(results: dict, path: str, conditions: dict) -> Any:
+    """Resolve a path that may be prefixed with a condition name.
+
+    Multi-condition path format: ``"cruise.aero.CL_over_CD"``
+    Single-condition path format: ``"aero.CL_over_CD"``
+
+    Parameters
+    ----------
+    results : dict
+        For multi-condition: ``{"cruise": {"aero": AeroResult, ...}, ...}``
+        For single-condition: ``{"aero": AeroResult, ...}``
+    path : str
+    conditions : dict or None
+        If not None, we are in multi-condition mode.
+    """
+    if conditions is not None:
+        parts = path.split(".", 1)
+        cond_name = parts[0]
+        remainder = parts[1] if len(parts) > 1 else ""
+        if cond_name not in results:
+            raise KeyError(
+                f"Condition '{cond_name}' not in results. "
+                f"Available: {list(results.keys())}."
+            )
+        return _get_result_value(results[cond_name], remainder)
+    return _get_result_value(results, path)
+
+
 def _pack(aircraft, dvars: list, pool_entries: list) -> np.ndarray:
     """Extract current design variable values from aircraft into a flat vector.
 

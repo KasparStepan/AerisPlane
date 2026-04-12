@@ -190,10 +190,11 @@ class MDOProblem:
     def __init__(
         self,
         aircraft,
-        condition,
-        design_variables: list,
-        constraints: list,
-        objective,
+        condition=None,            # single FlightCondition (backward compat)
+        conditions: dict = None,   # dict[str, FlightCondition] for multi-condition
+        design_variables: list = None,
+        constraints: list = None,
+        objective=None,
         mission=None,
         airfoil_pools: dict = None,
         alpha: float = None,
@@ -207,7 +208,16 @@ class MDOProblem:
         choice_variables: list = None,
     ):
         self._baseline = copy.deepcopy(aircraft)
+
+        if condition is not None and conditions is not None:
+            raise ValueError("Provide either 'condition' or 'conditions', not both.")
+        if condition is None and conditions is None:
+            raise ValueError("Provide either 'condition' or 'conditions'.")
         self._condition = condition
+        self._conditions = conditions  # None when single-condition mode
+
+        design_variables = list(design_variables or [])
+        constraints = list(constraints or [])
         self._dvars = list(design_variables)
         self._constraints = list(constraints)
         self._objective = objective
@@ -277,8 +287,29 @@ class MDOProblem:
         # Check constraint/objective path prefixes are recognised disciplines
         objectives = self._objective if isinstance(self._objective, list) else [self._objective]
         all_paths = [c.path for c in self._constraints] + [o.path for o in objectives]
+
+        if self._conditions is not None:
+            # Multi-condition: paths must start with a known condition name
+            for path in all_paths:
+                cond_name = path.split(".")[0]
+                if cond_name not in self._conditions:
+                    raise ValueError(
+                        f"Unknown condition '{cond_name}' in path '{path}'. "
+                        f"Available conditions: {list(self._conditions.keys())}. "
+                        f"Multi-condition paths must be 'condition_name.discipline.field'."
+                    )
+
         for path in all_paths:
-            prefix = path.split(".")[0]
+            if self._conditions is not None:
+                # path = "cond_name.discipline.field"
+                parts = path.split(".")
+                if len(parts) < 2:
+                    raise ValueError(
+                        f"Multi-condition path '{path}' must be 'cond.discipline.field'."
+                    )
+                prefix = parts[1]   # discipline is second segment
+            else:
+                prefix = path.split(".")[0]
             if prefix not in DISCIPLINE_ORDER:
                 raise ValueError(
                     f"Path '{path}' has unknown discipline prefix '{prefix}'. "
@@ -374,44 +405,63 @@ class MDOProblem:
         cg = weights_result.cg
         ac.xyz_ref = [float(cg[0]), float(cg[1]), float(cg[2])]
 
-        # Determine flight condition (trim or fixed alpha)
-        from aerisplane.core.flight_condition import FlightCondition
-        if self._alpha is not None:
-            cond = FlightCondition(
-                velocity=self._condition.velocity,
-                altitude=self._condition.altitude,
-                alpha=self._alpha,
-                beta=getattr(self._condition, "beta", 0.0),
-            )
-        elif self._aero_result is None:
-            cond = self._trim_condition(ac, weights_result)
+        if self._conditions is not None:
+            # Multi-condition: run the chain for each named condition
+            results = {}
+            for cond_name, cond in self._conditions.items():
+                results[cond_name] = default_registry.run_chain(
+                    disciplines=self._disciplines,
+                    aircraft=ac,
+                    condition=cond,
+                    aero_result=self._aero_result,
+                    initial_results={"weights": weights_result},
+                    aero_method=self.aero_method,
+                    load_factor=self.load_factor,
+                    safety_factor=1.5,
+                    throttle=self._throttle,
+                    mission=self._mission,
+                )
         else:
-            cond = self._condition
+            # Single-condition: determine flight condition (trim or fixed alpha)
+            from aerisplane.core.flight_condition import FlightCondition
+            if self._alpha is not None:
+                cond = FlightCondition(
+                    velocity=self._condition.velocity,
+                    altitude=self._condition.altitude,
+                    alpha=self._alpha,
+                    beta=getattr(self._condition, "beta", 0.0),
+                )
+            elif self._aero_result is None:
+                cond = self._trim_condition(ac, weights_result)
+            else:
+                cond = self._condition
 
-        results = default_registry.run_chain(
-            disciplines=self._disciplines,
-            aircraft=ac,
-            condition=cond,
-            aero_result=self._aero_result,
-            initial_results={"weights": weights_result},
-            aero_method=self.aero_method,
-            load_factor=self.load_factor,
-            safety_factor=1.5,
-            throttle=self._throttle,
-            mission=self._mission,
-        )
+            results = default_registry.run_chain(
+                disciplines=self._disciplines,
+                aircraft=ac,
+                condition=cond,
+                aero_result=self._aero_result,
+                initial_results={"weights": weights_result},
+                aero_method=self.aero_method,
+                load_factor=self.load_factor,
+                safety_factor=1.5,
+                throttle=self._throttle,
+                mission=self._mission,
+            )
 
         # Extract objective
+        from aerisplane.mdo._paths import _get_result_value_multicond
         objectives = self._objective if isinstance(self._objective, list) else [self._objective]
         obj_vals = []
         for obj in objectives:
-            raw = float(_get_result_value(results, obj.path))
+            raw = float(_get_result_value_multicond(results, obj.path, self._conditions))
             sign = -1.0 if obj.maximize else 1.0
             obj_vals.append(sign * raw / obj.scale)
         objective_value = obj_vals[0] if len(obj_vals) == 1 else obj_vals
 
         constraint_values = {
-            c.path: _get_result_value(results, c.path) for c in self._constraints
+            c.path: _get_result_value_multicond(results, c.path, self._conditions)
+            for c in self._constraints
         }
 
         elapsed = time.time() - t0
@@ -420,7 +470,7 @@ class MDOProblem:
             "constraint_values": constraint_values,
             "results": results,
             "aircraft": ac,
-            "condition": cond,
+            "condition": self._conditions if self._conditions is not None else cond,
             "elapsed": elapsed,
         }
         self._cache[cache_key] = ev

@@ -263,7 +263,7 @@ class Opti:
             Single flight condition (backward compat).
         conditions : dict, optional
             Dict of name -> FlightCondition for multi-condition optimization.
-            Not yet supported by MDOProblem; reserved for future use.
+            Paths must use format ``"cond_name.discipline.field"``.
         disciplines : list of str
             Disciplines to run, e.g. ``["aero"]`` or ``["aero", "stability"]``.
             Pass ``None`` to auto-infer from objective/constraint paths.
@@ -303,6 +303,7 @@ class Opti:
         return MDOProblem(
             aircraft=aircraft,
             condition=condition,
+            conditions=conditions,
             design_variables=design_variables,
             constraints=constraints or [],
             objective=objective,
