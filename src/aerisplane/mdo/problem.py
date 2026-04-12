@@ -572,12 +572,13 @@ class MDOProblem:
         self,
         method: str = "scipy_de",
         options: dict = None,
-        verbose: bool = True,
+        verbose: int = 1,
         report_interval: int = None,
         log_path: str = None,
         callback=None,
         checkpoint_path: str = None,
         checkpoint_interval: int = None,
+        plot_path: str = None,
     ):
         """Run optimisation and return an OptimizationResult.
 
@@ -590,8 +591,12 @@ class MDOProblem:
             Passed directly to the underlying optimiser.
             scipy_de: ``maxiter``, ``popsize``, ``seed``, ``tol``, ...
             pymoo:    ``pop_size``, ``n_gen``, ``seed``, ...
-        verbose : bool
-            Print a one-line log after every evaluation.  Default True.
+        verbose : int
+            0 / False — silent.
+            1 / True  — tqdm progress bar showing eval count, current and
+                        best objective, elapsed time (default).
+            2         — bar + per-generation table of best design variable
+                        values with initial value and delta.
         report_interval : int or None
             Print a detailed summary every N evaluations.  None → off.
         log_path : str or None
@@ -605,6 +610,11 @@ class MDOProblem:
         checkpoint_interval : int or None
             Save checkpoint every N evaluations.
             None → every popsize evaluations.
+        plot_path : str or None
+            If supplied, the convergence + design-variable figure is saved
+            to this path after optimisation completes.
+            Accepts any matplotlib-supported extension: ``.png``, ``.pdf``,
+            ``.svg``, etc.  Parent directory must exist.
 
         Returns
         -------
@@ -631,7 +641,7 @@ class MDOProblem:
                 "pymoo_de, pymoo_nsga2, pymoo_nsga3, pymoo_pso."
             )
 
-        return driver.run(
+        result = driver.run(
             method=method,
             options=opts,
             report_interval=report_interval,
@@ -641,6 +651,14 @@ class MDOProblem:
             checkpoint_path=checkpoint_path,
             checkpoint_interval=checkpoint_interval,
         )
+
+        if plot_path is not None:
+            import matplotlib.pyplot as plt
+            fig = result.plot()
+            fig.savefig(plot_path, dpi=150, bbox_inches="tight")
+            plt.close(fig)
+
+        return result
 
     def sensitivity(
         self,

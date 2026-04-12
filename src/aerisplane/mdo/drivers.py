@@ -15,6 +15,71 @@ from aerisplane.mdo.result import OptimisationSnapshot, OptimizationResult
 _LOG = logging.getLogger(__name__)
 
 
+# ── Progress helpers ──────────────────────────────────────────────────────────
+
+class _ProgressBar:
+    """tqdm progress bar with graceful fallback when tqdm is not installed.
+
+    verbose=1 : bar only (eval count, rate, best obj, elapsed)
+    verbose=2 : bar + per-generation design variable table printed below it
+    """
+
+    def __init__(self, verbose: int, total: Optional[int] = None):
+        self._verbose = int(verbose)
+        self._pbar = None
+        if self._verbose >= 1:
+            try:
+                from tqdm.auto import tqdm
+                self._pbar = tqdm(
+                    total=total,
+                    unit=" eval",
+                    desc="Optimizing",
+                    dynamic_ncols=True,
+                    leave=True,
+                )
+            except ImportError:
+                pass  # silent fallback — no progress bar, log still works
+
+    def update(self, obj: float, best_obj: float, elapsed: float) -> None:
+        if self._pbar is not None:
+            self._pbar.update(1)
+            self._pbar.set_postfix(
+                obj=f"{obj:.4g}",
+                best=f"{best_obj:.4g}",
+                t=f"{elapsed:.0f}s",
+                refresh=False,
+            )
+
+    def close(self) -> None:
+        if self._pbar is not None:
+            self._pbar.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+
+def _print_dv_table(problem, best: dict, t_start: float) -> None:
+    """Print best design variable values — used for verbose=2 per-generation summary."""
+    elapsed = time.time() - t_start
+    feasible = "feasible" if best["constraints_ok"] else "infeasible"
+    print(
+        f"\n── eval {problem._n_evals:>5}  "
+        f"best = {best['obj']:.5g}  "
+        f"{feasible}  "
+        f"t = {elapsed:.0f}s ──"
+    )
+    x0 = problem._x0_scaled()
+    for i, dv in enumerate(problem._dvars):
+        init_val = float(x0[i] * dv.scale)
+        best_val = float(best["x"][i] * dv.scale)
+        change = best_val - init_val
+        print(f"  {dv.path:<50} {best_val:>10.5g}  (init {init_val:.5g}  Δ {change:+.5g})")
+    print()
+
+
 # ── Checkpoint helpers ────────────────────────────────────────────────────────
 
 def save_checkpoint(base_path: str, state: dict) -> None:
@@ -86,7 +151,7 @@ class ScipyDriver:
         report_interval: Optional[int],
         log_path: Optional[str],
         callback: Optional[Callable],
-        verbose: bool,
+        verbose: int,
         checkpoint_path: Optional[str],
         checkpoint_interval: Optional[int],
     ) -> OptimizationResult:
@@ -97,6 +162,17 @@ class ScipyDriver:
         bounds = list(zip(lo, hi))
         integrality = p._integrality
 
+        # Estimate total evaluations for tqdm (scipy_de only)
+        total_evals = None
+        if method == "scipy_de":
+            popsize_mult = options.get("popsize", 15)
+            maxiter = options.get("maxiter", 1000)
+            total_evals = maxiter * popsize_mult * max(1, p._n_vars)
+            # generation size for verbose=2 DV table
+            gen_size = max(1, popsize_mult * max(1, p._n_vars))
+        else:
+            gen_size = report_interval or 50
+
         # Initialise CSV log
         csv_file = open(log_path, "a") if log_path else None
         if csv_file and csv_file.tell() == 0:
@@ -106,55 +182,6 @@ class ScipyDriver:
         best = {"x": None, "obj": float("inf"), "constraints_ok": False}
 
         chk_interval = checkpoint_interval or max(1, getattr(p, "_n_vars", 2) * 4)
-
-        def wrapped_obj(x):
-            obj = p.objective_function(x)
-            violations = p.constraint_functions(x)
-            constraints_ok = bool(np.all(violations <= 0))
-
-            # Track best feasible (or best infeasible if nothing feasible yet)
-            if constraints_ok and obj < best["obj"]:
-                best["x"] = x.copy()
-                best["obj"] = obj
-                best["constraints_ok"] = True
-            elif best["x"] is None:
-                best["x"] = x.copy()
-                best["obj"] = obj
-
-            if verbose:
-                _LOG.info("[%5d] obj=%.4g  best=%.4g  t=%.1fs",
-                          p._n_evals, obj, best["obj"], time.time() - t_start)
-
-            if csv_file:
-                ev = p._cache.get(tuple(np.round(x, 10)), {})
-                cv = ev.get("constraint_values", {})
-                row = [p._n_evals, obj] + [cv.get(c.path, "") for c in p._constraints]
-                csv_file.write(",".join(str(v) for v in row) + "\n")
-                csv_file.flush()
-
-            # Checkpoint
-            if checkpoint_path and p._n_evals % chk_interval == 0:
-                save_checkpoint(checkpoint_path, {
-                    "method": method,
-                    "n_evals": p._n_evals,
-                    "best_x": best["x"],
-                    "best_objective": best["obj"],
-                    "constraints_satisfied": best["constraints_ok"],
-                    "cache": p._cache,
-                    "options": options,
-                })
-
-            # Per-eval summary
-            if report_interval and p._n_evals % report_interval == 0:
-                _print_summary(p, best, t_start)
-
-            # User callback
-            if callback is not None:
-                snap = _build_snapshot(p, best, t_start)
-                if callback(snap) == "stop":
-                    raise _EarlyStop()
-
-            return obj
 
         # scipy_minimize uses dict constraints; differential_evolution and shgo
         # use NonlinearConstraint objects (scipy ≥ 1.7).
@@ -172,48 +199,100 @@ class ScipyDriver:
             ] if n_c > 0 else []
             dict_constraints = [{"type": "ineq", "fun": _neg_violations}] if n_c > 0 else []
 
-        try:
-            if method == "scipy_de":
-                # Resume from checkpoint if available
-                if checkpoint_path:
-                    ckpt = load_checkpoint(checkpoint_path)
-                    if ckpt is not None and isinstance(ckpt.get("cache"), dict):
-                        p._cache.update(ckpt["cache"])
+        with _ProgressBar(verbose, total=total_evals) as pbar:
+            def wrapped_obj(x):
+                obj = p.objective_function(x)
+                violations = p.constraint_functions(x)
+                constraints_ok = bool(np.all(violations <= 0))
+                elapsed = time.time() - t_start
 
-                de_opts = {k: v for k, v in options.items()}
-                res = differential_evolution(
-                    wrapped_obj,
-                    bounds=bounds,
-                    constraints=nonlinear_constraints,
-                    integrality=integrality,
-                    **de_opts,
-                )
+                # Track best feasible (or best infeasible if nothing feasible yet)
+                if constraints_ok and obj < best["obj"]:
+                    best["x"] = x.copy()
+                    best["obj"] = obj
+                    best["constraints_ok"] = True
+                elif best["x"] is None:
+                    best["x"] = x.copy()
+                    best["obj"] = obj
 
-            elif method == "scipy_minimize":
-                x0 = p._x0_scaled()
-                res = minimize(
-                    wrapped_obj,
-                    x0=x0,
-                    bounds=bounds,
-                    constraints=dict_constraints or None,
-                    **options,
-                )
+                pbar.update(obj, best["obj"], elapsed)
 
-            elif method == "scipy_shgo":
-                res = shgo(
-                    wrapped_obj,
-                    bounds=bounds,
-                    constraints=nonlinear_constraints,
-                    **options,
-                )
-            else:
-                raise ValueError(f"Unknown scipy method '{method}'.")
+                if verbose >= 2 and best["x"] is not None and p._n_evals % gen_size == 0:
+                    _print_dv_table(p, best, t_start)
 
-        except _EarlyStop:
-            pass
-        finally:
-            if csv_file:
-                csv_file.close()
+                if csv_file:
+                    ev = p._cache.get(tuple(np.round(x, 10)), {})
+                    cv = ev.get("constraint_values", {})
+                    row = [p._n_evals, obj] + [cv.get(c.path, "") for c in p._constraints]
+                    csv_file.write(",".join(str(v) for v in row) + "\n")
+                    csv_file.flush()
+
+                # Checkpoint
+                if checkpoint_path and p._n_evals % chk_interval == 0:
+                    save_checkpoint(checkpoint_path, {
+                        "method": method,
+                        "n_evals": p._n_evals,
+                        "best_x": best["x"],
+                        "best_objective": best["obj"],
+                        "constraints_satisfied": best["constraints_ok"],
+                        "cache": p._cache,
+                        "options": options,
+                    })
+
+                # Per-eval legacy summary (report_interval)
+                if report_interval and p._n_evals % report_interval == 0:
+                    _print_summary(p, best, t_start)
+
+                # User callback
+                if callback is not None:
+                    snap = _build_snapshot(p, best, t_start)
+                    if callback(snap) == "stop":
+                        raise _EarlyStop()
+
+                return obj
+
+            try:
+                if method == "scipy_de":
+                    # Resume from checkpoint if available
+                    if checkpoint_path:
+                        ckpt = load_checkpoint(checkpoint_path)
+                        if ckpt is not None and isinstance(ckpt.get("cache"), dict):
+                            p._cache.update(ckpt["cache"])
+
+                    de_opts = {k: v for k, v in options.items()}
+                    res = differential_evolution(
+                        wrapped_obj,
+                        bounds=bounds,
+                        constraints=nonlinear_constraints,
+                        integrality=integrality,
+                        **de_opts,
+                    )
+
+                elif method == "scipy_minimize":
+                    x0 = p._x0_scaled()
+                    res = minimize(
+                        wrapped_obj,
+                        x0=x0,
+                        bounds=bounds,
+                        constraints=dict_constraints or None,
+                        **options,
+                    )
+
+                elif method == "scipy_shgo":
+                    res = shgo(
+                        wrapped_obj,
+                        bounds=bounds,
+                        constraints=nonlinear_constraints,
+                        **options,
+                    )
+                else:
+                    raise ValueError(f"Unknown scipy method '{method}'.")
+
+            except _EarlyStop:
+                pass
+            finally:
+                if csv_file:
+                    csv_file.close()
 
         x_opt = best["x"] if best["x"] is not None else p._x0_scaled()
         return _build_optimization_result(p, x_opt, best["obj"], t_start)
@@ -393,7 +472,7 @@ class PymooDriver:
         report_interval: Optional[int],
         log_path: Optional[str],
         callback: Optional[Callable],
-        verbose: bool,
+        verbose: int,
         checkpoint_path: Optional[str],
         checkpoint_interval: Optional[int],
     ) -> OptimizationResult:
@@ -425,54 +504,57 @@ class PymooDriver:
 
         t_start = time.time()
         best = {"x": None, "obj": float("inf"), "constraints_ok": False}
-
         n_constr = len(p.constraint_functions(lo))
+        total_evals = n_gen * pop_size
 
-        class _PymooProblem(ElementwiseProblem):
-            def __init__(inner):
-                super().__init__(
-                    n_var=n_var,
-                    n_obj=1,
-                    n_ieq_constr=n_constr,
-                    xl=lo,
-                    xu=hi,
-                )
+        with _ProgressBar(verbose, total=total_evals) as pbar:
+            class _PymooProblem(ElementwiseProblem):
+                def __init__(inner):
+                    super().__init__(
+                        n_var=n_var,
+                        n_obj=1,
+                        n_ieq_constr=n_constr,
+                        xl=lo,
+                        xu=hi,
+                    )
 
-            def _evaluate(inner, x, out, *args, **kwargs):
-                obj = float(p.objective_function(x))
-                violations = p.constraint_functions(x)
-                constraints_ok = bool(np.all(violations <= 0))
+                def _evaluate(inner, x, out, *args, **kwargs):
+                    obj = float(p.objective_function(x))
+                    violations = p.constraint_functions(x)
+                    constraints_ok = bool(np.all(violations <= 0))
+                    elapsed = time.time() - t_start
 
-                if constraints_ok and obj < best["obj"]:
-                    best["x"] = x.copy()
-                    best["obj"] = obj
-                    best["constraints_ok"] = True
-                elif best["x"] is None:
-                    best["x"] = x.copy()
-                    best["obj"] = obj
+                    if constraints_ok and obj < best["obj"]:
+                        best["x"] = x.copy()
+                        best["obj"] = obj
+                        best["constraints_ok"] = True
+                    elif best["x"] is None:
+                        best["x"] = x.copy()
+                        best["obj"] = obj
 
-                if verbose:
-                    _LOG.info("[%5d] obj=%.4g  best=%.4g  t=%.1fs",
-                              p._n_evals, obj, best["obj"], time.time() - t_start)
+                    pbar.update(obj, best["obj"], elapsed)
 
-                out["F"] = [obj]
-                if n_constr > 0:
-                    out["G"] = violations.tolist()
+                    # verbose=2: print DV table at end of each generation
+                    if verbose >= 2 and best["x"] is not None and p._n_evals % pop_size == 0:
+                        _print_dv_table(p, best, t_start)
 
-        pymoo_problem = _PymooProblem()
+                    out["F"] = [obj]
+                    if n_constr > 0:
+                        out["G"] = violations.tolist()
 
-        algorithm = _make_pymoo_algorithm(method, pop_size, **opts)
+            pymoo_problem = _PymooProblem()
+            algorithm = _make_pymoo_algorithm(method, pop_size, **opts)
 
-        from pymoo.termination import get_termination
-        termination = get_termination("n_gen", n_gen)
+            from pymoo.termination import get_termination
+            termination = get_termination("n_gen", n_gen)
 
-        pymoo_minimize(
-            pymoo_problem,
-            algorithm,
-            termination,
-            seed=seed,
-            verbose=False,
-        )
+            pymoo_minimize(
+                pymoo_problem,
+                algorithm,
+                termination,
+                seed=seed,
+                verbose=False,
+            )
 
         x_opt = best["x"] if best["x"] is not None else p._x0_scaled()
         return _build_optimization_result(p, x_opt, best["obj"], t_start)
