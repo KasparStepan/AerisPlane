@@ -10,7 +10,7 @@ from aerisplane.core.fuselage import Fuselage, FuselageXSec
 
 
 # ---------------------------------------------------------------------------
-# FuselageXSec geometry
+# FuselageXSec geometry (original backward-compat tests)
 # ---------------------------------------------------------------------------
 
 class TestFuselageXSecArea:
@@ -19,7 +19,7 @@ class TestFuselageXSecArea:
     def test_circle_area(self):
         xsec = FuselageXSec(x=0.0, radius=0.06)
         expected_area = np.pi * 0.06**2
-        assert xsec.area() == pytest.approx(expected_area)
+        assert xsec.area() == pytest.approx(expected_area, rel=1e-2)
 
     def test_zero_radius(self):
         xsec = FuselageXSec(x=0.0, radius=0.0)
@@ -32,11 +32,100 @@ class TestFuselageXSecPerimeter:
     def test_circle_perimeter(self):
         xsec = FuselageXSec(x=0.0, radius=0.06)
         expected_perimeter = 2.0 * np.pi * 0.06
-        assert xsec.perimeter() == pytest.approx(expected_perimeter)
+        assert xsec.perimeter() == pytest.approx(expected_perimeter, rel=1e-2)
 
     def test_zero_radius(self):
         xsec = FuselageXSec(x=0.0, radius=0.0)
         assert xsec.perimeter() == pytest.approx(0.0)
+
+
+# ---------------------------------------------------------------------------
+# FuselageXSec superellipse (new tests)
+# ---------------------------------------------------------------------------
+
+class TestFuselageXSecSuperellipseArea:
+    def test_circle_area(self):
+        # shape=2 + equal width/height → circle area = π r²
+        xsec = FuselageXSec(x=0.0, width=0.2, height=0.2, shape=2.0)
+        assert xsec.area() == pytest.approx(np.pi * 0.1 ** 2, rel=1e-2)
+
+    def test_diamond_area(self):
+        # shape=1 → diamond, area = width * height / 2
+        xsec = FuselageXSec(x=0.0, width=0.2, height=0.2, shape=1.0)
+        assert xsec.area() == pytest.approx(0.5 * 0.2 * 0.2, rel=1e-2)
+
+    def test_square_area(self):
+        # shape=1000 → nearly square, area ≈ width * height
+        xsec = FuselageXSec(x=0.0, width=0.2, height=0.2, shape=1000.0)
+        assert xsec.area() == pytest.approx(0.2 * 0.2, rel=1e-2)
+
+    def test_backward_compat_radius(self):
+        # Old API: FuselageXSec(x, radius=r) must still work
+        xsec = FuselageXSec(x=0.0, radius=0.06)
+        assert xsec.width == pytest.approx(0.12)
+        assert xsec.height == pytest.approx(0.12)
+        assert xsec.area() == pytest.approx(np.pi * 0.06 ** 2, rel=1e-2)
+
+
+class TestFuselageXSecSuperellipsePerimeter:
+    def test_circle_perimeter(self):
+        xsec = FuselageXSec(x=0.0, radius=0.1)
+        assert xsec.perimeter() == pytest.approx(2 * np.pi * 0.1, rel=1e-2)
+
+    def test_zero_width(self):
+        xsec = FuselageXSec(x=0.0, width=0.0, height=0.2, shape=2.0)
+        assert xsec.perimeter() == pytest.approx(0.4)
+
+    def test_zero_height(self):
+        xsec = FuselageXSec(x=0.0, width=0.2, height=0.0, shape=2.0)
+        assert xsec.perimeter() == pytest.approx(0.4)
+
+
+class TestFuselageXSecEquivalentRadius:
+    def test_circle_area_preserve(self):
+        xsec = FuselageXSec(x=0.0, radius=0.05)
+        assert xsec.equivalent_radius(preserve="area") == pytest.approx(0.05, rel=1e-3)
+
+    def test_circle_perimeter_preserve(self):
+        xsec = FuselageXSec(x=0.0, radius=0.05)
+        assert xsec.equivalent_radius(preserve="perimeter") == pytest.approx(0.05, rel=1e-2)
+
+    def test_bad_preserve_raises(self):
+        xsec = FuselageXSec(x=0.0, radius=0.05)
+        with pytest.raises(ValueError):
+            xsec.equivalent_radius(preserve="volume")
+
+
+class TestFuselageXSecGet3DCoordinates:
+    def test_output_shape(self):
+        xsec = FuselageXSec(x=0.0, radius=0.1)
+        theta = np.linspace(0, 2 * np.pi, 37)[:-1]  # 36 points
+        center = np.array([0.5, 0.0, 0.0])
+        pts = xsec.get_3D_coordinates(theta, center)
+        assert pts.shape == (36, 3)
+
+    def test_x_is_constant(self):
+        xsec = FuselageXSec(x=0.0, radius=0.1)
+        theta = np.linspace(0, 2 * np.pi, 37)[:-1]
+        center = np.array([1.2, 0.0, 0.0])
+        pts = xsec.get_3D_coordinates(theta, center)
+        assert np.all(pts[:, 0] == pytest.approx(1.2))
+
+    def test_circle_all_points_on_radius(self):
+        xsec = FuselageXSec(x=0.0, radius=0.1)
+        theta = np.linspace(0, 2 * np.pi, 361)[:-1]
+        center = np.array([0.0, 0.0, 0.0])
+        pts = xsec.get_3D_coordinates(theta, center)
+        r = np.sqrt(pts[:, 1] ** 2 + pts[:, 2] ** 2)
+        assert np.allclose(r, 0.1, atol=1e-3)
+
+
+class TestFuselageXSecTranslate:
+    def test_translate_shifts_x(self):
+        xsec = FuselageXSec(x=0.5, radius=0.1)
+        moved = xsec.translate(0.3)
+        assert moved.x == pytest.approx(0.8)
+        assert xsec.x == pytest.approx(0.5)  # original unchanged
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +171,7 @@ class TestFuselageWettedArea:
         ])
         x_stations = np.array([0.0, 0.15, 0.70, 0.95])
         expected_wetted = float(_trapz(perimeters, x_stations))
-        assert simple_fuselage.wetted_area() == pytest.approx(expected_wetted, rel=1e-10)
+        assert simple_fuselage.wetted_area() == pytest.approx(expected_wetted, rel=5e-3)
 
 
 class TestFinenessRatio:

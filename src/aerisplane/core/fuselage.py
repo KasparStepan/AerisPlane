@@ -20,59 +20,128 @@ class FuselageXSec:
     Parameters
     ----------
     x : float
-        Axial position from nose [m].
-    radius : float
-        Cross-section radius [m] (for circular sections).
-    shape : str
-        Cross-section shape: "circle", "ellipse", "rectangle".
-    width : float or None
-        Width [m] for ellipse/rectangle shapes.
-    height : float or None
-        Height [m] for ellipse/rectangle shapes.
+        Axial position from nose [m]. 0 = nose tip.
+    width : float
+        Cross-section width in the y-direction [m].
+    height : float
+        Cross-section height in the z-direction [m].
+    shape : float
+        Superellipse exponent. Controls cross-section shape:
+            shape=1.0  → diamond (45° rotated square)
+            shape=2.0  → circle / ellipse  (default)
+            shape=5.0  → rounded rectangle
+            shape→∞   → rectangle
+        Use 2.0 for aerodynamic bodies, 4–8 for fuselages with flat sides.
+    radius : float or None
+        Backward-compat convenience: sets width = height = 2 * radius, shape = 2.0.
+        Use width/height directly for non-circular cross-sections.
     """
 
     x: float
+    width: float = 0.0
+    height: float = 0.0
+    shape: float = 2.0
     radius: Optional[float] = None
-    shape: str = "circle"
-    width: Optional[float] = None
-    height: Optional[float] = None
 
-    def __post_init__(self):
-        if self.shape == "circle" and self.radius is None:
-            raise ValueError(
-                "FuselageXSec with shape='circle' requires 'radius'."
-            )
-        if self.shape in ("ellipse", "rectangle") and (self.width is None or self.height is None):
-            raise ValueError(
-                f"FuselageXSec with shape='{self.shape}' requires 'width' and 'height'."
-            )
+    def __post_init__(self) -> None:
+        # Backward compat: old string shape values
+        if isinstance(self.shape, str):
+            _map = {"circle": 2.0, "ellipse": 2.0, "rectangle": 10.0}
+            self.shape = float(_map.get(self.shape.lower(), 2.0))
 
-    def equivalent_radius(self) -> float:
-        """Radius of a circle with the same cross-sectional area [m]."""
-        return float(np.sqrt(self.area() / np.pi))
+        # Backward compat: radius convenience param
+        if self.radius is not None:
+            self.width = 2.0 * self.radius
+            self.height = 2.0 * self.radius
 
     def area(self) -> float:
-        """Cross-sectional area [m^2]."""
-        if self.shape == "circle":
-            return np.pi * self.radius**2
-        elif self.shape == "ellipse" and self.width is not None and self.height is not None:
-            return np.pi * (self.width / 2.0) * (self.height / 2.0)
-        elif self.shape == "rectangle" and self.width is not None and self.height is not None:
-            return self.width * self.height
-        return np.pi * (self.radius or 0.0)**2
+        """Cross-sectional area [m^2].
+
+        Uses closed-form superellipse approximation (error < 0.6% for shape >= 1):
+
+            area = width * height / (shape^-1.8718 + 1)
+
+        Exact for shape=1 (diamond) and shape=2 (circle/ellipse).
+        """
+        return self.width * self.height / (self.shape ** -1.8717618013591173 + 1.0)
 
     def perimeter(self) -> float:
-        """Cross-section perimeter [m]."""
-        if self.shape == "circle":
-            return 2.0 * np.pi * self.radius
-        elif self.shape == "ellipse" and self.width is not None and self.height is not None:
-            a = self.width / 2.0
-            b = self.height / 2.0
-            # Ramanujan approximation
-            return float(np.pi * (3.0 * (a + b) - np.sqrt((3.0 * a + b) * (a + 3.0 * b))))
-        elif self.shape == "rectangle" and self.width is not None and self.height is not None:
-            return 2.0 * (self.width + self.height)
-        return 2.0 * np.pi * (self.radius or 0.0)
+        """Cross-section perimeter [m].
+
+        Closed-form approximation derived by symbolic regression (error < 0.2%).
+        """
+        if self.width == 0.0:
+            return 2.0 * self.height
+        if self.height == 0.0:
+            return 2.0 * self.width
+
+        s = self.shape
+        eps = 1e-16
+        h = max(
+            (self.width + eps) / (self.height + eps),
+            (self.height + eps) / (self.width + eps),
+        )
+        nondim_qp = h + (
+            ((s - 0.88487077) * h + 0.2588574 / h) ** np.exp(s / -0.90069205)
+            + h + 0.09919785
+        ) ** (-1.4812293 / s)
+        return 2.0 * nondim_qp * min(self.width, self.height)
+
+    def equivalent_radius(self, preserve: str = "area") -> float:
+        """Equivalent circular radius [m] that preserves area or perimeter.
+
+        Parameters
+        ----------
+        preserve : str
+            "area"      : radius = sqrt(area / pi)
+            "perimeter" : radius = perimeter / (2 * pi)
+        """
+        if preserve == "area":
+            return float(np.sqrt(self.area() / np.pi + 1e-16))
+        elif preserve == "perimeter":
+            return self.perimeter() / (2.0 * np.pi)
+        else:
+            raise ValueError(
+                f"preserve must be 'area' or 'perimeter', got '{preserve}'"
+            )
+
+    def get_3D_coordinates(
+        self,
+        theta: np.ndarray,
+        xyz_center: np.ndarray,
+    ) -> np.ndarray:
+        """Sample 3-D points around the cross-section perimeter.
+
+        Parameters
+        ----------
+        theta : array of float
+            Angular positions [rad]. theta=0 → +y (right), theta=pi/2 → +z (up).
+        xyz_center : (3,) array
+            Center of this cross-section in aircraft frame [m].
+
+        Returns
+        -------
+        points : (N, 3) array
+        """
+        ct = np.cos(theta)
+        st = np.sin(theta)
+        # Superellipse parametric form
+        y = (self.width / 2.0) * np.abs(ct) ** (2.0 / self.shape) * np.sign(ct + 1e-32)
+        z = (self.height / 2.0) * np.abs(st) ** (2.0 / self.shape) * np.sign(st + 1e-32)
+        y = np.where(np.abs(ct) < 1e-10, 0.0, y)
+        z = np.where(np.abs(st) < 1e-10, 0.0, z)
+        return np.column_stack([
+            np.full_like(theta, xyz_center[0]),
+            xyz_center[1] + y,
+            xyz_center[2] + z,
+        ])
+
+    def translate(self, dx: float) -> "FuselageXSec":
+        """Return a copy of this cross-section shifted by dx along the x-axis."""
+        import copy
+        new = copy.copy(self)
+        new.x = self.x + dx
+        return new
 
 
 @dataclass
