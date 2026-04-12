@@ -206,6 +206,7 @@ class MDOProblem:
         disciplines: list = None,
         aero_result=None,
         choice_variables: list = None,
+        xyz_ref: list = None,
     ):
         self._baseline = copy.deepcopy(aircraft)
 
@@ -228,6 +229,7 @@ class MDOProblem:
         self.load_factor = load_factor
         self._throttle = throttle
         self._aero_result = aero_result
+        self._xyz_ref = list(xyz_ref) if xyz_ref is not None else None
 
         self._pool_entries = _build_pool_entries(self._baseline, self._pools)
         self._choice_vars = list(choice_variables or [])
@@ -248,8 +250,10 @@ class MDOProblem:
         )
 
         if disciplines is not None:
-            # Explicit discipline list: always include weights; add aero unless precomputed
-            needed = set(disciplines) | {"weights"}
+            needed = set(disciplines)
+            # Force weights only when we need CG for xyz_ref (i.e. no fixed ref given)
+            if self._xyz_ref is None:
+                needed.add("weights")
             if aero_result is None:
                 needed.add("aero")
             self._disciplines = [d for d in DISCIPLINE_ORDER if d in needed]
@@ -398,12 +402,23 @@ class MDOProblem:
             offset = self._n_continuous + self._n_pool
             _unpack_choices(ac, self._choice_vars, x_scaled, offset)
 
-        # Set CG reference on aircraft before discipline chain
-        # We need weights first to get CG, so run it separately if needed
+        # Set moment reference point and compute weights if needed
         import aerisplane.weights as weights_mod
-        weights_result = weights_mod.analyze(ac)
-        cg = weights_result.cg
-        ac.xyz_ref = [float(cg[0]), float(cg[1]), float(cg[2])]
+        if self._xyz_ref is not None:
+            # Fixed reference supplied — use it as-is, skip the weights run
+            ac.xyz_ref = list(self._xyz_ref)
+            if "weights" in self._disciplines:
+                weights_result = weights_mod.analyze(ac)
+                initial_results = {"weights": weights_result}
+            else:
+                weights_result = None
+                initial_results = {}
+        else:
+            # Derive reference from CG (default behaviour)
+            weights_result = weights_mod.analyze(ac)
+            cg = weights_result.cg
+            ac.xyz_ref = [float(cg[0]), float(cg[1]), float(cg[2])]
+            initial_results = {"weights": weights_result}
 
         if self._conditions is not None:
             # Multi-condition: run the chain for each named condition
@@ -414,7 +429,7 @@ class MDOProblem:
                     aircraft=ac,
                     condition=cond,
                     aero_result=self._aero_result,
-                    initial_results={"weights": weights_result},
+                    initial_results=initial_results,
                     aero_method=self.aero_method,
                     load_factor=self.load_factor,
                     safety_factor=1.5,
@@ -441,7 +456,7 @@ class MDOProblem:
                 aircraft=ac,
                 condition=cond,
                 aero_result=self._aero_result,
-                initial_results={"weights": weights_result},
+                initial_results=initial_results,
                 aero_method=self.aero_method,
                 load_factor=self.load_factor,
                 safety_factor=1.5,

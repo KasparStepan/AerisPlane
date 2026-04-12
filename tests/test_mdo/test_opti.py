@@ -313,3 +313,79 @@ def test_opti_integer_variable_creates_integer_desvar(simple_aircraft):
     assert len(int_dvars) == 1
     assert int_dvars[0].path == "wings[0].xsecs[0].chord"
     assert problem._integrality[0] is np.bool_(True)
+
+
+# ── xyz_ref tests ──────────────────────────────────────────────────────────────
+
+def test_xyz_ref_stored_on_problem(simple_aircraft):
+    """xyz_ref is stored on MDOProblem._xyz_ref."""
+    opti, aircraft = simple_aircraft
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    ref = [0.15, 0.0, 0.0]
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+        xyz_ref=ref,
+    )
+    assert problem._xyz_ref == pytest.approx(ref)
+
+
+def test_xyz_ref_none_by_default(simple_aircraft):
+    """When xyz_ref is not supplied, _xyz_ref is None."""
+    opti, aircraft = simple_aircraft
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+    assert problem._xyz_ref is None
+
+
+def test_xyz_ref_skips_weights_discipline(simple_aircraft):
+    """With xyz_ref set, disciplines=['aero'] must NOT add 'weights'."""
+    opti, aircraft = simple_aircraft
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+        xyz_ref=[0.15, 0.0, 0.0],
+    )
+    assert "weights" not in problem._disciplines
+    assert "aero" in problem._disciplines
+
+
+def test_no_xyz_ref_forces_weights_discipline(simple_aircraft):
+    """Without xyz_ref, disciplines=['aero'] always includes 'weights'."""
+    opti, aircraft = simple_aircraft
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+    assert "weights" in problem._disciplines
+
+
+def test_xyz_ref_used_on_evaluate(simple_aircraft):
+    """When xyz_ref is supplied, aircraft.xyz_ref equals that value after evaluate."""
+    opti, aircraft = simple_aircraft
+    ref = [0.15, 0.0, 0.0]
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+        xyz_ref=ref,
+        alpha=4.0,  # fixed alpha avoids trim solver which needs weight_result
+    )
+    # The aircraft instance inside the evaluation must have the fixed ref
+    ac = problem.evaluate(problem._x0_scaled())["aircraft"]
+    assert list(ac.xyz_ref) == pytest.approx(ref)

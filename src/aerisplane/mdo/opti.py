@@ -250,6 +250,7 @@ class Opti:
         throttle: float = 1.0,
         aero_result=None,
         choice_variables: list = None,
+        xyz_ref: list = None,
     ):
         """Build an MDOProblem from the aircraft, auto-discovering design variables.
 
@@ -267,11 +268,15 @@ class Opti:
         disciplines : list of str
             Disciplines to run, e.g. ``["aero"]`` or ``["aero", "stability"]``.
             Pass ``None`` to auto-infer from objective/constraint paths.
-            Note: explicit discipline control is added in a future task.
         objective : Objective or list of Objective
         constraints : list of Constraint, optional
         aero_result : AeroResult or None
             Pre-computed aero result. Reserved for future use.
+        xyz_ref : list of float or None
+            Fixed [x, y, z] moment reference point in metres. When supplied,
+            this value is used as-is on every evaluation and the weights
+            discipline is not forced into the run. When None (default), the
+            CG from the weights discipline is used and weights is always run.
         """
         from aerisplane.mdo.problem import ChoiceVar, DesignVar, MDOProblem
         from aerisplane.mdo._paths import _set_dv_value
@@ -313,5 +318,7 @@ class Opti:
             aero_method=aero_method,
             load_factor=load_factor,
             throttle=throttle,
+            disciplines=disciplines,
             choice_variables=cv_list,
+            xyz_ref=xyz_ref,
         )
