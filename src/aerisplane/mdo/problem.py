@@ -176,6 +176,8 @@ class MDOProblem:
         throttle: float = 1.0,
         extra_disciplines: tuple = (),
         skip_disciplines: tuple = (),
+        disciplines: list = None,
+        aero_result=None,
     ):
         self._baseline = copy.deepcopy(aircraft)
         self._condition = condition
@@ -188,6 +190,7 @@ class MDOProblem:
         self.aero_method = aero_method
         self.load_factor = load_factor
         self._throttle = throttle
+        self._aero_result = aero_result
 
         self._pool_entries = _build_pool_entries(self._baseline, self._pools)
         self._n_continuous = len(self._dvars)
@@ -198,10 +201,17 @@ class MDOProblem:
             [dv.scale for dv in self._dvars] + [1.0] * len(self._pool_entries)
         )
 
-        self._disciplines = _infer_disciplines(
-            self._constraints, self._objective, self._mission,
-            extra_disciplines, skip_disciplines,
-        )
+        if disciplines is not None:
+            # Explicit discipline list: always include weights; add aero unless precomputed
+            needed = set(disciplines) | {"weights"}
+            if aero_result is None:
+                needed.add("aero")
+            self._disciplines = [d for d in DISCIPLINE_ORDER if d in needed]
+        else:
+            self._disciplines = _infer_disciplines(
+                self._constraints, self._objective, self._mission,
+                extra_disciplines, skip_disciplines,
+            )
 
         self._cache: dict = {}
         self._history: list = []
@@ -272,12 +282,7 @@ class MDOProblem:
         Returns dict with keys: objective, constraint_values, results,
         aircraft, condition, elapsed.
         """
-        import aerisplane.aero as aero_mod
-        import aerisplane.weights as weights_mod
-        import aerisplane.stability as stab_mod
-        import aerisplane.control as ctrl_mod
-        import aerisplane.mission as mission_mod
-        import aerisplane.structures as struct_mod
+        from aerisplane.mdo.registry import default_registry
 
         cache_key = tuple(np.round(x_scaled, 10))
         if cache_key in self._cache:
@@ -287,16 +292,15 @@ class MDOProblem:
         self._n_evals += 1
 
         ac = _unpack(self._baseline, self._dvars, self._pool_entries, x_scaled)
-        results: dict = {}
 
-        # 1. Weights (always)
-        results["weights"] = weights_mod.analyze(ac)
-
-        # Set moment reference to CG for all subsequent aero/stability calls
-        cg = results["weights"].cg
+        # Set CG reference on aircraft before discipline chain
+        # We need weights first to get CG, so run it separately if needed
+        import aerisplane.weights as weights_mod
+        weights_result = weights_mod.analyze(ac)
+        cg = weights_result.cg
         ac.xyz_ref = [float(cg[0]), float(cg[1]), float(cg[2])]
 
-        # 2. Flight condition
+        # Determine flight condition (trim or fixed alpha)
         from aerisplane.core.flight_condition import FlightCondition
         if self._alpha is not None:
             cond = FlightCondition(
@@ -305,42 +309,23 @@ class MDOProblem:
                 alpha=self._alpha,
                 beta=getattr(self._condition, "beta", 0.0),
             )
+        elif self._aero_result is None:
+            cond = self._trim_condition(ac, weights_result)
         else:
-            cond = self._trim_condition(ac, results["weights"])
+            cond = self._condition
 
-        # 3. Aero (always)
-        results["aero"] = aero_mod.analyze(ac, cond, method=self.aero_method)
-
-        # 4. Structures
-        if "structures" in self._disciplines:
-            results["structures"] = struct_mod.analyze(
-                ac, results["aero"], results["weights"],
-                n_limit=self.load_factor, safety_factor=1.5,
-            )
-
-        # 5. Stability
-        if "stability" in self._disciplines:
-            results["stability"] = stab_mod.analyze(
-                ac, cond, results["weights"], aero_method=self.aero_method,
-            )
-
-        # 6. Control
-        if "control" in self._disciplines:
-            results["control"] = ctrl_mod.analyze(
-                ac, cond, results["weights"], results["stability"],
-                aero_method=self.aero_method,
-            )
-
-        # 7. Propulsion
-        if "propulsion" in self._disciplines:
-            from aerisplane.propulsion import analyze as _propulsion_analyze
-            results["propulsion"] = _propulsion_analyze(ac, cond, throttle=self._throttle)
-
-        # 8. Mission
-        if "mission" in self._disciplines and self._mission is not None:
-            results["mission"] = mission_mod.analyze(
-                ac, results["weights"], self._mission, aero_method=self.aero_method,
-            )
+        results = default_registry.run_chain(
+            disciplines=self._disciplines,
+            aircraft=ac,
+            condition=cond,
+            aero_result=self._aero_result,
+            initial_results={"weights": weights_result},
+            aero_method=self.aero_method,
+            load_factor=self.load_factor,
+            safety_factor=1.5,
+            throttle=self._throttle,
+            mission=self._mission,
+        )
 
         # Extract objective
         objectives = self._objective if isinstance(self._objective, list) else [self._objective]

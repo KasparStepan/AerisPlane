@@ -106,6 +106,7 @@ class DisciplineRegistry:
         aircraft,
         condition,
         aero_result=None,
+        initial_results: dict = None,
         **kwargs,
     ) -> dict:
         """Run the requested disciplines in order and return the results dict.
@@ -119,16 +120,21 @@ class DisciplineRegistry:
         aero_result : AeroResult or None
             Pre-computed aero result. When provided, ``"aero"`` is skipped
             and this result is injected into the results dict directly.
+        initial_results : dict or None
+            Pre-computed results to inject before running the chain.
+            Disciplines whose names are keys in this dict are skipped.
         **kwargs
             Forwarded to every runner (e.g. ``aero_method``, ``load_factor``).
         """
-        results: dict[str, Any] = {}
+        results: dict[str, Any] = dict(initial_results or {})
 
         if aero_result is not None:
             results["aero"] = aero_result
 
         for name in self.ordered_names():
             if name not in disciplines:
+                continue
+            if name in results:   # already computed (pre-injected)
                 continue
             if name == "aero" and aero_result is not None:
                 continue
