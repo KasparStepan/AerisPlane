@@ -69,3 +69,30 @@ class Aircraft:
         """Reference chord: MAC of the main (largest) wing [m]."""
         mw = self.main_wing()
         return mw.mean_aerodynamic_chord() if mw else 0.0
+
+    def aerodynamic_center(self) -> "np.ndarray":
+        """Approximate aerodynamic center of the full aircraft [x, y, z] in metres.
+
+        Computed as the planform-area-weighted average of each wing's aerodynamic center.
+        Returns the origin [0, 0, 0] if no wings are present.
+        """
+        import numpy as np
+
+        if not self.wings:
+            return np.array([0.0, 0.0, 0.0])
+
+        areas = [w.area() for w in self.wings]
+        acs = [w.aerodynamic_center() for w in self.wings]
+        total_area = sum(areas)
+
+        if total_area == 0.0:
+            return np.array([0.0, 0.0, 0.0])
+
+        return sum(ac * a for ac, a in zip(acs, areas)) / total_area
+
+    def is_entirely_symmetric(self) -> bool:
+        """True if every wing on this aircraft is geometrically symmetric.
+
+        Returns True for an aircraft with no wings.
+        """
+        return all(wing.is_entirely_symmetric() for wing in self.wings)
