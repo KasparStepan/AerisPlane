@@ -222,13 +222,37 @@ class Wing:
 
         return np.array([x_mac, y_mac, z_mac])
 
-    def aerodynamic_center(self) -> np.ndarray:
-        """Approximate aerodynamic center at quarter-chord of MAC ``[x, y, z]`` in metres."""
-        mac_le = self.mean_aerodynamic_chord_le()
-        mac = self.mean_aerodynamic_chord()
-        # AC is at 25% MAC from the LE
-        ac = mac_le.copy()
-        ac[0] += 0.25 * mac
+    def aerodynamic_center(self, chord_fraction: float = 0.25) -> np.ndarray:
+        """Aerodynamic center [x, y, z] in aircraft frame [m].
+
+        Uses exact per-section MAC formula (accounts for taper ratio per section),
+        then area-weights the result across all sections.
+
+        Parameters
+        ----------
+        chord_fraction : float
+            Position along the MAC as a fraction of chord length (default 0.25).
+        """
+        section_areas = self.sectional_areas()
+        section_acs = []
+
+        for xa, xb in zip(self.xsecs[:-1], self.xsecs[1:]):
+            lam = xb.chord / xa.chord if xa.chord > 0.0 else 1.0
+            # Exact MAC LE position for a trapezoidal section
+            mac_le = xa.xyz_le + (xb.xyz_le - xa.xyz_le) * (1.0 + 2.0 * lam) / (3.0 * (1.0 + lam))
+            # Exact MAC chord length for a trapezoidal section
+            mac_chord = (2.0 / 3.0) * xa.chord * (1.0 + lam + lam ** 2) / (1.0 + lam)
+            section_acs.append(mac_le + np.array([chord_fraction * mac_chord, 0.0, 0.0]))
+
+        total_area = sum(section_areas)
+        if total_area == 0.0:
+            return np.array([0.0, 0.0, 0.0])
+
+        ac = sum(sa * a for sa, a in zip(section_acs, section_areas)) / total_area
+
+        if self.symmetric:
+            ac[1] = 0.0  # AC lies on the symmetry plane for a symmetric wing
+
         return ac
 
     def taper_ratio(self) -> float:
@@ -645,3 +669,71 @@ class Wing:
                     ])
 
         return points, np.array(faces, dtype=int)
+
+    def mesh_body(
+        self,
+        chordwise_resolution: int = 36,
+        mesh_symmetric: bool = True,
+    ) -> "tuple[np.ndarray, np.ndarray]":
+        """Full 3-D outer-mold-line surface mesh (upper and lower surfaces).
+
+        Uses airfoil coordinates mapped through the local cross-section frame.
+
+        Parameters
+        ----------
+        chordwise_resolution : int
+            Number of points per side of the airfoil profile (more = smoother).
+        mesh_symmetric : bool
+            If True and the wing is symmetric, includes both right and left sides.
+
+        Returns
+        -------
+        points : (N, 3) float array
+        faces : (M, 4) int array — quad faces
+        """
+        from aerisplane.utils.spacing import cosspace
+
+        n = chordwise_resolution + 1
+        all_profiles = []
+        for i, xsec in enumerate(self.xsecs):
+            af = xsec.airfoil
+            if af is not None and af.coordinates is not None:
+                repaneled = af.repanel(n_points_per_side=n)
+                coords = repaneled.coordinates  # Selig: upper TE→LE, lower LE→TE
+            else:
+                # Flat plate fallback
+                x_vals = cosspace(1.0, 0.0, n)
+                coords = np.column_stack([
+                    np.concatenate([x_vals, x_vals[1:][::-1]]),
+                    np.zeros(2 * n - 1),
+                ])
+
+            xg, _, zg = self._compute_frame_of_WingXSec(i)
+            le = xsec.xyz_le
+            c = xsec.chord
+
+            profile = le + coords[:, 0:1] * c * xg + coords[:, 1:2] * c * zg
+            all_profiles.append(profile)
+
+        n_profile = len(all_profiles[0])
+        n_xsecs = len(self.xsecs)
+        points = np.concatenate(all_profiles, axis=0)
+
+        faces = []
+        for i in range(n_xsecs - 1):
+            for j in range(n_profile - 1):
+                i0 = i * n_profile + j
+                i1 = i * n_profile + j + 1
+                i2 = (i + 1) * n_profile + j + 1
+                i3 = (i + 1) * n_profile + j
+                faces.append([i0, i1, i2, i3])
+        faces = np.array(faces, dtype=int)
+
+        if mesh_symmetric and self.symmetric:
+            flipped = points * np.array([[1.0, -1.0, 1.0]])
+            n_orig = len(points)
+            points = np.concatenate([points, flipped], axis=0)
+            flipped_faces = (faces + n_orig)[:, [0, 3, 2, 1]]
+            faces = np.concatenate([faces, flipped_faces], axis=0)
+
+        return points, faces

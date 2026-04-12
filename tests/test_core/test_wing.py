@@ -142,16 +142,18 @@ class TestMACLePosition:
 # 8. Aerodynamic center
 # ---------------------------------------------------------------------------
 class TestAerodynamicCenter:
-    """AC should be MAC_LE + [0.25 * MAC, 0, 0]."""
+    """AC should be at 25% MAC chord from root LE."""
 
-    def test_ac_equals_mac_le_plus_quarter_mac(self, rectangular_wing):
-        mac_le = rectangular_wing.mean_aerodynamic_chord_le()
+    def test_ac_x_at_quarter_mac(self, rectangular_wing):
+        # For a rectangular wing (no sweep), AC.x = root_LE.x + 0.25 * MAC
         mac = rectangular_wing.mean_aerodynamic_chord()
         ac = rectangular_wing.aerodynamic_center()
+        assert ac[0] == pytest.approx(0.25 * mac, rel=1e-3)
 
-        expected = mac_le + np.array([0.25 * mac, 0.0, 0.0])
-
-        np.testing.assert_allclose(ac, expected, rtol=1e-3)
+    def test_symmetric_wing_ac_y_is_zero(self, rectangular_wing):
+        # For a symmetric wing the AC lies on the xz plane
+        ac = rectangular_wing.aerodynamic_center()
+        assert ac[1] == pytest.approx(0.0, abs=1e-9)
 
 
 # ---------------------------------------------------------------------------
@@ -360,3 +362,45 @@ class TestWingXSecTranslate:
         moved = xsec.translate(np.array([0.5, 0.1, -0.1]))
         assert moved.xyz_le == pytest.approx([0.5, 0.1, -0.1])
         assert xsec.xyz_le == pytest.approx([0.0, 0.0, 0.0])
+
+
+# ---------------------------------------------------------------------------
+# Task 6: exact aerodynamic center + mesh_body
+# ---------------------------------------------------------------------------
+
+class TestWingAerodynamicCenterExact:
+    def test_rectangular_wing_ac_at_quarter_chord(self, rectangular_wing):
+        # For rectangular (λ=1), MAC LE = root LE, so AC.x = root_LE.x + 0.25*chord
+        ac = rectangular_wing.aerodynamic_center()
+        assert ac[0] == pytest.approx(0.0 + 0.25 * 0.2, rel=1e-3)
+
+    def test_symmetric_wing_ac_y_is_zero(self, rectangular_wing):
+        ac = rectangular_wing.aerodynamic_center()
+        assert ac[1] == pytest.approx(0.0, abs=1e-9)
+
+    def test_ac_x_reasonable(self, simple_wing):
+        ac = simple_wing.aerodynamic_center()
+        # AC must be between root LE x (0.0) and root LE x + root chord (0.3)
+        assert 0.0 <= ac[0] <= 0.3
+
+
+class TestWingMeshBody:
+    def test_mesh_body_returns_correct_type(self, rectangular_wing):
+        pts, faces = rectangular_wing.mesh_body(chordwise_resolution=4)
+        assert isinstance(pts, np.ndarray)
+        assert isinstance(faces, np.ndarray)
+        assert pts.ndim == 2 and pts.shape[1] == 3
+        assert faces.ndim == 2 and faces.shape[1] == 4
+
+    def test_mesh_body_symmetric_doubles_faces(self):
+        af = ap.Airfoil.from_naca("0012")
+        wing = Wing(
+            xsecs=[
+                WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af),
+                WingXSec(xyz_le=[0, 0.5, 0], chord=0.3, airfoil=af),
+            ],
+            symmetric=True,
+        )
+        pts_sym, faces_sym = wing.mesh_body(chordwise_resolution=4, mesh_symmetric=True)
+        pts_half, faces_half = wing.mesh_body(chordwise_resolution=4, mesh_symmetric=False)
+        assert len(faces_sym) == 2 * len(faces_half)
