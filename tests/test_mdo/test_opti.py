@@ -71,3 +71,108 @@ def test_discover_vars_float_field():
     found, _ = _discover_vars(root)
     assert "mass" in found
     assert found["mass"]._lower == pytest.approx(0.5)
+
+
+import aerisplane as ap
+from aerisplane.mdo.opti import Opti
+from aerisplane.mdo.problem import MDOProblem, Objective, Constraint
+
+
+@pytest.fixture
+def simple_aircraft():
+    """Minimal two-variable aircraft for Opti tests."""
+    from aerisplane.catalog.materials import carbon_fiber_tube, petg
+    spar = ap.Spar(
+        position=0.25,
+        material=carbon_fiber_tube,
+        section=ap.TubeSection(outer_diameter=0.015, wall_thickness=0.001),
+    )
+    skin = ap.Skin(material=petg, thickness=0.0008)
+    opti = Opti()
+    main_wing = ap.Wing(
+        name="main_wing",
+        xsecs=[
+            ap.WingXSec(
+                xyz_le=[0.0, 0.0, 0.0],
+                chord=opti.variable(0.26, lower=0.10, upper=0.50),
+                airfoil=ap.Airfoil("naca2412"),
+                spar=spar,
+                skin=skin,
+            ),
+            ap.WingXSec(
+                xyz_le=[0.03, 0.75, 0.05],
+                chord=opti.variable(0.15, lower=0.05, upper=0.30),
+                airfoil=ap.Airfoil("naca2412"),
+            ),
+        ],
+        symmetric=True,
+    )
+    htail = ap.Wing(
+        name="htail",
+        xsecs=[
+            ap.WingXSec(xyz_le=[0.85, 0.0, 0.0], chord=0.12,
+                        airfoil=ap.Airfoil("naca0012")),
+            ap.WingXSec(xyz_le=[0.87, 0.25, 0.01], chord=0.08,
+                        airfoil=ap.Airfoil("naca0012")),
+        ],
+        symmetric=True,
+    )
+    aircraft = ap.Aircraft(
+        name="test",
+        wings=[main_wing, htail],
+        fuselages=[],
+        xyz_ref=[0.12, 0.0, 0.0],
+    )
+    return opti, aircraft
+
+
+def test_opti_variable_returns_var():
+    opti = Opti()
+    v = opti.variable(0.30, lower=0.10, upper=0.80)
+    assert isinstance(v, _Var)
+    assert float(v) == pytest.approx(0.30)
+
+
+def test_opti_variable_tracked():
+    opti = Opti()
+    v = opti.variable(0.30, lower=0.10, upper=0.80)
+    assert v._var_id in opti._vars
+
+
+def test_opti_problem_returns_mdo_problem(simple_aircraft):
+    opti, aircraft = simple_aircraft
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+    assert isinstance(problem, MDOProblem)
+
+
+def test_opti_problem_discovers_two_vars(simple_aircraft):
+    opti, aircraft = simple_aircraft
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+    assert len(problem._dvars) == 2
+
+
+def test_opti_problem_var_bounds(simple_aircraft):
+    opti, aircraft = simple_aircraft
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+    paths = {dv.path: dv for dv in problem._dvars}
+    assert "wings[0].xsecs[0].chord" in paths
+    assert paths["wings[0].xsecs[0].chord"].lower == pytest.approx(0.10)
+    assert paths["wings[0].xsecs[0].chord"].upper == pytest.approx(0.50)

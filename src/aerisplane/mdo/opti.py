@@ -81,3 +81,112 @@ def _discover_vars(
             _discover_vars(item, child, found_vars, found_choices)
 
     return found_vars, found_choices
+
+
+# ── Opti ──────────────────────────────────────────────────────────────────────
+
+class Opti:
+    """Context object for inline design variable declaration.
+
+    Create variables inline when building the aircraft::
+
+        opti = Opti()
+        wing = Wing(span=opti.variable(1.2, lower=0.8, upper=2.0), ...)
+        problem = opti.problem(aircraft=..., disciplines=["aero"], ...)
+    """
+
+    def __init__(self) -> None:
+        self._vars: dict = {}  # var_id -> _Var or _Choice
+
+    def variable(
+        self,
+        init: float,
+        lower: float,
+        upper: float,
+        scale: float = 1.0,
+    ) -> "_Var":
+        """Declare a continuous design variable and return its initial value.
+
+        Parameters
+        ----------
+        init : float
+            Initial (baseline) value.
+        lower : float
+            Lower bound (physical units).
+        upper : float
+            Upper bound (physical units).
+        scale : float
+            Optimizer sees ``value / scale``. Default 1.0.
+        """
+        v = _Var(init, lower=lower, upper=upper, scale=scale)
+        self._vars[v._var_id] = v
+        return v
+
+    def problem(
+        self,
+        aircraft,
+        condition=None,
+        conditions: dict = None,
+        disciplines: list = None,
+        objective=None,
+        constraints: list = None,
+        mission=None,
+        airfoil_pools: dict = None,
+        alpha: float = None,
+        aero_method: str = "vlm",
+        load_factor: float = 3.5,
+        throttle: float = 1.0,
+        aero_result=None,
+        choice_variables: list = None,
+    ):
+        """Build an MDOProblem from the aircraft, auto-discovering design variables.
+
+        Any field set using ``opti.variable()`` is automatically registered
+        as a design variable — no string paths required.
+
+        Parameters
+        ----------
+        aircraft : Aircraft
+        condition : FlightCondition, optional
+            Single flight condition (backward compat).
+        conditions : dict, optional
+            Dict of name -> FlightCondition for multi-condition optimization.
+            Not yet supported by MDOProblem; reserved for future use.
+        disciplines : list of str
+            Disciplines to run, e.g. ``["aero"]`` or ``["aero", "stability"]``.
+            Pass ``None`` to auto-infer from objective/constraint paths.
+            Note: explicit discipline control is added in a future task.
+        objective : Objective or list of Objective
+        constraints : list of Constraint, optional
+        aero_result : AeroResult or None
+            Pre-computed aero result. Reserved for future use.
+        """
+        from aerisplane.mdo.problem import DesignVar, MDOProblem
+
+        # Discover _Var (continuous) and _Choice (discrete) fields
+        found_vars, found_choices = _discover_vars(aircraft)
+
+        # Continuous design variables — DesignVar does not yet have integrality field
+        design_variables = [
+            DesignVar(
+                path=path,
+                lower=var._lower,
+                upper=var._upper,
+                scale=var._scale,
+            )
+            for path, var in found_vars.items()
+        ]
+
+        return MDOProblem(
+            aircraft=aircraft,
+            condition=condition,
+            design_variables=design_variables,
+            constraints=constraints or [],
+            objective=objective,
+            mission=mission,
+            airfoil_pools=airfoil_pools,
+            alpha=alpha,
+            aero_method=aero_method,
+            load_factor=load_factor,
+            throttle=throttle,
+        )
