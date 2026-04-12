@@ -131,6 +131,20 @@ class AeroResult:
     _airplane: Any = field(default=None, repr=False, compare=False)
 
     # ------------------------------------------------------------------ #
+    # Computed properties
+    # ------------------------------------------------------------------ #
+
+    @property
+    def CL_over_CD(self) -> float:
+        """Return the lift-to-drag ratio (CL / CD).
+
+        Returns zero if CD is zero or negative to avoid division errors.
+        """
+        if self.CD <= 0.0:
+            return 0.0
+        return self.CL / self.CD
+
+    # ------------------------------------------------------------------ #
     # Reporting
     # ------------------------------------------------------------------ #
 

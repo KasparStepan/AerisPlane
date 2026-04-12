@@ -144,3 +144,136 @@ def test_cache_reduces_redundant_evals(integration_aircraft, integration_conditi
     n1 = problem._n_evals
     problem.evaluate(x)
     assert problem._n_evals == n1   # cache hit, no new eval
+
+
+def test_opti_api_aero_only():
+    """Full smoke test: Opti inline variables -> aero-only optimization."""
+    from aerisplane.mdo import Opti, Objective
+    from aerisplane.catalog.materials import carbon_fiber_tube, petg
+
+    spar = ap.Spar(
+        position=0.25,
+        material=carbon_fiber_tube,
+        section=ap.TubeSection(outer_diameter=0.015, wall_thickness=0.001),
+    )
+    skin = ap.Skin(material=petg, thickness=0.0008)
+
+    opti = Opti()
+    main_wing = ap.Wing(
+        name="main_wing",
+        xsecs=[
+            ap.WingXSec(
+                xyz_le=[0.0, 0.0, 0.0],
+                chord=opti.variable(0.26, lower=0.15, upper=0.40),
+                airfoil=ap.Airfoil("naca2412"),
+                spar=spar,
+                skin=skin,
+            ),
+            ap.WingXSec(
+                xyz_le=[0.03, 0.75, 0.05],
+                chord=opti.variable(0.15, lower=0.08, upper=0.25),
+                airfoil=ap.Airfoil("naca2412"),
+            ),
+        ],
+        symmetric=True,
+    )
+    htail = ap.Wing(
+        name="htail",
+        xsecs=[
+            ap.WingXSec(xyz_le=[0.85, 0.0, 0.0], chord=0.12,
+                        airfoil=ap.Airfoil("naca0012")),
+            ap.WingXSec(xyz_le=[0.87, 0.25, 0.01], chord=0.08,
+                        airfoil=ap.Airfoil("naca0012")),
+        ],
+        symmetric=True,
+    )
+    aircraft = ap.Aircraft(
+        name="test",
+        wings=[main_wing, htail],
+        fuselages=[],
+        xyz_ref=[0.12, 0.0, 0.0],
+    )
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+
+    assert len(problem._dvars) == 2
+    result = problem.optimize(
+        method="scipy_de",
+        options={"maxiter": 3, "popsize": 4, "seed": 0},
+        verbose=False,
+    )
+    assert result.aero is not None
+    assert isinstance(result.objective_optimal, float)
+
+
+def test_opti_api_simulate_at_baseline():
+    """simulate() runs discipline chain at baseline without optimizing."""
+    from aerisplane.mdo import Opti, Objective
+    from aerisplane.catalog.materials import carbon_fiber_tube, petg
+
+    spar = ap.Spar(
+        position=0.25,
+        material=carbon_fiber_tube,
+        section=ap.TubeSection(outer_diameter=0.015, wall_thickness=0.001),
+    )
+    skin = ap.Skin(material=petg, thickness=0.0008)
+
+    opti = Opti()
+    aircraft = ap.Aircraft(
+        name="test",
+        wings=[
+            ap.Wing(
+                name="main_wing",
+                xsecs=[
+                    ap.WingXSec(
+                        xyz_le=[0.0, 0.0, 0.0],
+                        chord=opti.variable(0.26, lower=0.15, upper=0.40),
+                        airfoil=ap.Airfoil("naca2412"),
+                        spar=spar,
+                        skin=skin,
+                    ),
+                    ap.WingXSec(
+                        xyz_le=[0.03, 0.75, 0.05],
+                        chord=0.15,
+                        airfoil=ap.Airfoil("naca2412"),
+                    ),
+                ],
+                symmetric=True,
+            ),
+            ap.Wing(
+                name="htail",
+                xsecs=[
+                    ap.WingXSec(xyz_le=[0.85, 0.0, 0.0], chord=0.12,
+                                airfoil=ap.Airfoil("naca0012")),
+                    ap.WingXSec(xyz_le=[0.87, 0.25, 0.01], chord=0.08,
+                                airfoil=ap.Airfoil("naca0012")),
+                ],
+                symmetric=True,
+            ),
+        ],
+        fuselages=[],
+        xyz_ref=[0.12, 0.0, 0.0],
+    )
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+
+    # simulate() is Task 9 — skip this test if it's not implemented yet
+    if not hasattr(problem, "simulate"):
+        pytest.skip("simulate() not yet implemented (Task 9)")
+
+    results = problem.simulate()
+    assert "aero" in results
+    assert "weights" in results
+    assert hasattr(results["aero"], "CL_over_CD")
