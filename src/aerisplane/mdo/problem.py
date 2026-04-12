@@ -446,11 +446,11 @@ class MDOProblem:
         ----------
         method : str
             One of ``"scipy_de"``, ``"scipy_minimize"``, ``"scipy_shgo"``,
-            ``"pygmo_de"``, ``"pygmo_sade"``, ``"pygmo_nsga2"``.
+            ``"pymoo_de"``, ``"pymoo_nsga2"``, ``"pymoo_nsga3"``, ``"pymoo_pso"``.
         options : dict or None
             Passed directly to the underlying optimiser.
             scipy_de: ``maxiter``, ``popsize``, ``seed``, ``tol``, ...
-            pygmo:    ``gen``, ``pop_size``, ``seed``, ...
+            pymoo:    ``pop_size``, ``n_gen``, ``seed``, ...
         verbose : bool
             Print a one-line log after every evaluation.  Default True.
         report_interval : int or None
@@ -471,19 +471,25 @@ class MDOProblem:
         -------
         OptimizationResult
         """
-        from aerisplane.mdo.drivers import ScipyDriver, PygmoDriver
+        from aerisplane.mdo.drivers import ScipyDriver, PymooDriver
 
         opts = options or {}
 
         if method.startswith("scipy_"):
             driver = ScipyDriver(self)
+        elif method.startswith("pymoo_"):
+            driver = PymooDriver(self)
         elif method.startswith("pygmo_"):
-            driver = PygmoDriver(self)
+            raise ValueError(
+                f"Method '{method}' uses pygmo which requires conda. "
+                "Use pymoo equivalents instead: "
+                "pygmo_de → pymoo_de, pygmo_sade → pymoo_de, pygmo_nsga2 → pymoo_nsga2."
+            )
         else:
             raise ValueError(
                 f"Unknown method '{method}'. "
                 "Choose from: scipy_de, scipy_minimize, scipy_shgo, "
-                "pygmo_de, pygmo_sade, pygmo_nsga2."
+                "pymoo_de, pymoo_nsga2, pymoo_nsga3, pymoo_pso."
             )
 
         return driver.run(

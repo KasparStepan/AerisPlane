@@ -371,6 +371,136 @@ class _PygmoProblem:
         return int(np.sum(self._p._integrality))
 
 
+# ── PymooDriver ───────────────────────────────────────────────────────────────
+
+class PymooDriver:
+    """Wraps pymoo optimisers for use with MDOProblem.
+
+    Supported methods: ``"pymoo_de"``, ``"pymoo_nsga2"``, ``"pymoo_nsga3"``,
+    ``"pymoo_pso"``.
+
+    pymoo is a pure-Python optional dependency — ``pip install pymoo``.
+    No conda required.
+    """
+
+    def __init__(self, problem):
+        self.problem = problem
+
+    def run(
+        self,
+        method: str,
+        options: dict,
+        report_interval: Optional[int],
+        log_path: Optional[str],
+        callback: Optional[Callable],
+        verbose: bool,
+        checkpoint_path: Optional[str],
+        checkpoint_interval: Optional[int],
+    ) -> OptimizationResult:
+        # Validate method before attempting import
+        valid_methods = {"pymoo_de", "pymoo_nsga2", "pymoo_nsga3", "pymoo_pso"}
+        if method not in valid_methods:
+            raise ValueError(
+                f"Unknown method '{method}'. "
+                f"Choose from: {', '.join(sorted(valid_methods))}."
+            )
+
+        try:
+            from pymoo.core.problem import ElementwiseProblem
+            from pymoo.optimize import minimize as pymoo_minimize
+        except ImportError as exc:
+            raise ImportError(
+                "pymoo is required for pymoo drivers. "
+                "Install with: pip install pymoo"
+            ) from exc
+
+        p = self.problem
+        lo, hi = p.get_bounds()
+        n_var = len(lo)
+
+        opts = dict(options)
+        pop_size = opts.pop("pop_size", 20)
+        n_gen = opts.pop("n_gen", 100)
+        seed = opts.pop("seed", 42)
+
+        t_start = time.time()
+        best = {"x": None, "obj": float("inf"), "constraints_ok": False}
+
+        n_constr = len(p.constraint_functions(lo))
+
+        class _PymooProblem(ElementwiseProblem):
+            def __init__(inner):
+                super().__init__(
+                    n_var=n_var,
+                    n_obj=1,
+                    n_ieq_constr=n_constr,
+                    xl=lo,
+                    xu=hi,
+                )
+
+            def _evaluate(inner, x, out, *args, **kwargs):
+                obj = float(p.objective_function(x))
+                violations = p.constraint_functions(x)
+                constraints_ok = bool(np.all(violations <= 0))
+
+                if constraints_ok and obj < best["obj"]:
+                    best["x"] = x.copy()
+                    best["obj"] = obj
+                    best["constraints_ok"] = True
+                elif best["x"] is None:
+                    best["x"] = x.copy()
+                    best["obj"] = obj
+
+                if verbose:
+                    _LOG.info("[%5d] obj=%.4g  best=%.4g  t=%.1fs",
+                              p._n_evals, obj, best["obj"], time.time() - t_start)
+
+                out["F"] = [obj]
+                if n_constr > 0:
+                    out["G"] = violations.tolist()
+
+        pymoo_problem = _PymooProblem()
+
+        algorithm = _make_pymoo_algorithm(method, pop_size, **opts)
+
+        from pymoo.termination import get_termination
+        termination = get_termination("n_gen", n_gen)
+
+        pymoo_minimize(
+            pymoo_problem,
+            algorithm,
+            termination,
+            seed=seed,
+            verbose=False,
+        )
+
+        x_opt = best["x"] if best["x"] is not None else p._x0_scaled()
+        return _build_optimization_result(p, x_opt, best["obj"], t_start)
+
+
+def _make_pymoo_algorithm(method: str, pop_size: int, **kwargs):
+    """Factory for pymoo algorithm instances."""
+    if method == "pymoo_de":
+        from pymoo.algorithms.soo.nonconvex.de import DE
+        return DE(pop_size=pop_size, **kwargs)
+    elif method == "pymoo_nsga2":
+        from pymoo.algorithms.moo.nsga2 import NSGA2
+        return NSGA2(pop_size=pop_size, **kwargs)
+    elif method == "pymoo_nsga3":
+        from pymoo.algorithms.moo.nsga3 import NSGA3
+        from pymoo.util.ref_dirs import get_reference_directions
+        ref_dirs = kwargs.pop("ref_dirs", get_reference_directions(
+            "das-dennis", 1, n_partitions=pop_size
+        ))
+        return NSGA3(pop_size=pop_size, ref_dirs=ref_dirs, **kwargs)
+    elif method == "pymoo_pso":
+        from pymoo.algorithms.soo.nonconvex.pso import PSO
+        return PSO(pop_size=pop_size, **kwargs)
+    else:
+        # Should not reach here; validation happens in PymooDriver.run()
+        raise ValueError(f"Unknown method '{method}'.")
+
+
 # ── Shared helpers ────────────────────────────────────────────────────────────
 
 class _EarlyStop(Exception):
