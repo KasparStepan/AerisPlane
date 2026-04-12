@@ -163,3 +163,27 @@ def _integrality_array(n_dvars: int, pool_entries: list) -> np.ndarray:
         [False] * n_dvars + [True] * len(pool_entries),
         dtype=bool,
     )
+
+
+def _pack_choices(choice_vars: list) -> np.ndarray:
+    """Return initial integer indices for all ChoiceVar as a float array."""
+    return np.array([float(cv.init_idx) for cv in choice_vars])
+
+
+def _unpack_choices(aircraft, choice_vars: list, x: np.ndarray, offset: int) -> None:
+    """Write choice variable values from x into aircraft (in-place).
+
+    Parameters
+    ----------
+    aircraft : Aircraft
+        Deep-copied instance to mutate.
+    choice_vars : list of ChoiceVar
+    x : ndarray
+        Full design vector (scaled).
+    offset : int
+        Index in x where choice variables start.
+    """
+    for j, cv in enumerate(choice_vars):
+        raw_idx = float(x[offset + j])
+        idx = max(0, min(int(round(raw_idx)), len(cv.options) - 1))
+        _set_dv_value(aircraft, cv.path, cv.options[idx])

@@ -2,6 +2,7 @@
 from aerisplane.mdo.opti import Opti
 from aerisplane.mdo.problem import (
     AirfoilPool,
+    ChoiceVar,
     Constraint,
     DesignVar,
     MDOProblem,
@@ -16,6 +17,7 @@ __all__ = [
     "MDOProblem",
     "DesignVar",
     "AirfoilPool",
+    "ChoiceVar",
     "Constraint",
     "Objective",
     "OptimizationResult",

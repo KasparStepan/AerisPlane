@@ -43,6 +43,30 @@ class _Var(float):
         return new
 
 
+class _Choice:
+    """A discrete catalog selection sentinel.
+
+    Use via ``opti.choice()`` or ``opti.ranked_choice()``.
+    The options list is stored sorted ascending by score (for ranked_choice)
+    or in original order (for choice). The optimizer sees integer index 0..N-1.
+    """
+
+    def __init__(self, options: list, init_idx: int = 0, scores=None):
+        if scores is not None:
+            if len(scores) != len(options):
+                raise ValueError(
+                    f"scores length ({len(scores)}) must match options length ({len(options)})."
+                )
+            paired = sorted(zip(scores, range(len(options)), options), key=lambda x: x[0])
+            self.options = [o for _, _, o in paired]
+            orig_indices = [orig for _, orig, _ in paired]
+            self.init_idx = orig_indices.index(init_idx)
+        else:
+            self.options = list(options)
+            self.init_idx = init_idx
+        self._var_id = next(_id_counter)
+
+
 def _discover_vars(
     obj: Any,
     path: str = "",
@@ -122,6 +146,44 @@ class Opti:
         self._vars[v._var_id] = v
         return v
 
+    def choice(self, options: list, init: int = 0) -> "_Choice":
+        """Declare a discrete catalog choice variable.
+
+        The optimizer selects one item from *options* by integer index.
+        Use for any field: Airfoil, Motor, Propeller, material, etc.
+
+        Parameters
+        ----------
+        options : list
+            Possible values. Any type supported.
+        init : int
+            Index of the initial option. Default 0.
+        """
+        c = _Choice(options=options, init_idx=init)
+        self._vars[c._var_id] = c
+        return c
+
+    def ranked_choice(self, options: list, scores: list, init: int = 0) -> "_Choice":
+        """Declare a scored discrete catalog choice variable.
+
+        Options are sorted ascending by *scores* before being passed to the
+        optimizer. This means adjacent integer indices correspond to
+        similar-performing options, giving a smoother optimization landscape.
+
+        Parameters
+        ----------
+        options : list
+            Possible values.
+        scores : list of float
+            One score per option. Lower score = index 0.
+            Pre-compute outside the optimization loop.
+        init : int
+            Index of the initial option in the *original* (unsorted) list.
+        """
+        c = _Choice(options=options, init_idx=init, scores=scores)
+        self._vars[c._var_id] = c
+        return c
+
     def problem(
         self,
         aircraft,
@@ -161,7 +223,8 @@ class Opti:
         aero_result : AeroResult or None
             Pre-computed aero result. Reserved for future use.
         """
-        from aerisplane.mdo.problem import DesignVar, MDOProblem
+        from aerisplane.mdo.problem import ChoiceVar, DesignVar, MDOProblem
+        from aerisplane.mdo._paths import _set_dv_value
 
         # Discover _Var (continuous) and _Choice (discrete) fields
         found_vars, found_choices = _discover_vars(aircraft)
@@ -177,6 +240,16 @@ class Opti:
             for path, var in found_vars.items()
         ]
 
+        # Replace _Choice sentinels with initial values; build ChoiceVar list
+        cv_list = []
+        for path, choice in found_choices.items():
+            _set_dv_value(aircraft, path, choice.options[choice.init_idx])
+            cv_list.append(ChoiceVar(
+                path=path,
+                options=choice.options,
+                init_idx=choice.init_idx,
+            ))
+
         return MDOProblem(
             aircraft=aircraft,
             condition=condition,
@@ -189,4 +262,5 @@ class Opti:
             aero_method=aero_method,
             load_factor=load_factor,
             throttle=throttle,
+            choice_variables=cv_list,
         )

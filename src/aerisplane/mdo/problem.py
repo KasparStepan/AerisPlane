@@ -78,6 +78,29 @@ class Constraint:
 
 
 @dataclass
+class ChoiceVar:
+    """Discrete choice variable — selects one item from an ordered list.
+
+    Works with any field type (Airfoil, Motor, Propeller, str, etc.).
+    The optimizer sees an integer index 0..len(options)-1.
+    Use ``opti.choice()`` or ``opti.ranked_choice()`` to create these;
+    they are auto-discovered by ``Opti.problem()``.
+
+    Parameters
+    ----------
+    path : str
+        Dot-bracket path into Aircraft, e.g. ``"wings[0].xsecs[0].airfoil"``.
+    options : list
+        Ordered list of possible values.
+    init_idx : int
+        Index of the initial/baseline option. Default 0.
+    """
+    path: str
+    options: list
+    init_idx: int = 0
+
+
+@dataclass
 class Objective:
     """Optimisation objective pointing at a discipline result field.
 
@@ -103,7 +126,9 @@ from aerisplane.mdo._paths import (  # noqa: E402
     _get_result_value,
     _integrality_array,
     _pack,
+    _pack_choices,
     _unpack,
+    _unpack_choices,
 )
 
 _LOG = logging.getLogger(__name__)
@@ -178,6 +203,7 @@ class MDOProblem:
         skip_disciplines: tuple = (),
         disciplines: list = None,
         aero_result=None,
+        choice_variables: list = None,
     ):
         self._baseline = copy.deepcopy(aircraft)
         self._condition = condition
@@ -193,12 +219,21 @@ class MDOProblem:
         self._aero_result = aero_result
 
         self._pool_entries = _build_pool_entries(self._baseline, self._pools)
+        self._choice_vars = list(choice_variables or [])
         self._n_continuous = len(self._dvars)
-        self._n_vars = self._n_continuous + len(self._pool_entries)
-        self._integrality = _integrality_array(self._n_continuous, self._pool_entries)
-
+        self._n_pool = len(self._pool_entries)
+        self._n_choices = len(self._choice_vars)
+        self._n_vars = self._n_continuous + self._n_pool + self._n_choices
+        self._integrality = np.array(
+            [False] * self._n_continuous
+            + [True] * self._n_pool
+            + [True] * self._n_choices,
+            dtype=bool,
+        )
         self._scales = np.array(
-            [dv.scale for dv in self._dvars] + [1.0] * len(self._pool_entries)
+            [dv.scale for dv in self._dvars]
+            + [1.0] * self._n_pool
+            + [1.0] * self._n_choices
         )
 
         if disciplines is not None:
@@ -255,6 +290,15 @@ class MDOProblem:
                     "Use extra_disciplines to enable it or remove the path."
                 )
 
+        for cv in self._choice_vars:
+            if not cv.options:
+                raise ValueError(f"ChoiceVar '{cv.path}': options list is empty.")
+            if not (0 <= cv.init_idx < len(cv.options)):
+                raise ValueError(
+                    f"ChoiceVar '{cv.path}': init_idx {cv.init_idx} out of range "
+                    f"[0, {len(cv.options) - 1}]."
+                )
+
         from aerisplane.catalog import get_airfoil
         for wing_path, pool in self._pools.items():
             for name in pool.options:
@@ -270,11 +314,18 @@ class MDOProblem:
         n_pool = len(self._pool_entries)
         lo_pool = np.zeros(n_pool)
         hi_pool = np.array([float(len(pe[2].options) - 1) for pe in self._pool_entries])
-        return np.concatenate([lo_cont, lo_pool]), np.concatenate([hi_cont, hi_pool])
+        lo_ch = np.zeros(self._n_choices)
+        hi_ch = np.array([float(len(cv.options) - 1) for cv in self._choice_vars])
+        return (
+            np.concatenate([lo_cont, lo_pool, lo_ch]),
+            np.concatenate([hi_cont, hi_pool, hi_ch]),
+        )
 
     def _x0_scaled(self):
         """Initial design vector from current aircraft values."""
-        return _pack(self._baseline, self._dvars, self._pool_entries)
+        x_cont_pool = _pack(self._baseline, self._dvars, self._pool_entries)
+        x_choices = _pack_choices(self._choice_vars)
+        return np.concatenate([x_cont_pool, x_choices])
 
     def evaluate(self, x_scaled: np.ndarray) -> dict:
         """Run the full discipline chain for design vector x_scaled.
@@ -292,6 +343,10 @@ class MDOProblem:
         self._n_evals += 1
 
         ac = _unpack(self._baseline, self._dvars, self._pool_entries, x_scaled)
+
+        if self._choice_vars:
+            offset = self._n_continuous + self._n_pool
+            _unpack_choices(ac, self._choice_vars, x_scaled, offset)
 
         # Set CG reference on aircraft before discipline chain
         # We need weights first to get CG, so run it separately if needed

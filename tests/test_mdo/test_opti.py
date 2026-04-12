@@ -176,3 +176,94 @@ def test_opti_problem_var_bounds(simple_aircraft):
     assert "wings[0].xsecs[0].chord" in paths
     assert paths["wings[0].xsecs[0].chord"].lower == pytest.approx(0.10)
     assert paths["wings[0].xsecs[0].chord"].upper == pytest.approx(0.50)
+
+
+from aerisplane.mdo.opti import _Choice
+
+
+def test_choice_stores_options():
+    c = _Choice(options=["a", "b", "c"], init_idx=1)
+    assert c.options == ["a", "b", "c"]
+    assert c.init_idx == 1
+
+
+def test_ranked_choice_reorders_by_score():
+    # options sorted ascending by score: b(5) < a(10) < c(15)
+    c = _Choice(options=["a", "b", "c"], init_idx=0, scores=[10, 5, 15])
+    assert c.options == ["b", "a", "c"]
+    # original init_idx=0 was "a"; after reorder "a" is at index 1
+    assert c.init_idx == 1
+
+
+def test_ranked_choice_unique_ids():
+    c1 = _Choice(options=["a", "b"], init_idx=0)
+    c2 = _Choice(options=["a", "b"], init_idx=0)
+    assert c1._var_id != c2._var_id
+
+
+def test_discover_vars_finds_choice():
+    from dataclasses import dataclass as dc2, field as f2
+    @dc2
+    class _Leaf2:
+        chord: float = 0.3
+        airfoil: object = None
+
+    @dc2
+    class _Root2:
+        leaf: object = None
+
+    choice = _Choice(options=["naca2412", "e423"], init_idx=0)
+    root = _Root2(leaf=_Leaf2(chord=0.3, airfoil=choice))
+    found_vars, found_choices = _discover_vars(root)
+    assert "leaf.airfoil" in found_choices
+    assert found_choices["leaf.airfoil"] is choice
+
+
+def test_opti_choice_returns_choice():
+    opti = Opti()
+    c = opti.choice(options=["naca2412", "e423", "s1223"], init=0)
+    assert isinstance(c, _Choice)
+    assert c.options == ["naca2412", "e423", "s1223"]
+    assert c.init_idx == 0
+
+
+def test_opti_ranked_choice_sorts():
+    opti = Opti()
+    c = opti.ranked_choice(
+        options=["naca2412", "e423", "s1223"],
+        scores=[8.0, 11.5, 10.0],
+        init=0,  # "naca2412" originally at index 0
+    )
+    # sorted by score ascending: naca2412(8.0) < s1223(10.0) < e423(11.5)
+    assert c.options[0] == "naca2412"
+    assert c.options[1] == "s1223"
+    assert c.options[2] == "e423"
+    # naca2412 was at original idx 0; after sort it's at new idx 0
+    assert c.init_idx == 0
+
+
+def test_opti_problem_with_choice(simple_aircraft):
+    """opti.problem() creates ChoiceVar from _Choice fields."""
+    from aerisplane.mdo.problem import ChoiceVar
+    opti, aircraft = simple_aircraft
+    choice = opti.choice(
+        options=[ap.Airfoil("naca2412"), ap.Airfoil("e423")],
+        init=0,
+    )
+    aircraft.wings[0].xsecs[0].airfoil = choice
+
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = opti.problem(
+        aircraft=aircraft,
+        condition=cond,
+        disciplines=["aero"],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+    )
+    # The field must be replaced with the actual Airfoil object
+    assert isinstance(aircraft.wings[0].xsecs[0].airfoil, ap.Airfoil)
+    # The problem must have one ChoiceVar
+    assert len(problem._choice_vars) == 1
+    cv = problem._choice_vars[0]
+    assert isinstance(cv, ChoiceVar)
+    assert cv.path == "wings[0].xsecs[0].airfoil"
+    assert len(cv.options) == 2

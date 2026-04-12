@@ -580,6 +580,15 @@ def _build_optimization_result(problem, x_opt, obj_opt, t_start) -> Optimization
             pool.options[max(0, min(opt_idx,  len(pool.options) - 1))],
         )
 
+    choice_offset = len(problem._dvars) + len(problem._pool_entries)
+    for k, cv in enumerate(problem._choice_vars):
+        init_idx = int(round(float(x0[choice_offset + k])))
+        opt_idx  = int(round(float(x_opt[choice_offset + k])))
+        variables[cv.path] = (
+            cv.options[max(0, min(init_idx, len(cv.options) - 1))],
+            cv.options[max(0, min(opt_idx,  len(cv.options) - 1))],
+        )
+
     return OptimizationResult(
         x_initial=x0,
         x_optimal=x_opt,
