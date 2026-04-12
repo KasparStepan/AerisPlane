@@ -193,11 +193,196 @@ class Fuselage:
         x = self._x_stations()
         return float(x[-1] - x[0])
 
-    def volume(self) -> float:
-        """Approximate internal volume by trapezoidal integration of cross-section areas [m^3]."""
+    def volume(self, _sectional: bool = False) -> "float | list[float]":
+        """Internal volume [m^3].
+
+        Uses the Prismatoid formula per section, which is exact for frustums
+        (tapered cylinders) and more accurate than trapz for nose/tail cones:
+
+            V_section = (x_b - x_a) / 3 * (A_a + A_b + sqrt(A_a * A_b))
+        """
+        if len(self.xsecs) < 2:
+            return [] if _sectional else 0.0
+
+        sectional = []
+        for xa, xb in zip(self.xsecs[:-1], self.xsecs[1:]):
+            sep = xb.x - xa.x
+            a_a = xa.area()
+            a_b = xb.area()
+            sectional.append(sep / 3.0 * (a_a + a_b + (a_a * a_b + 1e-100) ** 0.5))
+
+        return sectional if _sectional else sum(sectional)
+
+    def area_projected(self, type: str = "XY") -> float:
+        """Projected area onto XY (top-down) or XZ (side-view) plane [m^2].
+
+        Parameters
+        ----------
+        type : str
+            "XY" uses cross-section width (y-direction extent).
+            "XZ" uses cross-section height (z-direction extent).
+        """
+        if type not in ("XY", "XZ"):
+            raise ValueError(f"type must be 'XY' or 'XZ', got '{type}'")
         if len(self.xsecs) < 2:
             return 0.0
-        return float(_trapz(self._areas(), self._x_stations()))
+        total = 0.0
+        for xa, xb in zip(self.xsecs[:-1], self.xsecs[1:]):
+            dx = xb.x - xa.x
+            if type == "XY":
+                avg = (xa.width + xb.width) / 2.0
+            else:
+                avg = (xa.height + xb.height) / 2.0
+            total += avg * dx
+        return total
+
+    def x_centroid_projected(self, type: str = "XY") -> float:
+        """x-coordinate of the projected-area centroid in aircraft frame [m].
+
+        Parameters
+        ----------
+        type : str
+            "XY" or "XZ" — which projection to use.
+        """
+        if len(self.xsecs) < 2:
+            return self.x_le
+        total_x_area = 0.0
+        total_area = 0.0
+        for xa, xb in zip(self.xsecs[:-1], self.xsecs[1:]):
+            x_a = self.x_le + xa.x
+            x_b = self.x_le + xb.x
+            dx = x_b - x_a
+            if type == "XY":
+                r_a = xa.width / 2.0
+                r_b = xb.width / 2.0
+            elif type == "XZ":
+                r_a = xa.height / 2.0
+                r_b = xb.height / 2.0
+            else:
+                raise ValueError(f"type must be 'XY' or 'XZ', got '{type}'")
+            if (r_a + r_b) > 0:
+                x_c = x_a + (r_a + 2.0 * r_b) / (3.0 * (r_a + r_b)) * dx
+            else:
+                x_c = (x_a + x_b) / 2.0
+            section_area = (r_a + r_b) / 2.0 * dx
+            total_x_area += x_c * section_area
+            total_area += section_area
+        if total_area == 0.0:
+            return self.x_le
+        return total_x_area / total_area
+
+    def mesh_body(
+        self, tangential_resolution: int = 36
+    ) -> "tuple[np.ndarray, np.ndarray]":
+        """3-D quad surface mesh of the fuselage.
+
+        Returns
+        -------
+        points : (N, 3) float array
+            Vertex positions in aircraft frame.
+        faces : (M, 4) int array
+            Quad face vertex indices [i0, i1, i2, i3].
+        """
+        theta = np.linspace(0, 2 * np.pi, tangential_resolution + 1)[:-1]
+        centers = self.xsec_centers()
+
+        rings = [
+            xsec.get_3D_coordinates(theta, center)
+            for xsec, center in zip(self.xsecs, centers)
+        ]
+        points = np.concatenate(rings, axis=0)
+
+        T = tangential_resolution
+        faces = []
+        for i in range(len(self.xsecs) - 1):
+            for j in range(T):
+                j1 = (j + 1) % T
+                faces.append([i * T + j, i * T + j1, (i + 1) * T + j1, (i + 1) * T + j])
+
+        return points, np.array(faces, dtype=int)
+
+    def mesh_line(
+        self,
+        y_nondim: float = 0.0,
+        z_nondim: float = 0.0,
+    ) -> "list[np.ndarray]":
+        """3-D points along a line through each cross-section.
+
+        Parameters
+        ----------
+        y_nondim : float
+            Fractional y-offset normalized by half-width. 0 = centreline, ±1 = outer edge.
+        z_nondim : float
+            Fractional z-offset normalized by half-height.
+        """
+        centers = self.xsec_centers()
+        return [
+            np.array([
+                center[0],
+                center[1] + y_nondim * xsec.width / 2.0,
+                center[2] + z_nondim * xsec.height / 2.0,
+            ])
+            for xsec, center in zip(self.xsecs, centers)
+        ]
+
+    def subdivide_sections(
+        self,
+        ratio: int,
+        spacing_function=None,
+    ) -> "Fuselage":
+        """Return a new Fuselage with each section split into *ratio* sub-sections.
+
+        Parameters
+        ----------
+        ratio : int
+            Number of sub-sections per original section (must be >= 2).
+        spacing_function : callable(start, stop, n) → array, optional
+            Defaults to numpy.linspace.
+        """
+        import copy
+        if not (isinstance(ratio, int) and ratio >= 2):
+            raise ValueError(f"ratio must be an integer >= 2, got {ratio!r}")
+        if spacing_function is None:
+            spacing_function = np.linspace
+
+        new_xsecs = []
+        fracs = spacing_function(0.0, 1.0, ratio + 1)[:-1]
+
+        for xa, xb in zip(self.xsecs[:-1], self.xsecs[1:]):
+            for s in fracs:
+                aw, bw = 1.0 - float(s), float(s)
+                new_xsecs.append(FuselageXSec(
+                    x=xa.x * aw + xb.x * bw,
+                    width=xa.width * aw + xb.width * bw,
+                    height=xa.height * aw + xb.height * bw,
+                    shape=xa.shape * aw + xb.shape * bw,
+                ))
+
+        new_xsecs.append(copy.copy(self.xsecs[-1]))
+        return Fuselage(
+            name=self.name,
+            xsecs=new_xsecs,
+            x_le=self.x_le,
+            y_le=self.y_le,
+            z_le=self.z_le,
+            material=self.material,
+            wall_thickness=self.wall_thickness,
+        )
+
+    def translate(self, xyz: np.ndarray) -> "Fuselage":
+        """Return a copy of this fuselage translated by xyz [m].
+
+        Moves the nose reference point (x_le, y_le, z_le).
+        Cross-section local x-coordinates are unchanged.
+        """
+        import copy
+        xyz = np.asarray(xyz, dtype=float)
+        new = copy.copy(self)
+        new.xsecs = list(self.xsecs)
+        new.x_le = self.x_le + float(xyz[0])
+        new.y_le = self.y_le + float(xyz[1])
+        new.z_le = self.z_le + float(xyz[2])
+        return new
 
     def wetted_area(self) -> float:
         """Approximate wetted (external) area by trapezoidal integration of perimeters [m^2]."""

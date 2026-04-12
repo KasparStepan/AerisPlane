@@ -129,6 +129,152 @@ class TestFuselageXSecTranslate:
 
 
 # ---------------------------------------------------------------------------
+# Fuselage new methods (Task 3)
+# ---------------------------------------------------------------------------
+
+class TestFuselagePrismatoidVolume:
+    def test_cylinder_volume(self):
+        # Cylinder: constant radius 0.1m, length 1.0m → V = π * 0.1^2 * 1.0
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, radius=0.1),
+                FuselageXSec(x=1.0, radius=0.1),
+            ]
+        )
+        expected = np.pi * 0.1 ** 2 * 1.0
+        assert fuse.volume() == pytest.approx(expected, rel=1e-3)
+
+    def test_cone_volume(self):
+        # Cone: radius tapers 0.1 → 0, length 1.0m → V = (1/3) π * 0.1^2 * 1.0
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, radius=0.1),
+                FuselageXSec(x=1.0, width=0.0, height=0.0, shape=2.0),
+            ]
+        )
+        expected = (1.0 / 3.0) * np.pi * 0.1 ** 2 * 1.0
+        assert fuse.volume() == pytest.approx(expected, rel=1e-2)
+
+
+class TestFuselageAreaProjected:
+    def test_cylinder_xy_projection(self):
+        # Constant diameter 0.2m, length 1.0m → top-down projected area = 0.2 * 1.0
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, width=0.2, height=0.1, shape=2.0),
+                FuselageXSec(x=1.0, width=0.2, height=0.1, shape=2.0),
+            ]
+        )
+        assert fuse.area_projected("XY") == pytest.approx(0.2 * 1.0, rel=1e-6)
+
+    def test_cylinder_xz_projection(self):
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, width=0.2, height=0.1, shape=2.0),
+                FuselageXSec(x=1.0, width=0.2, height=0.1, shape=2.0),
+            ]
+        )
+        assert fuse.area_projected("XZ") == pytest.approx(0.1 * 1.0, rel=1e-6)
+
+    def test_bad_type_raises(self):
+        fuse = Fuselage(xsecs=[FuselageXSec(x=0.0, radius=0.1)])
+        with pytest.raises(ValueError):
+            fuse.area_projected("YZ")
+
+
+class TestFuselageXCentroidProjected:
+    def test_uniform_cylinder_centroid(self):
+        # Uniform cylinder: centroid at mid-length = 0.5m
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, radius=0.1),
+                FuselageXSec(x=1.0, radius=0.1),
+            ]
+        )
+        assert fuse.x_centroid_projected("XY") == pytest.approx(0.5, rel=1e-3)
+
+
+class TestFuselageMeshBody:
+    def test_returns_correct_shapes(self):
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, radius=0.1),
+                FuselageXSec(x=1.0, radius=0.1),
+            ]
+        )
+        T = 12  # tangential_resolution
+        pts, faces = fuse.mesh_body(tangential_resolution=T)
+        n_stations = 2
+        assert pts.shape == (n_stations * T, 3)
+        # Faces: (n_stations - 1) * T quads
+        assert faces.shape == ((n_stations - 1) * T, 4)
+
+    def test_circle_points_on_correct_radius(self):
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, radius=0.1),
+                FuselageXSec(x=0.5, radius=0.1),
+            ]
+        )
+        pts, _ = fuse.mesh_body(tangential_resolution=360)
+        r = np.sqrt(pts[:, 1] ** 2 + pts[:, 2] ** 2)
+        assert np.allclose(r, 0.1, atol=1e-3)
+
+
+class TestFuselageMeshLine:
+    def test_centerline_x_coordinates(self):
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, radius=0.1),
+                FuselageXSec(x=1.0, radius=0.2),
+            ]
+        )
+        pts = fuse.mesh_line(y_nondim=0.0, z_nondim=0.0)
+        assert len(pts) == 2
+        assert pts[0][0] == pytest.approx(0.0)
+        assert pts[1][0] == pytest.approx(1.0)
+
+
+class TestFuselageSubdivideSections:
+    def test_ratio_2_doubles_xsecs(self):
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, radius=0.1),
+                FuselageXSec(x=1.0, radius=0.2),
+            ]
+        )
+        sub = fuse.subdivide_sections(ratio=2)
+        # 1 section → 2 sub-sections → 3 xsecs
+        assert len(sub.xsecs) == 3
+
+    def test_subdivided_length_preserved(self):
+        fuse = Fuselage(
+            xsecs=[
+                FuselageXSec(x=0.0, radius=0.1),
+                FuselageXSec(x=1.0, radius=0.2),
+            ]
+        )
+        sub = fuse.subdivide_sections(ratio=4)
+        assert sub.length() == pytest.approx(fuse.length(), rel=1e-9)
+
+    def test_bad_ratio_raises(self):
+        fuse = Fuselage(xsecs=[FuselageXSec(x=0.0, radius=0.1)])
+        with pytest.raises(ValueError):
+            fuse.subdivide_sections(ratio=1)
+
+
+class TestFuselageTranslate:
+    def test_translate_shifts_x_le(self):
+        fuse = Fuselage(
+            xsecs=[FuselageXSec(x=0.0, radius=0.1)],
+            x_le=0.5,
+        )
+        moved = fuse.translate(np.array([1.0, 0.0, 0.0]))
+        assert moved.x_le == pytest.approx(1.5)
+        assert fuse.x_le == pytest.approx(0.5)  # original unchanged
+
+
+# ---------------------------------------------------------------------------
 # Fuselage (uses simple_fuselage fixture from conftest)
 # ---------------------------------------------------------------------------
 
@@ -141,22 +287,24 @@ class TestFuselageLength:
 
 
 class TestFuselageVolume:
-    """Volume by trapezoidal integration of cross-section areas."""
+    """Volume by Prismatoid formula per section."""
 
     def test_volume(self, simple_fuselage):
-        # Manual trapezoidal integration:
+        # Manual Prismatoid: V = sep/3 * (A_a + A_b + sqrt(A_a * A_b))
         # stations:  x = [0.0, 0.15, 0.70, 0.95]
         # radii:     r = [0.02, 0.06, 0.06, 0.02]
-        # areas:     A = [pi*0.02^2, pi*0.06^2, pi*0.06^2, pi*0.02^2]
-        areas = np.array([
-            np.pi * 0.02**2,
-            np.pi * 0.06**2,
-            np.pi * 0.06**2,
-            np.pi * 0.02**2,
-        ])
-        x_stations = np.array([0.0, 0.15, 0.70, 0.95])
-        expected_volume = float(_trapz(areas, x_stations))
-        assert simple_fuselage.volume() == pytest.approx(expected_volume, rel=1e-10)
+        sections = [
+            (0.0, 0.15, 0.02, 0.06),
+            (0.15, 0.70, 0.06, 0.06),
+            (0.70, 0.95, 0.06, 0.02),
+        ]
+        expected_volume = sum(
+            (xb - xa) / 3.0 * (
+                np.pi * ra**2 + np.pi * rb**2 + np.sqrt(np.pi * ra**2 * np.pi * rb**2)
+            )
+            for xa, xb, ra, rb in sections
+        )
+        assert simple_fuselage.volume() == pytest.approx(expected_volume, rel=1e-6)
 
 
 class TestFuselageWettedArea:
