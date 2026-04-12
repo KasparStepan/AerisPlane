@@ -20,6 +20,7 @@ def _dummy_result():
         structures=None,
         stability=MagicMock(),
         control=None,
+        propulsion=None,
         mission=None,
         aircraft=MagicMock(),
         pareto_front=None,
@@ -64,3 +65,27 @@ def test_snapshot_fields():
     )
     assert snap.n_evals == 42
     assert snap.improvement_pct == pytest.approx(10.7)
+
+
+def test_optimization_result_has_propulsion_field():
+    from aerisplane.mdo.result import OptimizationResult
+    import numpy as np
+    result = OptimizationResult(
+        x_initial=np.array([0.26]),
+        x_optimal=np.array([0.30]),
+        objective_initial=10.0,
+        objective_optimal=12.0,
+        constraints_satisfied=True,
+        n_evaluations=5,
+        convergence_history=[10.0, 11.0, 12.0],
+        variables={"wings[0].xsecs[0].chord": (0.26, 0.30)},
+        aero=None,
+        weights=None,
+        structures=None,
+        stability=None,
+        control=None,
+        propulsion=None,
+        mission=None,
+        aircraft=None,
+    )
+    assert result.propulsion is None

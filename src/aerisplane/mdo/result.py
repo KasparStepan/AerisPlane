@@ -68,7 +68,7 @@ class OptimizationResult:
         Best objective value per evaluation.
     variables : dict
         Mapping path → (initial_value, optimal_value) in physical units.
-    aero, weights, structures, stability, control, mission
+    aero, weights, structures, stability, control, propulsion, mission
         Full discipline results at x_optimal (None if discipline not run).
     aircraft : Aircraft
         Optimised aircraft at x_optimal.
@@ -89,6 +89,7 @@ class OptimizationResult:
     structures: Any
     stability: Any
     control: Any
+    propulsion: Any
     mission: Any
     aircraft: Any
     pareto_front: Optional[list] = None

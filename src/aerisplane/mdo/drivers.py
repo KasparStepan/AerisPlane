@@ -594,6 +594,7 @@ def _build_optimization_result(problem, x_opt, obj_opt, t_start) -> Optimization
         structures=results.get("structures"),
         stability=results.get("stability"),
         control=results.get("control"),
+        propulsion=results.get("propulsion"),
         mission=results.get("mission"),
         aircraft=ev_opt.get("aircraft"),
         pareto_front=None,
