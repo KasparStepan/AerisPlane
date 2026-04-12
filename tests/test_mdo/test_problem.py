@@ -339,3 +339,102 @@ def test_constraint_violation_vector(mock_w, mock_a, mock_s, simple_problem):
     x = (lo + hi) / 2.0
     violations = simple_problem.constraint_functions(x)
     assert violations[0] <= 0.0   # satisfied
+
+
+def test_mdoproblem_explicit_disciplines(test_aircraft):
+    from aerisplane.mdo.problem import MDOProblem, DesignVar, Objective
+    import aerisplane as ap
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = MDOProblem(
+        aircraft=test_aircraft,
+        condition=cond,
+        design_variables=[
+            DesignVar("wings[0].xsecs[0].chord", lower=0.10, upper=0.50),
+        ],
+        constraints=[],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+        disciplines=["aero"],
+    )
+    assert "aero" in problem._disciplines
+    assert "structures" not in problem._disciplines
+    assert "stability" not in problem._disciplines
+
+
+def test_mdoproblem_disciplines_none_auto_infers(test_aircraft):
+    from aerisplane.mdo.problem import MDOProblem, DesignVar, Objective
+    import aerisplane as ap
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = MDOProblem(
+        aircraft=test_aircraft,
+        condition=cond,
+        design_variables=[
+            DesignVar("wings[0].xsecs[0].chord", lower=0.10, upper=0.50),
+        ],
+        constraints=[],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+        disciplines=None,
+    )
+    assert "aero" in problem._disciplines
+
+
+def test_mdoproblem_aero_result_param_accepted(test_aircraft):
+    from aerisplane.mdo.problem import MDOProblem, DesignVar, Objective
+    from unittest.mock import MagicMock
+    import aerisplane as ap
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    fake_aero = MagicMock()
+    fake_aero.CL_over_CD = 12.0
+    problem = MDOProblem(
+        aircraft=test_aircraft,
+        condition=cond,
+        design_variables=[
+            DesignVar("wings[0].xsecs[0].chord", lower=0.10, upper=0.50),
+        ],
+        constraints=[],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+        disciplines=["aero"],
+        aero_result=fake_aero,
+    )
+    assert problem._aero_result is fake_aero
+
+
+def test_simulate_returns_results_dict(test_aircraft):
+    from aerisplane.mdo.problem import MDOProblem, DesignVar, Objective
+    import aerisplane as ap
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = MDOProblem(
+        aircraft=test_aircraft,
+        condition=cond,
+        design_variables=[
+            DesignVar("wings[0].xsecs[0].chord", lower=0.10, upper=0.50),
+        ],
+        constraints=[],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+        disciplines=["aero"],
+    )
+    results = problem.simulate()
+    assert isinstance(results, dict)
+    assert "aero" in results
+    assert "weights" in results
+    assert hasattr(results["aero"], "CL_over_CD")
+
+
+def test_simulate_uses_cache(test_aircraft):
+    """Second call to simulate() must not increment n_evals (cache hit)."""
+    from aerisplane.mdo.problem import MDOProblem, DesignVar, Objective
+    import aerisplane as ap
+    cond = ap.FlightCondition(velocity=15.0, altitude=100.0, alpha=4.0)
+    problem = MDOProblem(
+        aircraft=test_aircraft,
+        condition=cond,
+        design_variables=[
+            DesignVar("wings[0].xsecs[0].chord", lower=0.10, upper=0.50),
+        ],
+        constraints=[],
+        objective=Objective("aero.CL_over_CD", maximize=True),
+        disciplines=["aero"],
+    )
+    problem.simulate()
+    n_after_first = problem._n_evals
+    problem.simulate()
+    assert problem._n_evals == n_after_first

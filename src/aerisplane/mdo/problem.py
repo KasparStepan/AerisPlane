@@ -307,6 +307,24 @@ class MDOProblem:
                 except ValueError as exc:
                     raise ValueError(f"AirfoilPool for '{wing_path}': {exc}") from exc
 
+    def simulate(self) -> dict:
+        """Run the discipline chain once at the baseline design. No optimization.
+
+        Useful for initial sizing: inspect discipline results before launching
+        an optimizer. Results are cached — calling ``simulate()`` twice is free.
+
+        Returns
+        -------
+        dict
+            Mapping discipline name → result object, e.g.::
+
+                results = problem.simulate()
+                print(results["aero"].CL_over_CD)
+                print(results["weights"].total_mass)
+                results["aero"].report()
+        """
+        return self.evaluate(self._x0_scaled())["results"]
+
     def get_bounds(self):
         """Return (lower, upper) bound arrays."""
         lo_cont = np.array([dv.lower / dv.scale for dv in self._dvars])
