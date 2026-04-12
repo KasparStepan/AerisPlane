@@ -29,11 +29,16 @@ class _Var(float):
         obj._scale = scale
         obj._is_integer = False
         obj._var_id = next(_id_counter)
+        if lower > upper:
+            raise ValueError(
+                f"_Var: lower={lower} > upper={upper}. Bounds are inverted."
+            )
         return obj
 
     def __deepcopy__(self, memo):
         new = _Var(float(self), self._lower, self._upper, self._scale)
         new._var_id = self._var_id
+        new._is_integer = self._is_integer
         memo[id(self)] = new
         return new
 
@@ -43,7 +48,7 @@ def _discover_vars(
     path: str = "",
     found_vars: Optional[dict] = None,
     found_choices: Optional[dict] = None,
-) -> tuple:
+) -> tuple[dict, dict]:
     """Recursively walk *obj* and return two dicts:
     - found_vars:    path -> _Var  (continuous / integer variables)
     - found_choices: path -> _Choice  (discrete catalog choices)
