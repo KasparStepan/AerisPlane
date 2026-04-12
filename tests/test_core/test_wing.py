@@ -242,3 +242,121 @@ class TestWingXSecArea:
         xsec1 = WingXSec(xyz_le=[0, 0, 0], chord=0.1, airfoil=af)
         xsec2 = WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af)
         assert xsec2.xsec_area() == pytest.approx(9.0 * xsec1.xsec_area(), rel=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# Task 5: control surface utilities, symmetry check, translate
+# ---------------------------------------------------------------------------
+
+class TestWingControlSurfaceArea:
+    @pytest.fixture
+    def wing_with_aileron(self):
+        af = ap.Airfoil.from_naca("0012")
+        cs = ap.ControlSurface(
+            name="aileron",
+            span_start=0.5,
+            span_end=0.9,
+            chord_fraction=0.25,
+            symmetric=False,
+        )
+        return Wing(
+            xsecs=[
+                WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af),
+                WingXSec(xyz_le=[0.02, 0.75, 0], chord=0.15, airfoil=af),
+            ],
+            symmetric=True,
+            control_surfaces=[cs],
+        )
+
+    def test_cs_area_is_positive(self, wing_with_aileron):
+        assert wing_with_aileron.control_surface_area() > 0.0
+
+    def test_cs_area_less_than_wing_area(self, wing_with_aileron):
+        assert wing_with_aileron.control_surface_area() < wing_with_aileron.area()
+
+    def test_filter_by_name(self, wing_with_aileron):
+        assert wing_with_aileron.control_surface_area(by_name="aileron") == \
+               pytest.approx(wing_with_aileron.control_surface_area(), rel=1e-9)
+
+    def test_filter_nonexistent_returns_zero(self, wing_with_aileron):
+        assert wing_with_aileron.control_surface_area(by_name="elevator") == \
+               pytest.approx(0.0)
+
+    def test_no_control_surfaces_returns_zero(self, rectangular_wing):
+        assert rectangular_wing.control_surface_area() == pytest.approx(0.0)
+
+
+class TestWingGetControlSurfaceNames:
+    def test_empty_wing(self, rectangular_wing):
+        assert rectangular_wing.get_control_surface_names() == []
+
+    def test_returns_names(self):
+        af = ap.Airfoil.from_naca("0012")
+        cs1 = ap.ControlSurface(name="aileron", span_start=0.6, span_end=0.9,
+                                 chord_fraction=0.25, symmetric=False)
+        cs2 = ap.ControlSurface(name="flap", span_start=0.0, span_end=0.6,
+                                 chord_fraction=0.30, symmetric=True)
+        wing = Wing(
+            xsecs=[WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af),
+                   WingXSec(xyz_le=[0, 0.75, 0], chord=0.15, airfoil=af)],
+            control_surfaces=[cs1, cs2],
+        )
+        assert set(wing.get_control_surface_names()) == {"aileron", "flap"}
+
+
+class TestWingIsEntirelySymmetric:
+    def test_symmetric_no_cs(self, rectangular_wing):
+        assert rectangular_wing.is_entirely_symmetric() is True
+
+    def test_asymmetric_wing(self):
+        af = ap.Airfoil.from_naca("0012")
+        wing = Wing(
+            xsecs=[WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af),
+                   WingXSec(xyz_le=[0, 0.75, 0], chord=0.15, airfoil=af)],
+            symmetric=False,
+        )
+        assert wing.is_entirely_symmetric() is False
+
+    def test_symmetric_with_anti_symmetric_cs(self):
+        af = ap.Airfoil.from_naca("0012")
+        cs = ap.ControlSurface(name="aileron", span_start=0.5, span_end=0.9,
+                                chord_fraction=0.25, symmetric=False)
+        wing = Wing(
+            xsecs=[WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af),
+                   WingXSec(xyz_le=[0, 0.75, 0], chord=0.15, airfoil=af)],
+            symmetric=True,
+            control_surfaces=[cs],
+        )
+        assert wing.is_entirely_symmetric() is False
+
+    def test_symmetric_with_symmetric_cs(self):
+        af = ap.Airfoil.from_naca("0012")
+        cs = ap.ControlSurface(name="flap", span_start=0.0, span_end=1.0,
+                                chord_fraction=0.30, symmetric=True)
+        wing = Wing(
+            xsecs=[WingXSec(xyz_le=[0, 0, 0], chord=0.3, airfoil=af),
+                   WingXSec(xyz_le=[0, 0.75, 0], chord=0.15, airfoil=af)],
+            symmetric=True,
+            control_surfaces=[cs],
+        )
+        assert wing.is_entirely_symmetric() is True
+
+
+class TestWingTranslate:
+    def test_translate_moves_xsec_le(self, rectangular_wing):
+        moved = rectangular_wing.translate(np.array([1.0, 0.0, 0.5]))
+        assert moved.xsecs[0].xyz_le[0] == pytest.approx(1.0)
+        assert moved.xsecs[0].xyz_le[2] == pytest.approx(0.5)
+
+    def test_translate_does_not_mutate_original(self, rectangular_wing):
+        _ = rectangular_wing.translate(np.array([1.0, 0.0, 0.0]))
+        assert rectangular_wing.xsecs[0].xyz_le[0] == pytest.approx(0.0)
+
+
+class TestWingXSecTranslate:
+    def test_translate_moves_le(self):
+        af = ap.Airfoil.from_naca("0012")
+        xsec = WingXSec(xyz_le=[0.0, 0.0, 0.0], chord=0.3, airfoil=af)
+        moved = xsec.translate(np.array([0.5, 0.1, -0.1]))
+        assert moved.xyz_le == pytest.approx([0.5, 0.1, -0.1])
+        assert xsec.xyz_le == pytest.approx([0.0, 0.0, 0.0])

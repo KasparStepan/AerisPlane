@@ -58,6 +58,13 @@ class WingXSec:
             return 0.0
         return self.airfoil.nondim_area() * self.chord ** 2
 
+    def translate(self, xyz: np.ndarray) -> "WingXSec":
+        """Return a copy of this cross-section shifted by xyz [m]."""
+        import copy
+        new = copy.copy(self)
+        new.xyz_le = self.xyz_le + np.asarray(xyz, dtype=float)
+        return new
+
 
 @dataclass
 class Wing:
@@ -313,6 +320,70 @@ class Wing:
             a_b = self.xsecs[i + 1].xsec_area()
             total += span / 3.0 * (a_a + a_b + (a_a * a_b + 1e-100) ** 0.5)
         return 2.0 * total if self.symmetric else total
+
+    def get_control_surface_names(self) -> list[str]:
+        """Names of all control surfaces defined on this wing."""
+        return [cs.name for cs in self.control_surfaces]
+
+    def control_surface_area(self, by_name: "str | None" = None) -> float:
+        """Total planform area of control surfaces [m^2].
+
+        Parameters
+        ----------
+        by_name : str or None
+            If given, only count the control surface with this name.
+        """
+        if not self.control_surfaces:
+            return 0.0
+
+        semispan = self.semispan()
+        if semispan == 0.0:
+            return 0.0
+
+        y_stations = self._y_stations()
+        total = 0.0
+
+        for cs in self.control_surfaces:
+            if by_name is not None and cs.name != by_name:
+                continue
+
+            cs_y0 = cs.span_start * semispan
+            cs_y1 = cs.span_end * semispan
+
+            for i in range(len(self.xsecs) - 1):
+                y_a = float(y_stations[i])
+                y_b = float(y_stations[i + 1])
+                if y_b <= y_a:
+                    continue
+
+                ov_start = max(y_a, cs_y0)
+                ov_end = min(y_b, cs_y1)
+                if ov_end <= ov_start:
+                    continue
+
+                t0 = (ov_start - y_a) / (y_b - y_a)
+                t1 = (ov_end - y_a) / (y_b - y_a)
+                c_a = self.xsecs[i].chord
+                c_b = self.xsecs[i + 1].chord
+                c_at_start = c_a + t0 * (c_b - c_a)
+                c_at_end = c_a + t1 * (c_b - c_a)
+
+                total += (c_at_start + c_at_end) / 2.0 * (ov_end - ov_start) * cs.chord_fraction
+
+        return 2.0 * total if self.symmetric else total
+
+    def is_entirely_symmetric(self) -> bool:
+        """True if wing geometry is symmetric AND all control surfaces are symmetric."""
+        if not self.symmetric:
+            return False
+        return all(cs.symmetric for cs in self.control_surfaces)
+
+    def translate(self, xyz: np.ndarray) -> "Wing":
+        """Return a copy of this wing translated by xyz [m]."""
+        import copy
+        new = copy.copy(self)
+        new.xsecs = [xsec.translate(xyz) for xsec in self.xsecs]
+        return new
 
     def sectional_span_yz(self) -> list[float]:
         """Span of each section measured in the YZ plane [m].
