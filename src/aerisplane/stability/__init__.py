@@ -105,6 +105,7 @@ def analyze(
         # Lateral-directional
         Cl_beta=deriv.Cl_beta,
         Cn_beta=deriv.Cn_beta,
+        CY_beta=deriv.CY_beta,
         # Rate derivatives
         CL_q=deriv.CL_q,
         Cm_q=deriv.Cm_q,
@@ -423,4 +424,162 @@ def _compute_tail_volumes(aircraft: Aircraft) -> tuple[float, float]:
     return Vh, Vv
 
 
-__all__ = ["analyze", "StabilityResult"]
+# ─────────────────────────────────────────────────────────────────────────────
+# Lateral-directional analysis
+# ─────────────────────────────────────────────────────────────────────────────
+
+def lateral_analyze(
+    aircraft: Aircraft,
+    condition: FlightCondition,
+    weight_result,
+    aero_method: str = "aero_buildup",
+    beta_range=None,
+    rate_range=None,
+    spanwise_resolution: int = 8,
+    chordwise_resolution: int = 4,
+    model_size: str = "medium",
+    compute_control_matrix: bool = True,
+    verbose: bool = False,
+):
+    """Run a complete lateral-directional stability analysis.
+
+    Computes stability derivatives (including rate derivatives), beta and rate
+    sweeps, builds the lateral A-matrix, performs eigenvalue analysis, and
+    integrates standard time responses.
+
+    Parameters
+    ----------
+    aircraft : Aircraft
+    condition : FlightCondition
+        Baseline operating point (alpha should be at trim).
+    weight_result : WeightResult
+        Provides CG and inertia tensor.
+    aero_method : str
+        Aero solver for sweeps.  Default ``"aero_buildup"`` (per-component
+        breakdown).  ``"vlm"`` gives per-wing breakdown.
+    beta_range : array-like or None
+        Sideslip angles to sweep [deg].  Default: −20 to +20 in 1° steps.
+    rate_range : array-like or None
+        Nondimensional rates to sweep.  Default: −0.15 to +0.15 in 21 pts.
+    spanwise_resolution : int
+        Passed to the aero solver.
+    chordwise_resolution : int
+        Passed to the VLM solver.
+    model_size : str
+        NeuralFoil model size for aero_buildup / LL.
+    compute_control_matrix : bool
+        If True, attempt to find aileron/rudder and compute B-matrix for
+        step responses.  Default True.
+    verbose : bool
+        Print progress messages.
+
+    Returns
+    -------
+    LateralResult
+        Complete lateral-directional analysis result with all plot and report
+        methods.
+    """
+    import numpy as np
+    from aerisplane.stability.derivatives import compute_derivatives
+    from aerisplane.stability.sweeps import beta_sweep, rate_sweep
+    from aerisplane.stability.lateral_model import (
+        build_lateral_matrix, analyze_modes, build_control_matrix,
+        compute_standard_responses,
+    )
+    from aerisplane.stability.lateral_result import LateralResult
+
+    xyz_ref = weight_result.cg.tolist()
+
+    if verbose:
+        print("Computing stability derivatives …")
+    deriv = compute_derivatives(
+        aircraft, condition, weight_result,
+        aero_method=aero_method,
+        compute_rate_derivatives=True,
+        spanwise_resolution=spanwise_resolution,
+        chordwise_resolution=chordwise_resolution,
+        model_size=model_size,
+    )
+
+    if beta_range is None:
+        beta_range = np.linspace(-20.0, 20.0, 41)
+    if rate_range is None:
+        rate_range = np.linspace(-0.15, 0.15, 21)
+
+    if verbose:
+        print("Running beta sweep …")
+    bs = beta_sweep(
+        aircraft, condition, beta_range,
+        method=aero_method,
+        xyz_ref=xyz_ref,
+        spanwise_resolution=spanwise_resolution,
+        chordwise_resolution=chordwise_resolution,
+        model_size=model_size,
+        verbose=verbose,
+    )
+
+    if verbose:
+        print("Running roll-rate sweep …")
+    rs_p = rate_sweep(
+        aircraft, condition, rate_range, rate_type="p",
+        method=aero_method, xyz_ref=xyz_ref,
+        spanwise_resolution=spanwise_resolution,
+        chordwise_resolution=chordwise_resolution,
+        model_size=model_size,
+        verbose=verbose,
+    )
+
+    if verbose:
+        print("Running yaw-rate sweep …")
+    rs_r = rate_sweep(
+        aircraft, condition, rate_range, rate_type="r",
+        method=aero_method, xyz_ref=xyz_ref,
+        spanwise_resolution=spanwise_resolution,
+        chordwise_resolution=chordwise_resolution,
+        model_size=model_size,
+        verbose=verbose,
+    )
+
+    if verbose:
+        print("Building A-matrix and computing modes …")
+    A = build_lateral_matrix(deriv, condition, weight_result, aircraft)
+    modes = analyze_modes(A)
+
+    B = None
+    if compute_control_matrix:
+        try:
+            B = build_control_matrix(
+                aircraft, condition, weight_result, deriv,
+                aero_method=aero_method,
+                spanwise_resolution=spanwise_resolution,
+                model_size=model_size,
+            )
+        except Exception as exc:
+            import warnings
+            warnings.warn(
+                f"Control matrix computation failed ({exc}). "
+                "Step responses will not be available.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+    if verbose:
+        print("Integrating time responses …")
+    responses = compute_standard_responses(A, modes, B=B)
+
+    return LateralResult(
+        aircraft_name=aircraft.name,
+        condition=condition,
+        weight_result=weight_result,
+        deriv=deriv,
+        beta_sweep=bs,
+        rate_sweep_p=rs_p,
+        rate_sweep_r=rs_r,
+        modes=modes,
+        responses=responses,
+        A=A,
+        aero_method=aero_method,
+    )
+
+
+__all__ = ["analyze", "lateral_analyze", "StabilityResult"]

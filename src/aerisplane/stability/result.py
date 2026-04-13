@@ -84,6 +84,7 @@ class StabilityResult:
     # Lateral-directional static
     Cl_beta: float
     Cn_beta: float
+    CY_beta: float = 0.0   # side force due to sideslip [1/deg]
 
     # Rate derivatives (None when not computed)
     CL_q: Optional[float] = None

@@ -233,4 +233,54 @@ def plot_geometry(aircraft, style="three_view", show=True, save_path=None):
     return _plot_geometry(aircraft=aircraft, style=style, show=show, save_path=save_path)
 
 
-__all__ = ["analyze", "plot_geometry", "AeroResult"]
+def alpha_sweep(
+    aircraft,
+    condition,
+    alpha_range,
+    method: str = "aero_buildup",
+    xyz_ref=None,
+    spanwise_resolution: int = 8,
+    chordwise_resolution: int = 4,
+    model_size: str = "medium",
+    verbose: bool = False,
+):
+    """Run a CL/CD/Cm alpha sweep with optional per-component breakdown.
+
+    Thin wrapper around :func:`aerisplane.aero.alpha_sweep.alpha_sweep`.
+    See that module for full parameter documentation.
+
+    Parameters
+    ----------
+    aircraft : Aircraft
+    condition : FlightCondition
+    alpha_range : array-like
+        Angles of attack [deg].
+    method : str
+        ``"aero_buildup"`` (default), ``"vlm"``, ``"lifting_line"``,
+        or ``"nonlinear_lifting_line"``.
+    xyz_ref : list[float] or None
+        Moment reference [x, y, z] [m].  Defaults to ``aircraft.xyz_ref``.
+        Pass CG position for stability-referenced moments.
+
+    Returns
+    -------
+    AlphaSweepResult
+    """
+    from aerisplane.aero._alpha_sweep import alpha_sweep as _alpha_sweep
+    return _alpha_sweep(
+        aircraft=aircraft,
+        condition=condition,
+        alpha_range=alpha_range,
+        method=method,
+        xyz_ref=xyz_ref,
+        spanwise_resolution=spanwise_resolution,
+        chordwise_resolution=chordwise_resolution,
+        model_size=model_size,
+        verbose=verbose,
+    )
+
+
+from aerisplane.aero._alpha_sweep import AlphaSweepResult, ComponentCurve
+
+__all__ = ["analyze", "alpha_sweep", "plot_geometry",
+           "AeroResult", "AlphaSweepResult", "ComponentCurve"]

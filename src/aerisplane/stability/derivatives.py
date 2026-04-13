@@ -58,6 +58,9 @@ class DerivativeResult:
     # Baseline aero at the analysis condition
     baseline: AeroResult
 
+    # Side force due to sideslip (always computed along with Cl_beta/Cn_beta)
+    CY_beta: float = 0.0   # [1/deg]
+
     # Rate derivatives (None if compute_rate_derivatives=False)
     # Pitch rate q: longitudinal damping
     CL_q: Optional[float] = None   # lift due to pitch rate
@@ -156,6 +159,7 @@ def compute_derivatives(
     Cm_alpha = (alpha_pos.Cm - alpha_neg.Cm) / (2.0 * D_ALPHA)    # 1/deg
     Cl_beta  = (beta_pos.Cl  - beta_neg.Cl)  / (2.0 * D_BETA)    # 1/deg
     Cn_beta  = (beta_pos.Cn  - beta_neg.Cn)  / (2.0 * D_BETA)    # 1/deg
+    CY_beta  = (beta_pos.CY  - beta_neg.CY)  / (2.0 * D_BETA)    # 1/deg
 
     # --- Neutral point ---
     # x_np = x_cg - (dCm/dCL) * c_ref,  where dCm/dCL = Cm_alpha / CL_alpha
@@ -202,6 +206,7 @@ def compute_derivatives(
         Cm_alpha=Cm_alpha,
         Cl_beta=Cl_beta,
         Cn_beta=Cn_beta,
+        CY_beta=CY_beta,
         neutral_point=neutral_point,
         static_margin=static_margin,
         cg_x=cg_x,
