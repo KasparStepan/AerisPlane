@@ -8,13 +8,15 @@ dependencies = [
     "numpy>=1.24",
     "scipy>=1.10",
     "matplotlib>=3.7",
-    "neuralfoil>=0.2",
+    "seaborn>=0.12",
+    "tqdm>=4.60",
 ]
 
 [project.optional-dependencies]
+aero = ["aerosandbox>=4.0", "neuralfoil>=0.2"]
 oas = ["openaerostruct>=2.7", "openmdao>=3.30"]
-optimize = ["pygmo>=2.19"]
-interactive = ["plotly>=5.0"]
+optimize = ["pymoo>=0.6"]
+viz = ["plotly>=5.0", "pyvista>=0.43"]
 dev = ["pytest>=7.0", "ruff>=0.1.0"]
 docs = [
     "mkdocs>=1.5",
@@ -22,7 +24,7 @@ docs = [
     "mkdocstrings[python]>=0.24",
     "mkdocs-jupyter>=0.24",
 ]
-all = ["aerisplane[oas,optimize,interactive,dev,docs]"]
+all = ["aerisplane[aero,oas,optimize,viz,dev,docs]"]
 
 [project.urls]
 Homepage = "https://github.com/KasparStepan/AerisPlane"
