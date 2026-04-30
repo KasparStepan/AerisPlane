@@ -1,0 +1,4204 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://kasparstepan.github.io/AerisPlane/api/stability/">
+      
+      
+        <link rel="prev" href="../structures/">
+      
+      
+        <link rel="next" href="../control/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Stability - AerisPlane</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#stability-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AerisPlane" class="md-header__button md-logo" aria-label="AerisPlane" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AerisPlane
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Stability
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/KasparStepan/AerisPlane" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    KasparStepan/AerisPlane
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../installation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Installation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/01_getting_started/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../core/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AerisPlane" class="md-nav__button md-logo" aria-label="AerisPlane" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AerisPlane
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/KasparStepan/AerisPlane" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    KasparStepan/AerisPlane
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_aerodynamics_executed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Aerodynamic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_weight_buildup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Weight Buildup Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_control_surfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Control Surface Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_flow_visualisation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — VLM Flow Visualisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_flight_performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Flight Performance &amp; Mission Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_full_discipline_chain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Full Discipline Chain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_mdo_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial 07 — MDO Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_propulsion_and_endurance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial 08 — Propulsion and Endurance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aero/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aerodynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../weights/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stability
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#theory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Theory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#axes-and-sign-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axes and sign conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#longitudinal-static-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longitudinal static stability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Longitudinal static stability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-neutral-point-and-static-margin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The neutral point and static margin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cm-alpha-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cm-alpha curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lift-curve-slope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lift curve slope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lateral-directional-static-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lateral-directional static stability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lateral-directional static stability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dihedral-effect-cl_beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dihedral effect (Cl_beta)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weathercock-stability-cn_beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Weathercock stability (Cn_beta)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tail-volume-coefficients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tail volume coefficients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finite-difference-derivatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finite-difference derivatives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-derivatives-and-dynamic-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate derivatives and dynamic stability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rate derivatives and dynamic stability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nondimensional-rates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nondimensional rates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#short-period-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Short-period mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phugoid-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phugoid mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yaw-roll-coupling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Yaw-roll coupling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trim
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cg-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CG envelope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="analyze()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#number-of-aero-evaluations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Number of aero evaluations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stabilityresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StabilityResult
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StabilityResult">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#longitudinal-static-stability_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longitudinal static stability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lateral-directional-static-stability_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lateral-directional static stability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-derivatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate derivatives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamic-stability-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dynamic stability modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trim_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trim
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tail-volume-coefficients_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tail volume coefficients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cg-envelope_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CG envelope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        report()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compute_derivatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compute_derivatives()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute_derivatives()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finite-difference-step-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finite-difference step sizes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derivativeresult-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DerivativeResult fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sign-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sign conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stability-check-at-cruise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stability check at cruise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-analysis-with-dynamic-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full analysis with dynamic modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cg-sensitivity-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CG sensitivity sweep
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sweep-alpha-to-capture-the-cm-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sweep alpha to capture the Cm(α) curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking-tail-sizing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking tail sizing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-generated reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.stability.analyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.stability.result.StabilityResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StabilityResult
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StabilityResult">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aerisplane.stability.result.StabilityResult.report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aerisplane.stability.result.StabilityResult.plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../propulsion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Propulsion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mdo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MDO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#theory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Theory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#axes-and-sign-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axes and sign conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#longitudinal-static-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longitudinal static stability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Longitudinal static stability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-neutral-point-and-static-margin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The neutral point and static margin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cm-alpha-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cm-alpha curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lift-curve-slope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lift curve slope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lateral-directional-static-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lateral-directional static stability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lateral-directional static stability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dihedral-effect-cl_beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dihedral effect (Cl_beta)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weathercock-stability-cn_beta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Weathercock stability (Cn_beta)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tail-volume-coefficients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tail volume coefficients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finite-difference-derivatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finite-difference derivatives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-derivatives-and-dynamic-stability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate derivatives and dynamic stability
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rate derivatives and dynamic stability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nondimensional-rates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nondimensional rates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#short-period-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Short-period mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phugoid-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phugoid mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yaw-roll-coupling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Yaw-roll coupling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trim
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cg-envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CG envelope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="analyze()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#number-of-aero-evaluations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Number of aero evaluations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stabilityresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StabilityResult
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StabilityResult">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#longitudinal-static-stability_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Longitudinal static stability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lateral-directional-static-stability_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lateral-directional static stability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-derivatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate derivatives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dynamic-stability-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dynamic stability modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trim_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trim
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tail-volume-coefficients_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tail volume coefficients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cg-envelope_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CG envelope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        report()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compute_derivatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        compute_derivatives()
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute_derivatives()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finite-difference-step-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finite-difference step sizes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derivativeresult-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DerivativeResult fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sign-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sign conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stability-check-at-cruise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stability check at cruise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-analysis-with-dynamic-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full analysis with dynamic modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cg-sensitivity-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CG sensitivity sweep
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sweep-alpha-to-capture-the-cm-curve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sweep alpha to capture the Cm(α) curve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking-tail-sizing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking tail sizing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-generated reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.stability.analyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.stability.result.StabilityResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StabilityResult
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="StabilityResult">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aerisplane.stability.result.StabilityResult.report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aerisplane.stability.result.StabilityResult.plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="stability-api">Stability API<a class="headerlink" href="#stability-api" title="Permanent link">&para;</a></h1>
+<p>Module: <code>aerisplane.stability</code></p>
+<hr />
+<h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">aerisplane</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ap</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane</span><span class="w"> </span><span class="kn">import</span> <span class="n">weights</span><span class="p">,</span> <span class="n">stability</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Build aircraft</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">aircraft</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">Aircraft</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_uav&quot;</span><span class="p">,</span> <span class="n">wings</span><span class="o">=</span><span class="p">[</span><span class="n">main_wing</span><span class="p">,</span> <span class="n">htail</span><span class="p">,</span> <span class="n">vtail</span><span class="p">],</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                       <span class="n">fuselages</span><span class="o">=</span><span class="p">[</span><span class="n">fuse</span><span class="p">])</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Weight analysis first — CG is required for all stability work</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">weight_result</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Basic static stability at a cruise condition</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">condition</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">FlightCondition</span><span class="p">(</span><span class="n">velocity</span><span class="o">=</span><span class="mf">18.0</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">result</span> <span class="o">=</span> <span class="n">stability</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">report</span><span class="p">())</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h2 id="theory">Theory<a class="headerlink" href="#theory" title="Permanent link">&para;</a></h2>
+<h3 id="axes-and-sign-conventions">Axes and sign conventions<a class="headerlink" href="#axes-and-sign-conventions" title="Permanent link">&para;</a></h3>
+<p>AerisPlane uses the <strong>stability-axes</strong> convention (standard for fixed-wing analysis):
+- x forward, y right, z down
+- Positive roll (p) right wing down
+- Positive pitch (q) nose up
+- Positive yaw (r) nose right</p>
+<p>All aerodynamic moment coefficients are normalised by q·S·c (pitching, Cm) or q·S·b (rolling Cl, yawing Cn), where S is the reference wing area, c is the MAC, and b is the span.</p>
+<hr />
+<h3 id="longitudinal-static-stability">Longitudinal static stability<a class="headerlink" href="#longitudinal-static-stability" title="Permanent link">&para;</a></h3>
+<h4 id="the-neutral-point-and-static-margin">The neutral point and static margin<a class="headerlink" href="#the-neutral-point-and-static-margin" title="Permanent link">&para;</a></h4>
+<p>Static stability in pitch is characterised by the slope of the pitching moment coefficient with angle of attack, measured about the <strong>centre of gravity</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>dCm/dα &lt; 0  →  statically stable
+</code></pre></div>
+<p>If alpha increases (e.g. a gust), a stable aircraft produces a nose-down moment that restores the original trim condition.</p>
+<p>The <strong>neutral point (NP)</strong> is the special CG position where dCm/dα = 0 — the aircraft has neutral stability. It can be found from the relationship between the pitching moment and lift slopes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>x_NP = x_CG − (dCm/dα) / (dCL/dα) · c̄
+</code></pre></div>
+<p>This is the formula implemented in <code>compute_derivatives()</code>. Note that dCm/dα and dCL/dα are both taken about the same moment reference (the CG), which is why the aircraft copy has <code>xyz_ref</code> set to the CG before every aero evaluation.</p>
+<p>The <strong>static margin (SM)</strong> is the normalised distance between the NP and the CG:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>SM = (x_NP − x_CG) / c̄
+</code></pre></div>
+<p>Positive SM means the NP is <strong>aft</strong> of the CG — the aircraft is statically stable. A 10 % MAC static margin means the NP is 10 % of the wing chord behind the CG.</p>
+<h4 id="cm-alpha-curve">Cm-alpha curve<a class="headerlink" href="#cm-alpha-curve" title="Permanent link">&para;</a></h4>
+<p>The full Cm(α) relationship determines whether the aircraft can be trimmed (Cm = 0) at a flyable angle of attack. A well-designed aircraft has:
+- Negative slope (dCm/dα &lt; 0) — stable
+- Positive Cm at zero lift — ensures trim occurs at a positive alpha (lifting condition)</p>
+<p>The trim alpha is the root of Cm(α) = 0. AerisPlane finds it with Brent's method over a ±10° bracket around the linear estimate.</p>
+<h4 id="lift-curve-slope">Lift curve slope<a class="headerlink" href="#lift-curve-slope" title="Permanent link">&para;</a></h4>
+<p>The lift curve slope dCL/dα (CL_alpha) is mainly a function of aspect ratio and sweep. For an elliptical lift distribution it approaches the Prandtl limit 2π/rad ≈ 0.110/deg. For real tapered wings of AR 5–10, expect 0.07–0.10/deg from VLM.</p>
+<hr />
+<h3 id="lateral-directional-static-stability">Lateral-directional static stability<a class="headerlink" href="#lateral-directional-static-stability" title="Permanent link">&para;</a></h3>
+<h4 id="dihedral-effect-cl_beta">Dihedral effect (Cl_beta)<a class="headerlink" href="#dihedral-effect-cl_beta" title="Permanent link">&para;</a></h4>
+<p>When the aircraft sideslips (β &gt; 0, nose left relative to flow), a <strong>negative</strong> roll moment is generated by geometric dihedral, wing sweep, and high-wing placement. This rolling restores wings-level:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>dCl/dβ &lt; 0  →  stable dihedral effect
+</code></pre></div>
+<p>Physical sources: geometric dihedral (dominant for low-wing aircraft), wing sweep (swept-back wings have a strong dihedral effect), and vertical position of the wing relative to the CG (high wing adds stability, low wing reduces it).</p>
+<p>Too much dihedral effect combined with insufficient yaw damping can cause <strong>Dutch roll</strong> — a coupled oscillation between roll and yaw that is uncomfortable or hard to control. For RC aircraft, moderate Cl_beta (−0.01 to −0.05 /deg) is desirable.</p>
+<h4 id="weathercock-stability-cn_beta">Weathercock stability (Cn_beta)<a class="headerlink" href="#weathercock-stability-cn_beta" title="Permanent link">&para;</a></h4>
+<p>When the aircraft sideslips, a <strong>positive</strong> yawing moment yaws the nose back into the wind:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>dCn/dβ &gt; 0  →  directionally stable (weathercock effect)
+</code></pre></div>
+<p>The vertical tail is the primary contributor. Its moment arm and area set the directional stability level. Insufficient Cn_beta results in spiral divergence or directional instability.</p>
+<hr />
+<h3 id="tail-volume-coefficients">Tail volume coefficients<a class="headerlink" href="#tail-volume-coefficients" title="Permanent link">&para;</a></h3>
+<p>Tail volume coefficients are dimensionless sizing parameters that capture how much tail authority an aircraft has, independently of flight speed or wing loading.</p>
+<p><strong>Horizontal tail volume:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Vh = (S_ht · l_ht) / (S_w · c̄_w)
+</code></pre></div></p>
+<p>where S_ht is the horizontal tail area, l_ht is the distance from the wing aerodynamic centre to the tail aerodynamic centre, S_w is the wing area, and c̄_w is the wing MAC.</p>
+<p>Vh governs longitudinal trim authority and pitch stability contribution of the tail. A larger Vh moves the neutral point further aft relative to the CG, increasing static margin.</p>
+<p><strong>Vertical tail volume:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Vv = (S_vt · l_vt) / (S_w · b_w)
+</code></pre></div></p>
+<p>where b_w is the wing span. Vv governs directional stability and rudder authority.</p>
+<p><strong>Typical values for the RC/UAV class (1–20 kg):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Typical range</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vh</td>
+<td>0.35–0.60</td>
+<td>Hand-launched UAVs trend higher (0.45–0.60)</td>
+</tr>
+<tr>
+<td>Vv</td>
+<td>0.03–0.06</td>
+<td>Flying wings use Vv from twin boom fins</td>
+</tr>
+</tbody>
+</table>
+<p>Values below the lower bound usually indicate insufficient tail authority — the aircraft will be hard to trim or directionally weak. Values above the upper bound add unnecessary drag and weight.</p>
+<hr />
+<h3 id="finite-difference-derivatives">Finite-difference derivatives<a class="headerlink" href="#finite-difference-derivatives" title="Permanent link">&para;</a></h3>
+<p>All stability derivatives are computed by <strong>central finite differences</strong>. For a generic derivative dX/dα:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>dX/dα ≈ [X(α + Δα) − X(α − Δα)] / (2·Δα)
+</code></pre></div>
+<p>Central differences are second-order accurate in Δα (error ∝ Δα²), versus first-order for forward differences (error ∝ Δα). For a linear solver like VLM this makes no difference — the derivative is exact regardless of step size — but for viscous or nonlinear solvers the central formula removes the leading error term and gives a better result at a given step size.</p>
+<p><strong>Step size selection:</strong></p>
+<p>A step too large violates the linearity assumption (the derivative is evaluated over a nonlinear part of the polar). A step too small amplifies numerical noise from the aero solver. For VLM (inviscid, linear), the step only needs to be large enough to avoid floating-point cancellation:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Step</th>
+<th>Typical ΔX per step (VLM)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>α</td>
+<td>±0.5 deg</td>
+<td>ΔCL ≈ 0.04, ΔCm ≈ 0.002</td>
+</tr>
+<tr>
+<td>β</td>
+<td>±1.0 deg</td>
+<td>ΔCl ≈ 0.005, ΔCn ≈ 0.005</td>
+</tr>
+<tr>
+<td>q̂, p̂, r̂</td>
+<td>±0.001</td>
+<td>ΔCm ≈ 0.001–0.005</td>
+</tr>
+</tbody>
+</table>
+<p>For viscous or nonlinear solvers (NLL, AeroBuildup), the α and β steps are small enough to stay within the linear regime below stall.</p>
+<hr />
+<h3 id="rate-derivatives-and-dynamic-stability">Rate derivatives and dynamic stability<a class="headerlink" href="#rate-derivatives-and-dynamic-stability" title="Permanent link">&para;</a></h3>
+<h4 id="nondimensional-rates">Nondimensional rates<a class="headerlink" href="#nondimensional-rates" title="Permanent link">&para;</a></h4>
+<p>Body-axis angular rates are nondimensionalised against the reference dimensions and airspeed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>p̂ = p·b / (2V)    (roll rate hat)
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>q̂ = q·c̄ / (2V)   (pitch rate hat)
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>r̂ = r·b / (2V)    (yaw rate hat)
+</code></pre></div>
+<p>These nondimensional rates are the natural arguments for aerodynamic moment derivatives because they represent the ratio of rotational tip speed to flight speed — the aerodynamically relevant quantity.</p>
+<h4 id="short-period-mode">Short-period mode<a class="headerlink" href="#short-period-mode" title="Permanent link">&para;</a></h4>
+<p>The short-period mode is a fast oscillation in angle of attack and pitch rate at roughly constant airspeed. Its frequency and damping depend on the pitch stiffness (Cm_alpha) and pitch damping (Cm_q):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>ω_sp² = (q·S·c̄ / I_yy) · [CL_α·|Cm_q| − |Cm_α|·(CL_α + CL_q)]
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>ζ_sp  = (−Cm_q) · (q·S·c̄²) / (2·I_yy·V·ω_sp)
+</code></pre></div>
+<p>where I_yy is the pitch moment of inertia about the CG and all angle derivatives are in 1/rad (CL_α = CL_alpha × 180/π).</p>
+<p>The formula requires both Cm_alpha &lt; 0 (pitch stable) and Cm_q &lt; 0 (pitch damping present) for a positive discriminant. If either condition is violated, the short-period frequency is returned as NaN.</p>
+<p><strong>Design targets for the short-period:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Minimum</th>
+<th>Typical target</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ω_sp</td>
+<td>&gt; 0</td>
+<td>2–10 rad/s</td>
+<td>Too slow → sluggish in pitch</td>
+</tr>
+<tr>
+<td>ζ_sp</td>
+<td>&gt; 0.35</td>
+<td>0.5–1.0</td>
+<td>Below 0.35 → noticeable oscillation after disturbance</td>
+</tr>
+</tbody>
+</table>
+<h4 id="phugoid-mode">Phugoid mode<a class="headerlink" href="#phugoid-mode" title="Permanent link">&para;</a></h4>
+<p>The phugoid is a slow exchange between kinetic and potential energy at roughly constant angle of attack. The Lanchester approximation gives:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>ω_ph = g·√2 / V
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>ζ_ph = (CD / CL) / √2
+</code></pre></div>
+<p>The phugoid frequency depends only on speed — slower aircraft phugoid more slowly. Damping depends on the drag-to-lift ratio: cleaner aircraft (lower CD/CL) have less phugoid damping and oscillate longer.</p>
+<p>For RC/UAV class aircraft flying at 10–20 m/s, the phugoid period is typically 5–15 s. Phugoid damping of 0.01–0.05 is normal — the mode is usually lightly damped but stable and slow enough to correct manually.</p>
+<h4 id="yaw-roll-coupling">Yaw-roll coupling<a class="headerlink" href="#yaw-roll-coupling" title="Permanent link">&para;</a></h4>
+<p>Cn_p (adverse yaw) and Cl_r (roll due to yaw) are coupling derivatives that appear in the Dutch roll mode. For a basic analysis:</p>
+<ul>
+<li><strong>Adverse yaw</strong> (Cn_p &lt; 0): differential drag when rolling causes a yawing moment opposing the turn. Differential aileron deflection worsens it; Frise ailerons or rudder mixing reduces it.</li>
+<li><strong>Proverse yaw</strong> (Cn_p &gt; 0): swept wings can produce proverse yaw (unusual on RC aircraft).</li>
+<li><strong>Roll due to yaw</strong> (Cl_r &gt; 0): when the aircraft yaws right, the left wing (advancing) produces more lift, rolling the aircraft right into the turn — a destabilising coupling in Dutch roll.</li>
+</ul>
+<hr />
+<h3 id="trim">Trim<a class="headerlink" href="#trim" title="Permanent link">&para;</a></h3>
+<p><strong>Trim</strong> is the condition where the net aerodynamic moment about the CG is zero and lift equals weight in steady level flight. Two equations must be satisfied simultaneously:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Cm(α_trim, δ_e_trim) = 0        (moment balance)
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>CL(α_trim, δ_e_trim) = W / (q·S)  (lift equals weight)
+</code></pre></div>
+<p>For a conventional tailed aircraft this is solved sequentially:
+1. Find α_trim where Cm = 0 with δ_e = 0 (or at the baseline deflection).
+2. Find δ_e_trim where Cm = 0 at α_trim while also satisfying the lift condition.</p>
+<p>AerisPlane implements step 1 as a Brent root-find over a ±10° alpha bracket, then step 2 as a Brent root-find over ±25° elevator deflection. If either bracket does not contain a sign change, a warning is raised and the linear estimate (step 1) or NaN (step 2) is returned.</p>
+<p><strong>Trim alpha</strong> depends on: CG position, wing camber, tail incidence, and airspeed (through the required CL = W/qS — lower speed requires higher alpha).</p>
+<p><strong>Trim elevator</strong> depends on: CG position (more aft CG requires more up elevator to maintain Cm = 0), tail arm, and elevator effectiveness (CL_delta_e).</p>
+<hr />
+<h3 id="cg-envelope">CG envelope<a class="headerlink" href="#cg-envelope" title="Permanent link">&para;</a></h3>
+<p>The CG envelope defines the range of CG positions over which the aircraft is safely trimmable and controllable. AerisPlane computes it from the neutral point with a fixed 5 % MAC safety margin:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>CG_aft_limit  = x_NP − 5 % MAC        (minimum stability margin)
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>CG_fwd_limit  = x_NP − SM − 5 % MAC   (elevator authority limit, minimum 5 % from LE)
+</code></pre></div>
+<p>The forward limit reflects the elevator's ability to hold the nose up at low speed (high alpha, high lift required). Moving the CG too far forward increases the download required from the tail, which the elevator may not be able to provide, especially near stall.</p>
+<p>The aft limit reflects the minimum acceptable static margin. Flying with the CG at or beyond the neutral point means any pitch disturbance grows rather than damps.</p>
+<p><strong>Typical RC/UAV CG operating range:</strong> 15–35 % MAC. Performance-oriented aircraft (sailplanes, racing UAVs) fly at 25–35 % MAC for low trim drag; docile trainers at 15–25 % MAC for more stability margin.</p>
+<hr />
+<h2 id="analyze"><code>analyze()</code><a class="headerlink" href="#analyze" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">aerisplane</span><span class="o">.</span><span class="n">stability</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">aircraft</span><span class="p">,</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="n">condition</span><span class="p">,</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">weight_result</span><span class="p">,</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">aero_method</span><span class="o">=</span><span class="s2">&quot;vlm&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">compute_rate_derivatives</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="o">**</span><span class="n">aero_kwargs</span><span class="p">,</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StabilityResult</span>
+</code></pre></div>
+<p>Runs a full static (and optionally dynamic) stability analysis.</p>
+<p>Steps performed internally:
+1. Compute stability derivatives via central finite differences (5 aero evaluations).
+2. Find trim alpha and trim elevator using Brent's method.
+3. Compute horizontal and vertical tail volume coefficients.
+4. Determine CG envelope limits from the neutral point.
+5. Estimate dynamic stability modes (short-period, phugoid) if rate derivatives are requested.</p>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>aircraft</code></td>
+<td><code>Aircraft</code></td>
+<td>—</td>
+<td>Aircraft geometry definition</td>
+</tr>
+<tr>
+<td><code>condition</code></td>
+<td><code>FlightCondition</code></td>
+<td>—</td>
+<td>Operating point (speed, altitude, alpha, beta)</td>
+</tr>
+<tr>
+<td><code>weight_result</code></td>
+<td><code>WeightResult</code></td>
+<td>—</td>
+<td>Provides CG position and total mass</td>
+</tr>
+<tr>
+<td><code>aero_method</code></td>
+<td><code>str</code></td>
+<td><code>"vlm"</code></td>
+<td>Aero solver — passed to <code>aero.analyze()</code></td>
+</tr>
+<tr>
+<td><code>compute_rate_derivatives</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Also compute p, q, r rate derivatives and dynamic modes (6 extra aero calls)</td>
+</tr>
+<tr>
+<td><code>**aero_kwargs</code></td>
+<td></td>
+<td></td>
+<td>Extra keyword arguments forwarded to <code>aero.analyze()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="number-of-aero-evaluations">Number of aero evaluations<a class="headerlink" href="#number-of-aero-evaluations" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Evaluations</th>
+<th>What is computed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default (static only)</td>
+<td>5</td>
+<td>CL_alpha, Cm_alpha, Cl_beta, Cn_beta; trim; NP; CG envelope</td>
+</tr>
+<tr>
+<td><code>compute_rate_derivatives=True</code></td>
+<td>11</td>
+<td>All of the above plus CL_q, Cm_q, Cl_p, Cn_p, CY_p, Cn_r, Cl_r, CY_r and dynamic modes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="stabilityresult"><code>StabilityResult</code><a class="headerlink" href="#stabilityresult" title="Permanent link">&para;</a></h2>
+<p>Returned by <code>analyze()</code>. All quantities are in SI units unless otherwise noted.</p>
+<h3 id="longitudinal-static-stability_1">Longitudinal static stability<a class="headerlink" href="#longitudinal-static-stability_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>static_margin</code></td>
+<td>fraction of MAC</td>
+<td>NP position ahead of CG. Positive = statically stable. Typical RC target: 5–15 % MAC.</td>
+</tr>
+<tr>
+<td><code>neutral_point</code></td>
+<td>m</td>
+<td>Neutral point x-position from the aircraft nose</td>
+</tr>
+<tr>
+<td><code>Cm_alpha</code></td>
+<td>1/deg</td>
+<td>Pitching moment derivative. <strong>Negative = statically stable.</strong></td>
+</tr>
+<tr>
+<td><code>CL_alpha</code></td>
+<td>1/deg</td>
+<td>Lift curve slope (typically 0.07–0.12 /deg for conventional wings)</td>
+</tr>
+<tr>
+<td><code>CL_baseline</code></td>
+<td>—</td>
+<td>Lift coefficient at the analysis condition</td>
+</tr>
+<tr>
+<td><code>Cm_baseline</code></td>
+<td>—</td>
+<td>Pitching moment coefficient at the analysis condition</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lateral-directional-static-stability_1">Lateral-directional static stability<a class="headerlink" href="#lateral-directional-static-stability_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Cl_beta</code></td>
+<td>1/deg</td>
+<td>Roll due to sideslip (dihedral effect). <strong>Negative = stable</strong> — aircraft rolls into the wind when sideslipped.</td>
+</tr>
+<tr>
+<td><code>Cn_beta</code></td>
+<td>1/deg</td>
+<td>Yaw due to sideslip (weathercock stability). <strong>Positive = stable</strong> — aircraft yaws into the wind when sideslipped.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rate-derivatives">Rate derivatives<a class="headerlink" href="#rate-derivatives" title="Permanent link">&para;</a></h3>
+<p>These fields are <code>None</code> when <code>compute_rate_derivatives=False</code>.</p>
+<p>All rate derivatives are per unit nondimensional rate (e.g. q̂ = qc/2V, p̂ = pb/2V, r̂ = rb/2V).</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Nondim. rate</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CL_q</code></td>
+<td>qc/2V</td>
+<td>Lift due to pitch rate</td>
+</tr>
+<tr>
+<td><code>Cm_q</code></td>
+<td>qc/2V</td>
+<td><strong>Pitch damping</strong> — negative = damped short-period</td>
+</tr>
+<tr>
+<td><code>Cl_p</code></td>
+<td>pb/2V</td>
+<td><strong>Roll damping</strong> — negative = damped roll response</td>
+</tr>
+<tr>
+<td><code>Cn_p</code></td>
+<td>pb/2V</td>
+<td>Adverse yaw due to roll rate — negative = adverse yaw</td>
+</tr>
+<tr>
+<td><code>CY_p</code></td>
+<td>pb/2V</td>
+<td>Side force due to roll rate</td>
+</tr>
+<tr>
+<td><code>Cn_r</code></td>
+<td>rb/2V</td>
+<td><strong>Yaw damping</strong> — negative = damped yaw response</td>
+</tr>
+<tr>
+<td><code>Cl_r</code></td>
+<td>rb/2V</td>
+<td>Roll due to yaw rate</td>
+</tr>
+<tr>
+<td><code>CY_r</code></td>
+<td>rb/2V</td>
+<td>Side force due to yaw rate</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dynamic-stability-modes">Dynamic stability modes<a class="headerlink" href="#dynamic-stability-modes" title="Permanent link">&para;</a></h3>
+<p>These fields are <code>None</code> when rate derivatives are not computed, and <code>NaN</code> when the computation is numerically indeterminate (e.g. Cm_alpha and Cm_q have the wrong sign combination for the short-period formula).</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sp_frequency</code></td>
+<td>rad/s</td>
+<td>Short-period natural frequency</td>
+</tr>
+<tr>
+<td><code>sp_damping</code></td>
+<td>—</td>
+<td>Short-period damping ratio (ζ). Positive = oscillation decays.</td>
+</tr>
+<tr>
+<td><code>ph_frequency</code></td>
+<td>rad/s</td>
+<td>Phugoid natural frequency (Lanchester approximation: g√2/V)</td>
+</tr>
+<tr>
+<td><code>ph_damping</code></td>
+<td>—</td>
+<td>Phugoid damping ratio (Lanchester: CD/CL/√2). Typically low (0.01–0.05).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="trim_1">Trim<a class="headerlink" href="#trim_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>trim_alpha</code></td>
+<td>deg</td>
+<td>Angle of attack where Cm = 0 at the current CG</td>
+</tr>
+<tr>
+<td><code>trim_elevator</code></td>
+<td>deg</td>
+<td>Elevator deflection for steady level flight. <code>NaN</code> if no elevator is found or elevator lacks authority (Cm does not cross zero in ±25°).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tail-volume-coefficients_1">Tail volume coefficients<a class="headerlink" href="#tail-volume-coefficients_1" title="Permanent link">&para;</a></h3>
+<p>Tail volume coefficients are standard sizing parameters for preliminary design.
+Typical RC/UAV values: Vh ≈ 0.35–0.60, Vv ≈ 0.03–0.06.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Vh</code></td>
+<td>Horizontal tail volume: S_ht · l_ht / (S_w · c̄_w). <code>NaN</code> if no horizontal tail found.</td>
+</tr>
+<tr>
+<td><code>Vv</code></td>
+<td>Vertical tail volume: S_vt · l_vt / (S_w · b_w). <code>NaN</code> if no vertical tail found.</td>
+</tr>
+</tbody>
+</table>
+<p>Tail identification uses wing geometry (symmetric → horizontal, non-symmetric → vertical) and name hints (<code>"vtail"</code>, <code>"vertical"</code>).</p>
+<h3 id="cg-envelope_1">CG envelope<a class="headerlink" href="#cg-envelope_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cg_forward_limit</code></td>
+<td>Forward CG limit as fraction of MAC from MAC leading edge</td>
+</tr>
+<tr>
+<td><code>cg_aft_limit</code></td>
+<td>Aft CG limit as fraction of MAC from MAC leading edge</td>
+</tr>
+</tbody>
+</table>
+<p>Both limits include a 5 % MAC safety margin from the neutral point. The aft limit is NP − 5 % MAC; the forward limit is NP − SM − 5 % MAC (minimum 5 % from LE).</p>
+<h3 id="reference-values">Reference values<a class="headerlink" href="#reference-values" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cg_x</code></td>
+<td>m</td>
+<td>CG x-position used for this analysis</td>
+</tr>
+<tr>
+<td><code>mac</code></td>
+<td>m</td>
+<td>Mean aerodynamic chord of the main wing</td>
+</tr>
+<tr>
+<td><code>mac_le_x</code></td>
+<td>m</td>
+<td>MAC leading edge x-position</td>
+</tr>
+</tbody>
+</table>
+<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
+<h4 id="report"><code>report()</code><a class="headerlink" href="#report" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">result</span><span class="o">.</span><span class="n">report</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+<p>Returns a formatted plain-text stability report. Print it with <code>print(result.report())</code>.</p>
+<p>Sections always included: longitudinal static stability, lateral-directional static stability, trim, tail volume coefficients, CG envelope, and baseline coefficients.</p>
+<p>Sections shown only when rate derivatives are available: rate derivatives table, dynamic stability modes (short-period and phugoid frequencies, periods, and damping ratios).</p>
+<h4 id="plot"><code>plot()</code><a class="headerlink" href="#plot" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span>
+</code></pre></div>
+<p>Returns a 1×2 figure (14×6 inches):</p>
+<ul>
+<li><strong>Left panel — Pitch Stability:</strong> Cm vs alpha. If an alpha sweep was stored (e.g. from a polar run), the full curve is plotted. Otherwise a tangent line ±3° around the trim alpha is shown. Trim alpha is marked with a vertical dotted line.</li>
+<li><strong>Right panel — CG Envelope:</strong> A MAC bar (LE at 0, TE at 1) with the allowable CG range shaded, the current CG marked with a triangle, and the neutral point with a diamond. Forward and aft CG limits are drawn as dashed red lines.</li>
+</ul>
+<hr />
+<h2 id="compute_derivatives"><code>compute_derivatives()</code><a class="headerlink" href="#compute_derivatives" title="Permanent link">&para;</a></h2>
+<p>Lower-level function used internally by <code>analyze()</code>. Call this directly when you only need the raw finite-difference derivatives without trim or tail volume computation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.stability.derivatives</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_derivatives</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="n">deriv</span> <span class="o">=</span> <span class="n">compute_derivatives</span><span class="p">(</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">aircraft</span><span class="p">,</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="n">condition</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="n">weight_result</span><span class="p">,</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>    <span class="n">aero_method</span><span class="o">=</span><span class="s2">&quot;vlm&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>    <span class="n">compute_rate_derivatives</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>    <span class="o">**</span><span class="n">aero_kwargs</span><span class="p">,</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DerivativeResult</span>
+</code></pre></div>
+<h3 id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">&para;</a></h3>
+<p>Same as <code>analyze()</code>. The aircraft's moment reference is overridden internally to the CG from <code>weight_result</code>.</p>
+<h3 id="finite-difference-step-sizes">Finite-difference step sizes<a class="headerlink" href="#finite-difference-step-sizes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Perturbation</th>
+<th>Step</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>α (angle of attack)</td>
+<td>±0.5 deg</td>
+<td>Small enough for linearity, large enough to avoid VLM noise</td>
+</tr>
+<tr>
+<td>β (sideslip)</td>
+<td>±1.0 deg</td>
+<td>Larger step because lateral derivatives are smaller</td>
+</tr>
+<tr>
+<td>p̂, q̂, r̂ (nondimensional rate)</td>
+<td>±0.001</td>
+<td>Standard nondimensional rate perturbation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="derivativeresult-fields"><code>DerivativeResult</code> fields<a class="headerlink" href="#derivativeresult-fields" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Unit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CL_alpha</code></td>
+<td>1/deg</td>
+<td>dCL/dα</td>
+</tr>
+<tr>
+<td><code>Cm_alpha</code></td>
+<td>1/deg</td>
+<td>dCm/dα</td>
+</tr>
+<tr>
+<td><code>Cl_beta</code></td>
+<td>1/deg</td>
+<td>dCl/dβ</td>
+</tr>
+<tr>
+<td><code>Cn_beta</code></td>
+<td>1/deg</td>
+<td>dCn/dβ</td>
+</tr>
+<tr>
+<td><code>neutral_point</code></td>
+<td>m</td>
+<td>Neutral point x-position</td>
+</tr>
+<tr>
+<td><code>static_margin</code></td>
+<td>fraction of MAC</td>
+<td>(NP − CG) / MAC</td>
+</tr>
+<tr>
+<td><code>cg_x</code></td>
+<td>m</td>
+<td>CG x-position used</td>
+</tr>
+<tr>
+<td><code>mac</code></td>
+<td>m</td>
+<td>Reference chord</td>
+</tr>
+<tr>
+<td><code>mac_le_x</code></td>
+<td>m</td>
+<td>MAC leading edge x-position</td>
+</tr>
+<tr>
+<td><code>baseline</code></td>
+<td><code>AeroResult</code></td>
+<td>Full aero result at the analysis condition</td>
+</tr>
+<tr>
+<td><code>CL_q</code>, <code>Cm_q</code></td>
+<td>per qc/2V</td>
+<td>Pitch rate derivatives (<code>None</code> if not computed)</td>
+</tr>
+<tr>
+<td><code>Cl_p</code>, <code>Cn_p</code>, <code>CY_p</code></td>
+<td>per pb/2V</td>
+<td>Roll rate derivatives (<code>None</code> if not computed)</td>
+</tr>
+<tr>
+<td><code>Cn_r</code>, <code>Cl_r</code>, <code>CY_r</code></td>
+<td>per rb/2V</td>
+<td>Yaw rate derivatives (<code>None</code> if not computed)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sign-conventions">Sign conventions<a class="headerlink" href="#sign-conventions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Sign</th>
+<th>Physical meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cm_alpha &lt; 0</td>
+<td>Statically stable — nose pitches down when alpha increases</td>
+</tr>
+<tr>
+<td>Cl_beta &lt; 0</td>
+<td>Dihedral effect — roll restores wings level when sideslipped</td>
+</tr>
+<tr>
+<td>Cn_beta &gt; 0</td>
+<td>Weathercock — yaws into the wind when sideslipped</td>
+</tr>
+<tr>
+<td>Cm_q &lt; 0</td>
+<td>Pitch rate damps short-period oscillation</td>
+</tr>
+<tr>
+<td>Cl_p &lt; 0</td>
+<td>Roll damping — roll rate decays without input</td>
+</tr>
+<tr>
+<td>Cn_r &lt; 0</td>
+<td>Yaw damping — yaw rate decays without input</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>weights.analyze() → WeightResult (CG, mass, inertia)
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>       ↓
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>stability.analyze() → StabilityResult
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>       ↑ uses aero.analyze() internally (5 or 11 calls)
+</code></pre></div>
+<p><code>analyze()</code> requires a <code>WeightResult</code> — always run <code>weights.analyze()</code> first.</p>
+<hr />
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<h3 id="stability-check-at-cruise">Stability check at cruise<a class="headerlink" href="#stability-check-at-cruise" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">aerisplane</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ap</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane</span><span class="w"> </span><span class="kn">import</span> <span class="n">weights</span><span class="p">,</span> <span class="n">stability</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="n">weight_result</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">)</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="n">condition</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">FlightCondition</span><span class="p">(</span><span class="n">velocity</span><span class="o">=</span><span class="mf">18.0</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="n">result</span> <span class="o">=</span> <span class="n">stability</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">)</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">report</span><span class="p">())</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="c1"># Check stability margins</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Static margin  : </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">static_margin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> % MAC&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cm_alpha       : </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">Cm_alpha</span><span class="si">:</span><span class="s2">+.5f</span><span class="si">}</span><span class="s2"> /deg&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cn_beta (wc)   : </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">Cn_beta</span><span class="si">:</span><span class="s2">+.5f</span><span class="si">}</span><span class="s2"> /deg&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trim alpha     : </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">trim_alpha</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> deg&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="full-analysis-with-dynamic-modes">Full analysis with dynamic modes<a class="headerlink" href="#full-analysis-with-dynamic-modes" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">stability</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>    <span class="n">aircraft</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>    <span class="n">compute_rate_derivatives</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="p">)</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="c1"># Short-period period and damping</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">sp_frequency</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">sp_frequency</span><span class="p">):</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>    <span class="n">sp_period</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">result</span><span class="o">.</span><span class="n">sp_frequency</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Short-period: T=</span><span class="si">{</span><span class="n">sp_period</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s, ζ=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">sp_damping</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="c1"># Phugoid period</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">ph_frequency</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">ph_frequency</span><span class="p">):</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>    <span class="n">ph_period</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">result</span><span class="o">.</span><span class="n">ph_frequency</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Phugoid: T=</span><span class="si">{</span><span class="n">ph_period</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s, ζ=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">ph_damping</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="cg-sensitivity-sweep">CG sensitivity sweep<a class="headerlink" href="#cg-sensitivity-sweep" title="Permanent link">&para;</a></h3>
+<p>Evaluate how static margin changes as CG moves fore and aft (e.g. during a payload trade).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.weights.result</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComponentOverride</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="n">cg_offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>  <span class="c1"># ±50 mm from nominal</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="n">margins</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="k">for</span> <span class="n">dx</span> <span class="ow">in</span> <span class="n">cg_offsets</span><span class="p">:</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>    <span class="c1"># Shift payload CG by dx to move total CG</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>    <span class="n">result_w</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">overrides</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>        <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="n">ComponentOverride</span><span class="p">(</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>            <span class="n">mass</span><span class="o">=</span><span class="mf">0.200</span><span class="p">,</span>
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>            <span class="n">cg</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nominal_cg_x</span> <span class="o">+</span> <span class="n">dx</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>        <span class="p">)</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a>    <span class="p">})</span>
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a>    <span class="n">result_s</span> <span class="o">=</span> <span class="n">stability</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">result_w</span><span class="p">)</span>
+<a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a>    <span class="n">margins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result_s</span><span class="o">.</span><span class="n">static_margin</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+<a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a>
+<a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="k">for</span> <span class="n">dx</span><span class="p">,</span> <span class="n">sm</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cg_offsets</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">margins</span><span class="p">):</span>
+<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CG offset </span><span class="si">{</span><span class="n">dx</span><span class="si">:</span><span class="s2">+.0f</span><span class="si">}</span><span class="s2"> mm → static margin </span><span class="si">{</span><span class="n">sm</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> % MAC&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="sweep-alpha-to-capture-the-cm-curve">Sweep alpha to capture the Cm(α) curve<a class="headerlink" href="#sweep-alpha-to-capture-the-cm-curve" title="Permanent link">&para;</a></h3>
+<p>The trim solver uses a single linear estimate. For a full Cm-vs-alpha sweep, call <code>compute_derivatives()</code> directly and interrogate the baseline result at each alpha.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.stability.derivatives</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_derivatives</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="n">alphas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="n">Cms</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">alphas</span><span class="p">:</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>    <span class="n">cond</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">FlightCondition</span><span class="p">(</span><span class="n">velocity</span><span class="o">=</span><span class="mf">18.0</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>    <span class="n">deriv</span> <span class="o">=</span> <span class="n">compute_derivatives</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">)</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>    <span class="n">Cms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deriv</span><span class="o">.</span><span class="n">baseline</span><span class="o">.</span><span class="n">Cm</span><span class="p">)</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="c1"># Find trim alpha by interpolation</span>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="n">trim_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">Cms</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">alphas</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Trim alpha (from sweep) = </span><span class="si">{</span><span class="n">trim_a</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> deg&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="checking-tail-sizing">Checking tail sizing<a class="headerlink" href="#checking-tail-sizing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">stability</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">)</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># Rule-of-thumb targets for RC/UAV class</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">Vh_target</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.35</span><span class="p">,</span> <span class="mf">0.60</span><span class="p">)</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="n">Vv_target</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">)</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vh = </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">Vh</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">  (target </span><span class="si">{</span><span class="n">Vh_target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">Vh_target</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vv = </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">Vv</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">  (target </span><span class="si">{</span><span class="n">Vv_target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">–</span><span class="si">{</span><span class="n">Vv_target</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="auto-generated-reference">Auto-generated reference<a class="headerlink" href="#auto-generated-reference" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="aerisplane.stability.analyze" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aerisplane</span><span class="o">.</span><span class="n">stability</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">aero_method</span><span class="o">=</span><span class="s1">&#39;vlm&#39;</span><span class="p">,</span> <span class="n">compute_rate_derivatives</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">aero_kwargs</span><span class="p">)</span></code>
+
+<a href="#aerisplane.stability.analyze" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Run a full static stability analysis.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>aircraft</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="aerisplane.core.aircraft.Aircraft
+
+
+  
+      dataclass
+  " href="../core/#aerisplane.core.aircraft.Aircraft">Aircraft</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Aircraft geometry definition.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>condition</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="aerisplane.core.flight_condition.FlightCondition
+
+
+  
+      dataclass
+  " href="../core/#aerisplane.core.flight_condition.FlightCondition">FlightCondition</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Operating point (velocity, altitude, alpha, beta).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>weight_result</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="aerisplane.weights.result.WeightResult
+
+
+  
+      dataclass
+  " href="../weights/#aerisplane.weights.result.WeightResult">WeightResult</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Weight analysis result providing CG position.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>aero_method</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Aero solver method (default "vlm").</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;vlm&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>compute_rate_derivatives</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If True, also compute p, q, r rate derivatives and dynamic stability
+modes (short-period, phugoid).  Adds 6 extra aero evaluations.
+Default False.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**aero_kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional keyword arguments passed to aero.analyze().</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="aerisplane.stability.result.StabilityResult
+
+
+  
+      dataclass
+  " href="#aerisplane.stability.result.StabilityResult">StabilityResult</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Complete stability analysis result.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aerisplane.stability.result.StabilityResult" class="doc doc-heading">
+            <code>aerisplane.stability.result.StabilityResult</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#aerisplane.stability.result.StabilityResult" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>Static and dynamic stability analysis result.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.static_margin">static_margin</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Static margin as fraction of MAC (positive = stable).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.neutral_point">neutral_point</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Neutral point x-position [m] from aircraft origin.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cm_alpha">Cm_alpha</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Pitch moment derivative dCm/dalpha [1/deg]. Negative = stable.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.CL_alpha">CL_alpha</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Lift curve slope dCL/dalpha [1/deg].</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cl_beta">Cl_beta</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Roll-due-to-sideslip dCl/dbeta [1/deg]. Negative = stable (dihedral effect).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cn_beta">Cn_beta</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Yaw-due-to-sideslip dCn/dbeta [1/deg]. Positive = stable (weathercock).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.CL_q">CL_q</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Lift due to pitch rate (q_hat = qc/2V). None if rate derivatives not computed.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cm_q">Cm_q</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Pitch damping derivative (negative = damped). None if rate derivatives not computed.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cl_p">Cl_p</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Roll damping derivative (negative = damped). None if rate derivatives not computed.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cn_p">Cn_p</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Yaw due to roll rate — adverse yaw. None if rate derivatives not computed.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.CY_p">CY_p</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Side force due to roll rate. None if rate derivatives not computed.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cn_r">Cn_r</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Yaw damping derivative (negative = damped). None if rate derivatives not computed.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cl_r">Cl_r</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Roll due to yaw rate. None if rate derivatives not computed.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.CY_r">CY_r</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Side force due to yaw rate. None if rate derivatives not computed.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.sp_frequency">sp_frequency</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Short-period natural frequency [rad/s].</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.sp_damping">sp_damping</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Short-period damping ratio (positive = damped).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.ph_frequency">ph_frequency</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Phugoid natural frequency [rad/s] (Lanchester approximation).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.ph_damping">ph_damping</span></code></td>
+            <td>
+                  <code><span title="float">float</span> or None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Phugoid damping ratio (Lanchester: CD/CL/sqrt(2)).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.trim_alpha">trim_alpha</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Angle of attack for Cm = 0 at current CG [deg].</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.trim_elevator">trim_elevator</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Elevator deflection for trimmed level flight [deg]. NaN if no elevator
+found or insufficient authority.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Vh">Vh</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Horizontal tail volume coefficient. NaN if no htail found.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Vv">Vv</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Vertical tail volume coefficient. NaN if no vtail found.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.cg_forward_limit">cg_forward_limit</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Forward CG limit as fraction of MAC from wing LE.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.cg_aft_limit">cg_aft_limit</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Aft CG limit as fraction of MAC from wing LE.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.cg_x">cg_x</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>CG x-position used for analysis [m].</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.mac">mac</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mean aerodynamic chord [m].</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.mac_le_x">mac_le_x</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>MAC leading edge x-position [m].</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.CL_baseline">CL_baseline</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Lift coefficient at the analysis condition.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="aerisplane.stability.result.StabilityResult.Cm_baseline">Cm_baseline</span></code></td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Pitching moment coefficient at the analysis condition.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aerisplane.stability.result.StabilityResult.report" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">report</span><span class="p">()</span></code>
+
+<a href="#aerisplane.stability.result.StabilityResult.report" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Formatted plain-text stability analysis report.</p>
+<p>Sections always included:
+  • Longitudinal Static Stability — CL_alpha, Cm_alpha, neutral point,
+    CG position, static margin, and a STABLE / UNSTABLE verdict.
+  • Lateral-Directional Static Stability — Cl_beta (dihedral effect)
+    and Cn_beta (weathercock), each with an OK / WARN flag.
+  • Trim — trim alpha and trim elevator (or N/A if unavailable).
+  • Tail Volume Coefficients — Vh and Vv (or N/A if not identified).
+  • CG Envelope — forward and aft limits as % MAC, with current CG.
+  • Baseline Coefficients — CL and Cm at the analysis condition.</p>
+<p>Sections shown only when rate derivatives were computed:
+  • Rate Derivatives — CL_q, Cm_q (pitch damping), Cl_p, Cn_p
+    (roll damping, adverse yaw), Cn_r, Cl_r (yaw damping).
+  • Dynamic Stability Modes — short-period ω, T, ζ and phugoid ω, T, ζ
+    (Lanchester approximation); N/A printed when computation failed.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Multi-line string suitable for printing to a terminal or saving
+to a text file.  No trailing newline.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aerisplane.stability.result.StabilityResult.plot" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">plot</span><span class="p">()</span></code>
+
+<a href="#aerisplane.stability.result.StabilityResult.plot" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Static stability summary figure (two panels).</p>
+<p>Left panel — Pitch Stability (Cm vs alpha):
+    If a Cm-alpha sweep was stored in _alpha_sweep / _Cm_sweep (e.g.
+    from a polar run), the full curve is plotted.  Otherwise a tangent
+    line spanning ±3° around trim_alpha is drawn, labelled with
+    Cm_alpha.  A dashed horizontal line marks Cm = 0, and a dotted
+    vertical line marks the trim angle of attack.</p>
+<p>Right panel — CG Envelope:
+    A horizontal bar representing the full MAC (leading edge at 0,
+    trailing edge at 1) is drawn in light grey.  The allowable CG
+    range (forward_limit to aft_limit, both as fractions of MAC) is
+    shaded.  The current CG is marked with a downward triangle and
+    the neutral point with a diamond.  Dashed and dash-dot red lines
+    show the forward and aft CG limits.  LE / TE labels appear below
+    the bar.  The figure title states the static margin in % MAC.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="matplotlib.figure.Figure">Figure</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>1×2 figure, 14×6 inches.  Call <code>plt.show()</code> or
+<code>fig.savefig(...)</code> on the returned object.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

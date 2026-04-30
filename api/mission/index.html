@@ -1,0 +1,2858 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://kasparstepan.github.io/AerisPlane/api/mission/">
+      
+      
+        <link rel="prev" href="../control/">
+      
+      
+        <link rel="next" href="../propulsion/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Mission - AerisPlane</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mission-flight-performance-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AerisPlane" class="md-header__button md-logo" aria-label="AerisPlane" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AerisPlane
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Mission
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/KasparStepan/AerisPlane" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    KasparStepan/AerisPlane
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../installation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Installation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/01_getting_started/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../core/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AerisPlane" class="md-nav__button md-logo" aria-label="AerisPlane" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AerisPlane
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/KasparStepan/AerisPlane" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    KasparStepan/AerisPlane
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_aerodynamics_executed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Aerodynamic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_weight_buildup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Weight Buildup Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_control_surfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Control Surface Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_flow_visualisation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — VLM Flow Visualisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_flight_performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Flight Performance &amp; Mission Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_full_discipline_chain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Full Discipline Chain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_mdo_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial 07 — MDO Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_propulsion_and_endurance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial 08 — Propulsion and Endurance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aero/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aerodynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../weights/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mission
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entry-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entry points
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Entry points">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#missionperformance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mission.performance()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missionenvelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mission.envelope()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missionanalyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mission.analyze()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#drag-polar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drag polar
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Drag polar">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dragpolar-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DragPolar dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-curves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Power curves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#characteristic-speeds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Characteristic speeds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#climb-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Climb performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#glide-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Glide performance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Glide performance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#glideperformance-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GlidePerformance dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endurance-and-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Endurance and range
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Envelope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Envelope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enveloperesult-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EnvelopeResult dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mission-segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mission segments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mission-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mission result
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mission result">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#missionresult-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MissionResult dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#segmentresult-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SegmentResult dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-generated reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.mission.analyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.mission.result.MissionResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MissionResult
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MissionResult">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aerisplane.mission.result.MissionResult.plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../propulsion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Propulsion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mdo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MDO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entry-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entry points
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Entry points">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#missionperformance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mission.performance()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missionenvelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mission.envelope()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#missionanalyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mission.analyze()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#drag-polar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drag polar
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Drag polar">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dragpolar-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DragPolar dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-curves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Power curves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#characteristic-speeds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Characteristic speeds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#climb-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Climb performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#glide-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Glide performance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Glide performance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#glideperformance-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GlidePerformance dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#endurance-and-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Endurance and range
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#envelope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Envelope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Envelope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enveloperesult-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EnvelopeResult dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mission-segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mission segments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mission-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mission result
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mission result">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#missionresult-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MissionResult dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#segmentresult-dataclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SegmentResult dataclass
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-generated reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.mission.analyze" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        analyze
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.mission.result.MissionResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MissionResult
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MissionResult">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aerisplane.mission.result.MissionResult.plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mission-flight-performance-api">Mission &amp; Flight Performance API<a class="headerlink" href="#mission-flight-performance-api" title="Permanent link">&para;</a></h1>
+<p>Module: <code>aerisplane.mission</code></p>
+<hr />
+<h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">aerisplane</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ap</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane</span><span class="w"> </span><span class="kn">import</span> <span class="n">weights</span><span class="p">,</span> <span class="n">mission</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.mission.segments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mission</span><span class="p">,</span> <span class="n">Climb</span><span class="p">,</span> <span class="n">Cruise</span><span class="p">,</span> <span class="n">Loiter</span><span class="p">,</span> <span class="n">Descent</span><span class="p">,</span> <span class="n">Return</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 1. Build aircraft with propulsion system</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">aircraft</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">Aircraft</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_uav&quot;</span><span class="p">,</span> <span class="n">wings</span><span class="o">=</span><span class="p">[</span><span class="n">main_wing</span><span class="p">],</span> <span class="n">fuselages</span><span class="o">=</span><span class="p">[</span><span class="n">fuse</span><span class="p">],</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                       <span class="n">propulsion</span><span class="o">=</span><span class="n">propulsion</span><span class="p">)</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># 2. Weight analysis (needed for CG and mass)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">weight_result</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># 3. Flight envelope (power curves, speeds, climb, glide, endurance)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">env</span> <span class="o">=</span> <span class="n">mission</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nb">print</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">report</span><span class="p">())</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">env</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="c1"># 4. Mission energy budget</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">my_mission</span> <span class="o">=</span> <span class="n">Mission</span><span class="p">(</span><span class="n">segments</span><span class="o">=</span><span class="p">[</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">Climb</span><span class="p">(</span><span class="n">to_altitude</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">climb_rate</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="mf">12.0</span><span class="p">),</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">Cruise</span><span class="p">(</span><span class="n">distance</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">100.0</span><span class="p">),</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">Descent</span><span class="p">(</span><span class="n">to_altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">])</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="n">result</span> <span class="o">=</span> <span class="n">mission</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">my_mission</span><span class="p">)</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">report</span><span class="p">())</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h2 id="entry-points">Entry points<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h2>
+<h3 id="missionperformance"><code>mission.performance()</code><a class="headerlink" href="#missionperformance" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">mission</span><span class="o">.</span><span class="n">performance</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">aero_method</span><span class="o">=</span><span class="s2">&quot;vlm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DragPolar</span>
+</code></pre></div>
+<p>Fits a parabolic drag polar CD = CD0 + k·CL² from VLM evaluations at 3 speeds.</p>
+<h3 id="missionenvelope"><code>mission.envelope()</code><a class="headerlink" href="#missionenvelope" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">mission</span><span class="o">.</span><span class="n">envelope</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">CL_max</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span> <span class="n">aero_method</span><span class="o">=</span><span class="s2">&quot;vlm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnvelopeResult</span>
+</code></pre></div>
+<p>Computes the full flight performance envelope across altitudes (0–3000 m by default).</p>
+<h3 id="missionanalyze"><code>mission.analyze()</code><a class="headerlink" href="#missionanalyze" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">mission</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">mission</span><span class="p">,</span> <span class="n">aero_method</span><span class="o">=</span><span class="s2">&quot;vlm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MissionResult</span>
+</code></pre></div>
+<p>Runs a mission energy budget analysis. For each segment, computes duration, distance, and energy consumed.</p>
+<hr />
+<h2 id="performance-functions">Performance functions<a class="headerlink" href="#performance-functions" title="Permanent link">&para;</a></h2>
+<p>Module: <code>aerisplane.mission.performance</code></p>
+<h3 id="drag-polar">Drag polar<a class="headerlink" href="#drag-polar" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">fit_drag_polar</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">aero_method</span><span class="o">=</span><span class="s2">&quot;vlm&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>               <span class="n">speeds</span><span class="o">=</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">DragPolar</span>
+</code></pre></div>
+<p>Fits CD = CD0 + k·CL² by running the aero solver at several speeds and doing a least-squares fit. Since VLM is inviscid, parasitic drag (CD0) is estimated from turbulent flat-plate skin friction when the fitted value is too small.</p>
+<h4 id="dragpolar-dataclass"><code>DragPolar</code> dataclass<a class="headerlink" href="#dragpolar-dataclass" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CD0</code></td>
+<td><code>float</code></td>
+<td>Zero-lift drag coefficient</td>
+</tr>
+<tr>
+<td><code>k</code></td>
+<td><code>float</code></td>
+<td>Induced drag factor (k = 1/(π·AR·e))</td>
+</tr>
+<tr>
+<td><code>S_ref</code></td>
+<td><code>float</code></td>
+<td>Reference wing area [m²]</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cd(cl)</code></td>
+<td><code>float</code></td>
+<td>Total CD at given CL</td>
+</tr>
+<tr>
+<td><code>ld_max()</code></td>
+<td><code>float</code></td>
+<td>Maximum lift-to-drag ratio</td>
+</tr>
+<tr>
+<td><code>cl_for_ld_max()</code></td>
+<td><code>float</code></td>
+<td>CL at max L/D</td>
+</tr>
+<tr>
+<td><code>cl_for_min_power()</code></td>
+<td><code>float</code></td>
+<td>CL at minimum power required</td>
+</tr>
+</tbody>
+</table>
+<h3 id="power-curves">Power curves<a class="headerlink" href="#power-curves" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">power_required</span><span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>    <span class="c1"># [W]</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">power_available</span><span class="p">(</span><span class="n">propulsion</span><span class="p">,</span> <span class="n">velocity</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">throttle</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>  <span class="c1"># [W]</span>
+</code></pre></div>
+<ul>
+<li><code>power_required</code>: P_R = 0.5·ρ·S·CD0·V³ + 2·k·W²/(ρ·S·V)</li>
+<li><code>power_available</code>: thrust × velocity at the motor-prop operating point</li>
+</ul>
+<h3 id="characteristic-speeds">Characteristic speeds<a class="headerlink" href="#characteristic-speeds" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">stall_speed</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">CL_max</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>              <span class="c1"># [m/s]</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">best_range_speed</span><span class="p">(</span><span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>                  <span class="c1"># [m/s]</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">best_endurance_speed</span><span class="p">(</span><span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>              <span class="c1"># [m/s]</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">max_level_speed</span><span class="p">(</span><span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">propulsion</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="o">|</span><span class="kc">None</span>  <span class="c1"># [m/s]</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Speed</th>
+<th>Formula</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V_stall</td>
+<td>√(2W / (ρ·S·CL_max))</td>
+<td>Minimum flight speed</td>
+</tr>
+<tr>
+<td>V* (best range)</td>
+<td>V at CL = √(CD0/k)</td>
+<td>Maximum L/D, longest range</td>
+</tr>
+<tr>
+<td>V_mp (best endurance)</td>
+<td>0.76 × V*</td>
+<td>Minimum power, longest time aloft</td>
+</tr>
+<tr>
+<td>V_max</td>
+<td>Largest V where P_A ≥ P_R</td>
+<td>Maximum level flight speed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="climb-performance">Climb performance<a class="headerlink" href="#climb-performance" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">rate_of_climb</span><span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">propulsion</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>       <span class="c1"># [m/s]</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">max_rate_of_climb</span><span class="p">(</span><span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">propulsion</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">ROC_max</span><span class="p">,</span> <span class="n">V_y</span><span class="p">)</span>    <span class="c1"># [m/s]</span>
+</code></pre></div>
+<p>ROC = (P_A − P_R) / W. Returns the excess-power climb rate.</p>
+<h3 id="glide-performance">Glide performance<a class="headerlink" href="#glide-performance" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">glide_range</span><span class="p">(</span><span class="n">polar</span><span class="p">,</span> <span class="n">from_altitude</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>                    <span class="c1"># [m]</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">glide_performance</span><span class="p">(</span><span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GlidePerformance</span>
+</code></pre></div>
+<h4 id="glideperformance-dataclass"><code>GlidePerformance</code> dataclass<a class="headerlink" href="#glideperformance-dataclass" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>best_glide_ratio</code></td>
+<td><code>float</code></td>
+<td>L/D max</td>
+</tr>
+<tr>
+<td><code>best_glide_speed</code></td>
+<td><code>float</code></td>
+<td>Speed for best glide [m/s]</td>
+</tr>
+<tr>
+<td><code>min_sink_speed</code></td>
+<td><code>float</code></td>
+<td>Speed for minimum sink rate [m/s]</td>
+</tr>
+<tr>
+<td><code>min_sink_rate</code></td>
+<td><code>float</code></td>
+<td>Minimum vertical descent rate [m/s]</td>
+</tr>
+</tbody>
+</table>
+<h3 id="endurance-and-range">Endurance and range<a class="headerlink" href="#endurance-and-range" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">max_endurance</span><span class="p">(</span><span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">propulsion</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">eta_total</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>  <span class="c1"># [seconds]</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">max_range</span><span class="p">(</span><span class="n">polar</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">propulsion</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">eta_total</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>      <span class="c1"># [meters]</span>
+</code></pre></div>
+<ul>
+<li>Endurance: E_battery × η / P_R_min (at best endurance speed)</li>
+<li>Range: E_battery × η × (L/D)_max / W (at best range speed)</li>
+</ul>
+<p>If <code>eta_total</code> is None, overall efficiency is estimated from the motor and propeller models.</p>
+<hr />
+<h2 id="envelope">Envelope<a class="headerlink" href="#envelope" title="Permanent link">&para;</a></h2>
+<p>Module: <code>aerisplane.mission.envelope</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">compute_envelope</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">CL_max</span><span class="o">=</span><span class="mf">1.4</span><span class="p">,</span> <span class="n">altitudes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>                 <span class="n">aero_method</span><span class="o">=</span><span class="s2">&quot;vlm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnvelopeResult</span>
+</code></pre></div>
+<p>Sweeps performance across altitudes (default: 0–3000 m in 200 m steps). Fits the drag polar once at sea level and evaluates all performance metrics at each altitude.</p>
+<h4 id="enveloperesult-dataclass"><code>EnvelopeResult</code> dataclass<a class="headerlink" href="#enveloperesult-dataclass" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>altitudes</code></td>
+<td><code>ndarray</code></td>
+<td>Altitude array [m]</td>
+</tr>
+<tr>
+<td><code>stall_speeds</code></td>
+<td><code>ndarray</code></td>
+<td>Stall speed at each altitude [m/s]</td>
+</tr>
+<tr>
+<td><code>best_endurance_speeds</code></td>
+<td><code>ndarray</code></td>
+<td>Best endurance speed [m/s]</td>
+</tr>
+<tr>
+<td><code>best_range_speeds</code></td>
+<td><code>ndarray</code></td>
+<td>Best range speed [m/s]</td>
+</tr>
+<tr>
+<td><code>max_speeds</code></td>
+<td><code>ndarray</code></td>
+<td>Max level speed [m/s] (NaN if cannot fly)</td>
+</tr>
+<tr>
+<td><code>max_rocs</code></td>
+<td><code>ndarray</code></td>
+<td>Maximum rate of climb [m/s]</td>
+</tr>
+<tr>
+<td><code>best_climb_speeds</code></td>
+<td><code>ndarray</code></td>
+<td>V_y at each altitude [m/s]</td>
+</tr>
+<tr>
+<td><code>ld_max</code></td>
+<td><code>float</code></td>
+<td>Maximum L/D at sea level</td>
+</tr>
+<tr>
+<td><code>endurance_s</code></td>
+<td><code>float</code></td>
+<td>Max endurance [s]</td>
+</tr>
+<tr>
+<td><code>range_m</code></td>
+<td><code>float</code></td>
+<td>Max range [m]</td>
+</tr>
+<tr>
+<td><code>service_ceiling</code></td>
+<td><code>float</code></td>
+<td>Altitude where ROC = 0.5 m/s [m]</td>
+</tr>
+<tr>
+<td><code>absolute_ceiling</code></td>
+<td><code>float</code></td>
+<td>Altitude where ROC = 0 [m]</td>
+</tr>
+<tr>
+<td><code>best_glide_ratio</code></td>
+<td><code>float</code></td>
+<td>L/D max</td>
+</tr>
+<tr>
+<td><code>best_glide_speed</code></td>
+<td><code>float</code></td>
+<td>Best glide speed at SL [m/s]</td>
+</tr>
+<tr>
+<td><code>min_sink_rate</code></td>
+<td><code>float</code></td>
+<td>Min sink rate [m/s]</td>
+</tr>
+<tr>
+<td><code>polar</code></td>
+<td><code>DragPolar</code></td>
+<td>Fitted drag polar</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>report()</code></td>
+<td>Formatted text summary of all performance metrics</td>
+</tr>
+<tr>
+<td><code>plot()</code></td>
+<td>4-panel figure: power curves, speed envelope, ROC vs altitude, summary</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="mission-segments">Mission segments<a class="headerlink" href="#mission-segments" title="Permanent link">&para;</a></h2>
+<p>Module: <code>aerisplane.mission.segments</code></p>
+<table>
+<thead>
+<tr>
+<th>Segment</th>
+<th>Required fields</th>
+<th>Optional (defaults)</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Climb</code></td>
+<td><code>to_altitude</code>, <code>climb_rate</code>, <code>velocity</code></td>
+<td><code>name="climb"</code></td>
+<td>Constant-rate climb</td>
+</tr>
+<tr>
+<td><code>Cruise</code></td>
+<td><code>distance</code>, <code>velocity</code></td>
+<td><code>altitude=100.0</code></td>
+<td>Steady level cruise</td>
+</tr>
+<tr>
+<td><code>Loiter</code></td>
+<td><code>duration</code>, <code>velocity</code></td>
+<td><code>altitude=100.0</code></td>
+<td>Circling/holding at altitude</td>
+</tr>
+<tr>
+<td><code>Return</code></td>
+<td><code>distance</code>, <code>velocity</code></td>
+<td><code>altitude=100.0</code></td>
+<td>Return leg (like Cruise)</td>
+</tr>
+<tr>
+<td><code>Descent</code></td>
+<td><code>to_altitude</code></td>
+<td><code>descent_rate=2.0</code>, <code>velocity=15.0</code></td>
+<td>Partial-power descent</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">Mission</span><span class="p">(</span><span class="n">segments</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">start_altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</code></pre></div>
+<p>Ordered sequence of segments. Each segment's start altitude is the previous segment's end altitude.</p>
+<hr />
+<h2 id="mission-result">Mission result<a class="headerlink" href="#mission-result" title="Permanent link">&para;</a></h2>
+<p>Module: <code>aerisplane.mission.result</code></p>
+<h4 id="missionresult-dataclass"><code>MissionResult</code> dataclass<a class="headerlink" href="#missionresult-dataclass" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>total_energy</code></td>
+<td><code>float</code></td>
+<td>Total energy consumed [J]</td>
+</tr>
+<tr>
+<td><code>total_time</code></td>
+<td><code>float</code></td>
+<td>Total mission duration [s]</td>
+</tr>
+<tr>
+<td><code>total_distance</code></td>
+<td><code>float</code></td>
+<td>Total horizontal distance [m]</td>
+</tr>
+<tr>
+<td><code>battery_energy_available</code></td>
+<td><code>float</code></td>
+<td>Battery capacity [J]</td>
+</tr>
+<tr>
+<td><code>energy_margin</code></td>
+<td><code>float</code></td>
+<td>Fraction remaining (0=empty, 1=full)</td>
+</tr>
+<tr>
+<td><code>feasible</code></td>
+<td><code>bool</code></td>
+<td>True if enough battery for the mission</td>
+</tr>
+<tr>
+<td><code>segments</code></td>
+<td><code>list[SegmentResult]</code></td>
+<td>Per-segment breakdown</td>
+</tr>
+</tbody>
+</table>
+<h4 id="segmentresult-dataclass"><code>SegmentResult</code> dataclass<a class="headerlink" href="#segmentresult-dataclass" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Segment name</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td><code>float</code></td>
+<td>Duration [s]</td>
+</tr>
+<tr>
+<td><code>distance</code></td>
+<td><code>float</code></td>
+<td>Horizontal distance [m]</td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td><code>float</code></td>
+<td>Energy consumed [J]</td>
+</tr>
+<tr>
+<td><code>avg_power</code></td>
+<td><code>float</code></td>
+<td>Average electrical power [W]</td>
+</tr>
+<tr>
+<td><code>avg_speed</code></td>
+<td><code>float</code></td>
+<td>Average airspeed [m/s]</td>
+</tr>
+<tr>
+<td><code>altitude_start</code></td>
+<td><code>float</code></td>
+<td>Start altitude [m]</td>
+</tr>
+<tr>
+<td><code>altitude_end</code></td>
+<td><code>float</code></td>
+<td>End altitude [m]</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>report()</code></td>
+<td>Tabulated energy budget with totals and feasibility</td>
+</tr>
+<tr>
+<td><code>plot()</code></td>
+<td>2-panel figure: energy bars + altitude profile</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>weights.analyze() → WeightResult (mass, CG)
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>       ↓
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>mission.performance() → DragPolar (3 aero calls)
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>       ↓
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>mission.envelope() → EnvelopeResult (no extra aero calls)
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>mission.analyze() → MissionResult (no extra aero calls)
+</code></pre></div>
+<p>The user must run <code>weights.analyze()</code> first. The drag polar is fitted once (3 VLM evaluations), then all subsequent performance calculations are purely analytic — no additional aero calls needed.</p>
+<hr />
+<h2 id="auto-generated-reference">Auto-generated reference<a class="headerlink" href="#auto-generated-reference" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="aerisplane.mission.analyze" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aerisplane</span><span class="o">.</span><span class="n">mission</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">mission</span><span class="p">,</span> <span class="n">aero_method</span><span class="o">=</span><span class="s1">&#39;vlm&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">aero_kwargs</span><span class="p">)</span></code>
+
+<a href="#aerisplane.mission.analyze" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Run segment-by-segment mission energy budget analysis.</p>
+<p>Fits a drag polar once at sea level, then evaluates each segment
+in order for duration, distance, and electrical energy required.
+Compares total energy to the battery capacity.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>aircraft</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="aerisplane.core.aircraft.Aircraft
+
+
+  
+      dataclass
+  " href="../core/#aerisplane.core.aircraft.Aircraft">Aircraft</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Aircraft with a <code>propulsion</code> attribute (used for battery energy and
+efficiency estimation).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>weight_result</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="aerisplane.weights.result.WeightResult
+
+
+  
+      dataclass
+  " href="../weights/#aerisplane.weights.result.WeightResult">WeightResult</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Weight analysis result (provides total mass for power-required calculation).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>mission</code>
+            </td>
+            <td>
+                  <code><span title="aerisplane.mission.segments.Mission">Mission</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mission profile with ordered segments and start altitude.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>aero_method</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Aero solver used for drag polar fitting. Default <code>"vlm"</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;vlm&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**aero_kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional keyword arguments passed to <code>aero.analyze()</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="aerisplane.mission.result.MissionResult
+
+
+  
+      dataclass
+  " href="#aerisplane.mission.result.MissionResult">MissionResult</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Total energy [J], time [s], distance [m], battery margin, feasibility flag,
+and per-segment breakdown.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.mission</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyze</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.mission.segments</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mission</span><span class="p">,</span> <span class="n">Climb</span><span class="p">,</span> <span class="n">Cruise</span><span class="p">,</span> <span class="n">Loiter</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gp">&gt;&gt;&gt; </span><span class="n">mission</span> <span class="o">=</span> <span class="n">Mission</span><span class="p">(</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="gp">... </span>    <span class="n">start_altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="gp">... </span>    <span class="n">segments</span><span class="o">=</span><span class="p">[</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="gp">... </span>        <span class="n">Climb</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;climb&quot;</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="mf">14.0</span><span class="p">,</span> <span class="n">climb_rate</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">to_altitude</span><span class="o">=</span><span class="mf">100.0</span><span class="p">),</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="gp">... </span>        <span class="n">Cruise</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;cruise&quot;</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="mf">18.0</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">5000.0</span><span class="p">),</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="gp">... </span>        <span class="n">Loiter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;loiter&quot;</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="mf">16.0</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">600.0</span><span class="p">),</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="gp">... </span>    <span class="p">]</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="gp">... </span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">analyze</span><span class="p">(</span><span class="n">aircraft</span><span class="p">,</span> <span class="n">weight_result</span><span class="p">,</span> <span class="n">mission</span><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Feasible: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">feasible</span><span class="si">}</span><span class="s2">  margin: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">energy_margin</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aerisplane.mission.result.MissionResult" class="doc doc-heading">
+            <code>aerisplane.mission.result.MissionResult</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#aerisplane.mission.result.MissionResult" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>Complete mission energy budget result.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aerisplane.mission.result.MissionResult.plot" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">plot</span><span class="p">()</span></code>
+
+<a href="#aerisplane.mission.result.MissionResult.plot" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Mission profile: energy budget bars + altitude profile.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

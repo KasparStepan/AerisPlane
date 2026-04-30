@@ -1,0 +1,2414 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://kasparstepan.github.io/AerisPlane/api/catalog/">
+      
+      
+        <link rel="prev" href="../mdo/">
+      
+      
+        <link rel="next" href="../../architecture/overview/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Catalog - AerisPlane</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#catalog-aerisplanecatalog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AerisPlane" class="md-header__button md-logo" aria-label="AerisPlane" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AerisPlane
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Catalog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/KasparStepan/AerisPlane" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    KasparStepan/AerisPlane
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../installation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Installation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/01_getting_started/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../core/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../contributing/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AerisPlane" class="md-nav__button md-logo" aria-label="AerisPlane" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AerisPlane
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/KasparStepan/AerisPlane" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    KasparStepan/AerisPlane
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_aerodynamics_executed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Aerodynamic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_weight_buildup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Weight Buildup Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_control_surfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Control Surface Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_flow_visualisation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — VLM Flow Visualisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_flight_performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Flight Performance &amp; Mission Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_full_discipline_chain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AerisPlane — Full Discipline Chain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_mdo_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial 07 — MDO Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_propulsion_and_endurance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial 08 — Propulsion and Endurance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aero/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aerodynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../weights/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Weights
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Structures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../propulsion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Propulsion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mdo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MDO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalog
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#browsing-the-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browsing the catalog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-catalog-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using catalog items
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#motors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batteries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batteries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#propellers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Propellers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#airfoils" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Airfoils
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-generated reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.list_motors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_motors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.list_batteries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_batteries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.list_propellers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_propellers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.list_servos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_servos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.get_airfoil" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_airfoil
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#browsing-the-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browsing the catalog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-catalog-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using catalog items
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#motors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batteries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Batteries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#propellers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Propellers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#airfoils" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Airfoils
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-generated-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-generated reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.list_motors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_motors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.list_batteries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_batteries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.list_propellers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_propellers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.list_servos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_servos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aerisplane.catalog.get_airfoil" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_airfoil
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="catalog-aerisplanecatalog">Catalog — <code>aerisplane.catalog</code><a class="headerlink" href="#catalog-aerisplanecatalog" title="Permanent link">&para;</a></h1>
+<p>Hardware database of real-world components for direct use in <code>PropulsionSystem</code>
+and <code>Aircraft</code> definitions.</p>
+<hr />
+<h2 id="browsing-the-catalog">Browsing the catalog<a class="headerlink" href="#browsing-the-catalog" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_motors</span><span class="p">,</span> <span class="n">list_batteries</span><span class="p">,</span> <span class="n">list_propellers</span><span class="p">,</span> <span class="n">list_servos</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">motors</span> <span class="o">=</span> <span class="n">list_motors</span><span class="p">()</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">motors</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">kv</span><span class="p">):</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">40s</span><span class="si">}</span><span class="s2">  KV=</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">kv</span><span class="si">:</span><span class="s2">5.0f</span><span class="si">}</span><span class="s2">  I_max=</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">max_current</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">A  mass=</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">g&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="using-catalog-items">Using catalog items<a class="headerlink" href="#using-catalog-items" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.catalog.motors</span><span class="w">    </span><span class="kn">import</span> <span class="n">sunnysky_x2216_1250</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.catalog.batteries</span><span class="w"> </span><span class="kn">import</span> <span class="n">tattu_4s_5200</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.catalog.propellers</span><span class="w"> </span><span class="kn">import</span> <span class="n">apc_10x4_7sf</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.core.propulsion</span><span class="w"> </span><span class="kn">import</span> <span class="n">ESC</span><span class="p">,</span> <span class="n">PropulsionSystem</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">propulsion</span> <span class="o">=</span> <span class="n">PropulsionSystem</span><span class="p">(</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">motor</span><span class="o">=</span><span class="n">sunnysky_x2216_1250</span><span class="p">,</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">propeller</span><span class="o">=</span><span class="n">apc_10x4_7sf</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">battery</span><span class="o">=</span><span class="n">tattu_4s_5200</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">esc</span><span class="o">=</span><span class="n">ESC</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;generic_60A&quot;</span><span class="p">,</span> <span class="n">max_current</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">0.025</span><span class="p">),</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="motors">Motors<a class="headerlink" href="#motors" title="Permanent link">&para;</a></h2>
+<p>Import from <code>aerisplane.catalog.motors</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Name</th>
+<th>KV</th>
+<th>Max I [A]</th>
+<th>Mass [g]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sunnysky_x2216_1250</code></td>
+<td>SunnySky X2216 1250KV</td>
+<td>1250</td>
+<td>28</td>
+<td>58</td>
+</tr>
+<tr>
+<td><code>sunnysky_x2216_2400</code></td>
+<td>SunnySky X2216 2400KV</td>
+<td>2400</td>
+<td>28</td>
+<td>58</td>
+</tr>
+<tr>
+<td><code>sunnysky_x2212_980</code></td>
+<td>SunnySky X2212 980KV</td>
+<td>980</td>
+<td>20</td>
+<td>52</td>
+</tr>
+<tr>
+<td><code>tiger_mn3110_700</code></td>
+<td>T-Motor MN3110 700KV</td>
+<td>700</td>
+<td>16</td>
+<td>102</td>
+</tr>
+<tr>
+<td><code>tiger_mn3110_780</code></td>
+<td>T-Motor MN3110 780KV</td>
+<td>780</td>
+<td>16</td>
+<td>102</td>
+</tr>
+<tr>
+<td><code>tiger_mn2213_950</code></td>
+<td>T-Motor MN2213 950KV</td>
+<td>950</td>
+<td>14</td>
+<td>60</td>
+</tr>
+<tr>
+<td><code>tiger_mn4014_330</code></td>
+<td>T-Motor MN4014 330KV</td>
+<td>330</td>
+<td>22</td>
+<td>176</td>
+</tr>
+<tr>
+<td><code>tiger_mn5212_340</code></td>
+<td>T-Motor MN5212 340KV</td>
+<td>340</td>
+<td>30</td>
+<td>215</td>
+</tr>
+<tr>
+<td><code>t_motor_f80_1900</code></td>
+<td>T-Motor F80 1900KV</td>
+<td>1900</td>
+<td>30</td>
+<td>68</td>
+</tr>
+<tr>
+<td><code>t_motor_f60_2550</code></td>
+<td>T-Motor F60 2550KV</td>
+<td>2550</td>
+<td>35</td>
+<td>55</td>
+</tr>
+<tr>
+<td><code>emax_mt2213_935</code></td>
+<td>Emax MT2213 935KV</td>
+<td>935</td>
+<td>20</td>
+<td>57</td>
+</tr>
+<tr>
+<td><code>emax_mt2216_810</code></td>
+<td>Emax MT2216 810KV</td>
+<td>810</td>
+<td>20</td>
+<td>75</td>
+</tr>
+<tr>
+<td><code>emax_rs2205_2600</code></td>
+<td>Emax RS2205 2600KV</td>
+<td>2600</td>
+<td>30</td>
+<td>30</td>
+</tr>
+<tr>
+<td><code>rctimer_5010_360</code></td>
+<td>RCTimer 5010 360KV</td>
+<td>360</td>
+<td>40</td>
+<td>190</td>
+</tr>
+<tr>
+<td><code>scorpion_m2205_2350</code></td>
+<td>Scorpion M2205 2350KV</td>
+<td>2350</td>
+<td>30</td>
+<td>35</td>
+</tr>
+<tr>
+<td><code>scorpion_hkii_2221_900</code></td>
+<td>Scorpion HKII-2221 900KV</td>
+<td>900</td>
+<td>22</td>
+<td>68</td>
+</tr>
+<tr>
+<td><code>axi_2217_20</code></td>
+<td>AXi 2217/20</td>
+<td>1050</td>
+<td>18</td>
+<td>95</td>
+</tr>
+<tr>
+<td><code>turnigy_d3530_1400</code></td>
+<td>Turnigy D3530/14 1400KV</td>
+<td>1400</td>
+<td>21</td>
+<td>86</td>
+</tr>
+<tr>
+<td><code>hacker_a20_26</code></td>
+<td>Hacker A20-26L</td>
+<td>1020</td>
+<td>16</td>
+<td>72</td>
+</tr>
+<tr>
+<td><code>dualsky_eco_2315c_1100</code></td>
+<td>Dualsky ECO 2315C 1100KV</td>
+<td>1100</td>
+<td>18</td>
+<td>65</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="batteries">Batteries<a class="headerlink" href="#batteries" title="Permanent link">&para;</a></h2>
+<p>Import from <code>aerisplane.catalog.batteries</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Name</th>
+<th>Cap [Ah]</th>
+<th>Voltage [V]</th>
+<th>C-rating</th>
+<th>Mass [g]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tattu_3s_2300</code></td>
+<td>Tattu 3S 2300mAh 45C</td>
+<td>2.3</td>
+<td>11.1</td>
+<td>45</td>
+<td>178</td>
+</tr>
+<tr>
+<td><code>tattu_4s_1800</code></td>
+<td>Tattu 4S 1800mAh 75C</td>
+<td>1.8</td>
+<td>14.8</td>
+<td>75</td>
+<td>218</td>
+</tr>
+<tr>
+<td><code>tattu_4s_3300</code></td>
+<td>Tattu 4S 3300mAh 45C</td>
+<td>3.3</td>
+<td>14.8</td>
+<td>45</td>
+<td>302</td>
+</tr>
+<tr>
+<td><code>tattu_4s_5200</code></td>
+<td>Tattu 4S 5200mAh 45C</td>
+<td>5.2</td>
+<td>14.8</td>
+<td>45</td>
+<td>470</td>
+</tr>
+<tr>
+<td><code>tattu_6s_10000</code></td>
+<td>Tattu 6S 10000mAh 25C</td>
+<td>10.0</td>
+<td>22.2</td>
+<td>25</td>
+<td>1280</td>
+</tr>
+<tr>
+<td><code>tattu_6s_16000</code></td>
+<td>Tattu 6S 16000mAh 15C</td>
+<td>16.0</td>
+<td>22.2</td>
+<td>15</td>
+<td>1900</td>
+</tr>
+<tr>
+<td><code>gens_ace_3s_2200</code></td>
+<td>Gens Ace 3S 2200mAh 25C</td>
+<td>2.2</td>
+<td>11.1</td>
+<td>25</td>
+<td>162</td>
+</tr>
+<tr>
+<td><code>gens_ace_4s_4000</code></td>
+<td>Gens Ace 4S 4000mAh 45C</td>
+<td>4.0</td>
+<td>14.8</td>
+<td>45</td>
+<td>390</td>
+</tr>
+<tr>
+<td><code>gens_ace_6s_6000</code></td>
+<td>Gens Ace 6S 6000mAh 30C</td>
+<td>6.0</td>
+<td>22.2</td>
+<td>30</td>
+<td>870</td>
+</tr>
+<tr>
+<td><code>turnigy_nano_tech_3s_2200</code></td>
+<td>Turnigy Nano-tech 3S 2200mAh</td>
+<td>2.2</td>
+<td>11.1</td>
+<td>25</td>
+<td>156</td>
+</tr>
+<tr>
+<td><code>turnigy_nano_tech_4s_5000</code></td>
+<td>Turnigy Nano-tech 4S 5000mAh</td>
+<td>5.0</td>
+<td>14.8</td>
+<td>25</td>
+<td>480</td>
+</tr>
+<tr>
+<td><code>turnigy_nano_tech_6s_3300</code></td>
+<td>Turnigy Nano-tech 6S 3300mAh</td>
+<td>3.3</td>
+<td>22.2</td>
+<td>45</td>
+<td>480</td>
+</tr>
+<tr>
+<td><code>multistar_4s_10000</code></td>
+<td>Multistar 4S 10000mAh 10C</td>
+<td>10.0</td>
+<td>14.8</td>
+<td>10</td>
+<td>890</td>
+</tr>
+<tr>
+<td><code>ovonic_4s_2200</code></td>
+<td>Ovonic 4S 2200mAh 50C</td>
+<td>2.2</td>
+<td>14.8</td>
+<td>50</td>
+<td>200</td>
+</tr>
+<tr>
+<td><code>ovonic_6s_3300</code></td>
+<td>Ovonic 6S 3300mAh 50C</td>
+<td>3.3</td>
+<td>22.2</td>
+<td>50</td>
+<td>480</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="propellers">Propellers<a class="headerlink" href="#propellers" title="Permanent link">&para;</a></h2>
+<p>Import from <code>aerisplane.catalog.propellers</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Diameter × Pitch</th>
+<th>Mass [g]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apc_10x4_7sf</code></td>
+<td>10×4.7 in</td>
+<td>18</td>
+</tr>
+<tr>
+<td><code>apc_11x4_7sf</code></td>
+<td>11×4.7 in</td>
+<td>21</td>
+</tr>
+<tr>
+<td><code>apc_13x4_7sf</code></td>
+<td>13×4.7 in</td>
+<td>30</td>
+</tr>
+<tr>
+<td><code>apc_10x7e</code></td>
+<td>10×7 in</td>
+<td>19</td>
+</tr>
+<tr>
+<td><code>apc_12x6e</code></td>
+<td>12×6 in</td>
+<td>27</td>
+</tr>
+<tr>
+<td><code>apc_14x8_3mf</code></td>
+<td>14×8.3 in</td>
+<td>40</td>
+</tr>
+<tr>
+<td><code>master_airscrew_10x5</code></td>
+<td>10×5 in</td>
+<td>20</td>
+</tr>
+<tr>
+<td><code>master_airscrew_11x7</code></td>
+<td>11×7 in</td>
+<td>26</td>
+</tr>
+<tr>
+<td><code>master_airscrew_14x7</code></td>
+<td>14×7 in</td>
+<td>42</td>
+</tr>
+<tr>
+<td><code>tjd_14x8_5</code></td>
+<td>14×8.5 in</td>
+<td>22</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="airfoils">Airfoils<a class="headerlink" href="#airfoils" title="Permanent link">&para;</a></h2>
+<p>The airfoil catalog contains 2175 <code>.dat</code> files. Load by name:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">aerisplane</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ap</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">af</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">Airfoil</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;ag35&quot;</span><span class="p">)</span>       <span class="c1"># load from catalog</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">af</span> <span class="o">=</span> <span class="n">ap</span><span class="o">.</span><span class="n">Airfoil</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;naca2412&quot;</span><span class="p">)</span>   <span class="c1"># generated analytically (NACA 4-digit)</span>
+</code></pre></div>
+<hr />
+<h2 id="auto-generated-reference">Auto-generated reference<a class="headerlink" href="#auto-generated-reference" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="aerisplane.catalog.list_motors" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aerisplane</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">list_motors</span><span class="p">()</span></code>
+
+<a href="#aerisplane.catalog.list_motors" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return all motors in the catalog.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code>list of Motor</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>All :class:<code>~aerisplane.core.propulsion.Motor</code> instances in
+<code>aerisplane.catalog.motors</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Examples:</span></p>
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">aerisplane.catalog</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_motors</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="gp">&gt;&gt;&gt; </span><span class="n">motors</span> <span class="o">=</span> <span class="n">list_motors</span><span class="p">()</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">motors</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">  KV=</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">kv</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="aerisplane.catalog.list_batteries" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aerisplane</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">list_batteries</span><span class="p">()</span></code>
+
+<a href="#aerisplane.catalog.list_batteries" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return all batteries in the catalog.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code>list of Battery</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>All :class:<code>~aerisplane.core.propulsion.Battery</code> instances in
+<code>aerisplane.catalog.batteries</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="aerisplane.catalog.list_propellers" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aerisplane</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">list_propellers</span><span class="p">()</span></code>
+
+<a href="#aerisplane.catalog.list_propellers" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return all propellers in the catalog.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code>list of Propeller</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>All :class:<code>~aerisplane.core.propulsion.Propeller</code> instances in
+<code>aerisplane.catalog.propellers</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="aerisplane.catalog.list_servos" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aerisplane</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">list_servos</span><span class="p">()</span></code>
+
+<a href="#aerisplane.catalog.list_servos" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Return all servos in the catalog.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code>list of Servo</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>All :class:<code>~aerisplane.core.control_surface.Servo</code> instances in
+<code>aerisplane.catalog.servos</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="aerisplane.catalog.get_airfoil" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">aerisplane</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">get_airfoil</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+<a href="#aerisplane.catalog.get_airfoil" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Load an airfoil from the catalog by name.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Airfoil name (case-insensitive), e.g. <code>"ag35"</code>, <code>"naca2412"</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="aerisplane.core.airfoil.Airfoil
+
+
+  
+      dataclass
+  " href="../core/#aerisplane.core.airfoil.Airfoil">Airfoil</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no matching <code>.dat</code> file is found in the catalog.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
