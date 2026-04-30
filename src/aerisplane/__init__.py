@@ -28,6 +28,7 @@ from aerisplane.core.propulsion import (
 from aerisplane.core.structures import Material, Skin, Spar, TubeSection
 from aerisplane.core.wing import Wing, WingXSec
 
+
 __all__ = [
     # Core geometry
     "Aircraft",

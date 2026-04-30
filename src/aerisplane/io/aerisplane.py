@@ -255,6 +255,8 @@ def save_aircraft(aircraft: Aircraft, path: str | Path, *, indent: int = 2) -> P
             "servos": enc.servos,
         },
     }
+    if not path.endswith(".apl.json"):
+        path += ".apl.json"
     out = Path(path)
     out.write_text(json.dumps(document, indent=indent))
     return out
